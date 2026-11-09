@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'">
+<title>FM27 Tactic Builder</title>
+<style>
+  :root {
+    --ink: #17202a; --muted: #5b6672; --line: #d9dee3; --soft: #f4f6f8; --bg: #eef1f4; --card: #fff;
+    --accent: #1f6f50; --accent-ink: #fff; --accent-soft: #e5f2ec; --danger: #9b2c1f; --danger-soft: #fdecea;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  .shell { max-width: 1120px; margin: 0 auto; padding: 20px 16px 40px; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .top h1 { font-size: 24px; margin: 0; }
+  .top .ver { color: var(--muted); font-size: 12.5px; }
+  .card { background: var(--card); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04); padding: 20px; margin-bottom: 14px; }
+  .drop { border: 2px dashed #9fb3a8; border-radius: 12px; padding: 34px 18px; text-align: center; background: #fbfdfc; transition: background .15s, border-color .15s; }
+  .drop.over { background: var(--accent-soft); border-color: var(--accent); }
+  .drop h2 { margin: 0 0 6px; font-size: 21px; }
+  .drop p { margin: 4px 0 16px; color: var(--muted); }
+  .btn { display: inline-block; font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .btn.secondary { background: #fff; color: var(--accent); }
+  .btn.small { padding: 5px 11px; font-size: 13.5px; }
+  .btn:focus-visible { outline: 3px solid #8cc7ab; outline-offset: 2px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  .opts label { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .status { margin: 10px 0 0; min-height: 1.5em; }
+  .error { background: var(--danger-soft); color: var(--danger); border-radius: 8px; padding: 12px 14px; }
+  .error ul { margin: 6px 0 0; }
+  .toolbar { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: rgba(238,241,244,.94); backdrop-filter: blur(4px); padding: 8px 0; margin-bottom: 8px; }
+  .toolbar .spacer { flex: 1; }
+  #report-holder { background: #fff; border-radius: 12px; padding: 8px 0; }
+  .help ol { padding-left: 20px; }
+  .help li { margin: 4px 0; }
+  code { background: var(--soft); padding: 0 4px; border-radius: 4px; }
+  .hidden { display: none !important; }
+  @media print {
+    body { background: #fff; }
+    .shell { padding: 0; max-width: none; }
+    .no-print, .toolbar { display: none !important; }
+    #report-holder { border-radius: 0; padding: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top no-print">
+    <h1>FM27 Tactic Builder</h1>
+    <span class="ver">Version <!--APP_VERSION--> · works offline · only reads your file, never your game</span>
+  </div>
+
+  <div id="start" class="no-print">
+    <div class="card">
+      <div id="drop" class="drop" tabindex="0">
+        <h2>Drop your FM27 squad export here</h2>
+        <p>A CSV or HTML file from FM View Exporter (press F9 on your squad screen), FM27 Player Export, or any squad export with player attributes.</p>
+        <div class="row">
+          <button class="btn" id="choose">Choose file…</button>
+          <button class="btn secondary" id="sample">Try the sample squad</button>
+        </div>
+        <input type="file" id="file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <details class="opts">
+        <summary>Options</summary>
+        <label><input type="checkbox" id="opt-injured" checked> Leave injured players out of the starting XI</label>
+      </details>
+
+      <details class="opts">
+        <summary>Advanced: role and tuning files</summary>
+        <p class="small muted">The roles (and their key attributes) and the engine's numbers live in two JSON files. After an FM27 patch you can
+          edit them and load your copy here; it's remembered in this browser.</p>
+        <div class="row" style="justify-content:flex-start">
+          <button class="btn secondary small" id="dl-roles">Download roles.json</button>
+          <button class="btn secondary small" id="dl-tuning">Download tuning.json</button>
+          <button class="btn secondary small" id="load-json">Load my own roles.json / tuning.json…</button>
+          <button class="btn secondary small" id="reset-json">Use built-in files</button>
+          <input type="file" id="json-file" accept=".json,application/json" class="hidden">
+        </div>
+        <p id="json-status" class="small muted"></p>
+      </details>
+    </div>
+
+    <div class="card help">
+      <h2 style="margin-top:0;font-size:18px">How to get the export from FM27</h2>
+      <ol>
+        <li>Install <strong>FM View Exporter</strong> once (free; see the README). It adds an <strong>F9</strong> export to FM27.</li>
+        <li>In FM27 open <strong>Squad</strong> and pick a view that shows all attributes (the README lists the columns, or import the ready-made view).</li>
+        <li>Press <strong>F9</strong> and wait until it stops scrolling. The file appears in <code>Documents\Sports Interactive\FM View Exporter</code>.</li>
+        <li>Drag that <code>squad_….csv</code> (or <code>.html</code>) onto the box above.</li>
+      </ol>
+      <p class="small muted">Nothing is uploaded anywhere: the file is read inside this page, on your PC.</p>
+    </div>
+  </div>
+
+  <div id="result" class="hidden">
+    <div class="toolbar no-print">
+      <button class="btn" id="print">Print / Save as PDF</button>
+      <button class="btn secondary" id="save">Save report as HTML</button>
+      <span class="spacer"></span>
+      <button class="btn secondary" id="again">Load another file</button>
+    </div>
+    <div id="report-holder"></div>
+  </div>
+</div>
+<!--APP_SCRIPT-->
+</body>
+</html>

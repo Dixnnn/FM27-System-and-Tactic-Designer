@@ -1,0 +1,3400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'">
+<title>FM27 Tactic Builder</title>
+<style>
+  :root {
+    --ink: #17202a; --muted: #5b6672; --line: #d9dee3; --soft: #f4f6f8; --bg: #eef1f4; --card: #fff;
+    --accent: #1f6f50; --accent-ink: #fff; --accent-soft: #e5f2ec; --danger: #9b2c1f; --danger-soft: #fdecea;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  .shell { max-width: 1120px; margin: 0 auto; padding: 20px 16px 40px; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .top h1 { font-size: 24px; margin: 0; }
+  .top .ver { color: var(--muted); font-size: 12.5px; }
+  .card { background: var(--card); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04); padding: 20px; margin-bottom: 14px; }
+  .drop { border: 2px dashed #9fb3a8; border-radius: 12px; padding: 34px 18px; text-align: center; background: #fbfdfc; transition: background .15s, border-color .15s; }
+  .drop.over { background: var(--accent-soft); border-color: var(--accent); }
+  .drop h2 { margin: 0 0 6px; font-size: 21px; }
+  .drop p { margin: 4px 0 16px; color: var(--muted); }
+  .btn { display: inline-block; font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .btn.secondary { background: #fff; color: var(--accent); }
+  .btn.small { padding: 5px 11px; font-size: 13.5px; }
+  .btn:focus-visible { outline: 3px solid #8cc7ab; outline-offset: 2px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  .opts label { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .status { margin: 10px 0 0; min-height: 1.5em; }
+  .error { background: var(--danger-soft); color: var(--danger); border-radius: 8px; padding: 12px 14px; }
+  .error ul { margin: 6px 0 0; }
+  .toolbar { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: rgba(238,241,244,.94); backdrop-filter: blur(4px); padding: 8px 0; margin-bottom: 8px; }
+  .toolbar .spacer { flex: 1; }
+  #report-holder { background: #fff; border-radius: 12px; padding: 8px 0; }
+  .help ol { padding-left: 20px; }
+  .help li { margin: 4px 0; }
+  code { background: var(--soft); padding: 0 4px; border-radius: 4px; }
+  .hidden { display: none !important; }
+  @media print {
+    body { background: #fff; }
+    .shell { padding: 0; max-width: none; }
+    .no-print, .toolbar { display: none !important; }
+    #report-holder { border-radius: 0; padding: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top no-print">
+    <h1>FM27 Tactic Builder</h1>
+    <span class="ver">Version 0.1.0 · works offline · only reads your file, never your game</span>
+  </div>
+
+  <div id="start" class="no-print">
+    <div class="card">
+      <div id="drop" class="drop" tabindex="0">
+        <h2>Drop your FM27 squad export here</h2>
+        <p>A CSV or HTML file from FM View Exporter (press F9 on your squad screen), FM27 Player Export, or any squad export with player attributes.</p>
+        <div class="row">
+          <button class="btn" id="choose">Choose file…</button>
+          <button class="btn secondary" id="sample">Try the sample squad</button>
+        </div>
+        <input type="file" id="file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <details class="opts">
+        <summary>Options</summary>
+        <label><input type="checkbox" id="opt-injured" checked> Leave injured players out of the starting XI</label>
+      </details>
+
+      <details class="opts">
+        <summary>Advanced: role and tuning files</summary>
+        <p class="small muted">The roles (and their key attributes) and the engine's numbers live in two JSON files. After an FM27 patch you can
+          edit them and load your copy here; it's remembered in this browser.</p>
+        <div class="row" style="justify-content:flex-start">
+          <button class="btn secondary small" id="dl-roles">Download roles.json</button>
+          <button class="btn secondary small" id="dl-tuning">Download tuning.json</button>
+          <button class="btn secondary small" id="load-json">Load my own roles.json / tuning.json…</button>
+          <button class="btn secondary small" id="reset-json">Use built-in files</button>
+          <input type="file" id="json-file" accept=".json,application/json" class="hidden">
+        </div>
+        <p id="json-status" class="small muted"></p>
+      </details>
+    </div>
+
+    <div class="card help">
+      <h2 style="margin-top:0;font-size:18px">How to get the export from FM27</h2>
+      <ol>
+        <li>Install <strong>FM View Exporter</strong> once (free; see the README). It adds an <strong>F9</strong> export to FM27.</li>
+        <li>In FM27 open <strong>Squad</strong> and pick a view that shows all attributes (the README lists the columns, or import the ready-made view).</li>
+        <li>Press <strong>F9</strong> and wait until it stops scrolling. The file appears in <code>Documents\Sports Interactive\FM View Exporter</code>.</li>
+        <li>Drag that <code>squad_….csv</code> (or <code>.html</code>) onto the box above.</li>
+      </ol>
+      <p class="small muted">Nothing is uploaded anywhere: the file is read inside this page, on your PC.</p>
+    </div>
+  </div>
+
+  <div id="result" class="hidden">
+    <div class="toolbar no-print">
+      <button class="btn" id="print">Print / Save as PDF</button>
+      <button class="btn secondary" id="save">Save report as HTML</button>
+      <span class="spacer"></span>
+      <button class="btn secondary" id="again">Load another file</button>
+    </div>
+    <div id="report-holder"></div>
+  </div>
+</div>
+<script>
+(() => {
+  // src/input/csv.js
+  var CANDIDATES = [",", ";", "	"];
+  function detectDelimiter(text) {
+    const firstLine = firstRecord(text);
+    let best = ",";
+    let bestCount = -1;
+    for (const d of CANDIDATES) {
+      const count = countOutsideQuotes(firstLine, d);
+      if (count > bestCount) {
+        best = d;
+        bestCount = count;
+      }
+    }
+    return best;
+  }
+  function firstRecord(text) {
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (c === '"') inQuotes = !inQuotes;
+      else if ((c === "\n" || c === "\r") && !inQuotes) return text.slice(0, i);
+    }
+    return text;
+  }
+  function countOutsideQuotes(line, ch) {
+    let n = 0;
+    let inQuotes = false;
+    for (const c of line) {
+      if (c === '"') inQuotes = !inQuotes;
+      else if (c === ch && !inQuotes) n++;
+    }
+    return n;
+  }
+  function parseCSV(text, delimiter) {
+    text = stripBom(text);
+    const d = delimiter || detectDelimiter(text);
+    const records = [];
+    let field = "";
+    let record = [];
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') {
+            field += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          field += c;
+        }
+      } else if (c === '"') {
+        inQuotes = true;
+      } else if (c === d) {
+        record.push(field);
+        field = "";
+      } else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        record.push(field);
+        records.push(record);
+        record = [];
+        field = "";
+      } else {
+        field += c;
+      }
+    }
+    if (field !== "" || record.length) {
+      record.push(field);
+      records.push(record);
+    }
+    const clean = records.map((r) => r.map((cell) => cell.trim())).filter((r) => r.some((cell) => cell !== ""));
+    const headers = clean.length ? clean[0] : [];
+    const rows = clean.slice(1).map((r) => padRow(r, headers.length));
+    return { headers, rows, delimiter: d, decimalComma: looksDecimalComma(rows, d) };
+  }
+  function padRow(row, n) {
+    if (row.length >= n) return row;
+    return row.concat(Array(n - row.length).fill(""));
+  }
+  function looksDecimalComma(rows, d) {
+    if (d === ",") return false;
+    let comma = 0;
+    let dot = 0;
+    for (const r of rows.slice(0, 50)) {
+      for (const cell of r) {
+        if (/^-?\d+,\d+$/.test(cell)) comma++;
+        else if (/^-?\d+\.\d+$/.test(cell)) dot++;
+      }
+    }
+    return comma > dot;
+  }
+  function stripBom(text) {
+    return text.charCodeAt(0) === 65279 ? text.slice(1) : text;
+  }
+
+  // src/input/html.js
+  var ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", "#39": "'" };
+  function decodeEntities(s) {
+    return s.replace(/&(#x[0-9a-f]+|#\d+|[a-z0-9]+);/gi, (m, code) => {
+      const lower = code.toLowerCase();
+      if (lower.startsWith("#x")) return String.fromCodePoint(parseInt(lower.slice(2), 16));
+      if (lower.startsWith("#")) return String.fromCodePoint(parseInt(lower.slice(1), 10));
+      return ENTITIES[lower] ?? m;
+    });
+  }
+  function cellText(html) {
+    const noTags = html.replace(/<br\s*\/?>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, "");
+    return decodeEntities(noTags).replace(/\s+/g, " ").trim();
+  }
+  function parseRows(tableHtml) {
+    const rows = [];
+    const rowRe = /<tr\b[^>]*>([\s\S]*?)(?=<tr\b|<\/table>|$)/gi;
+    let m;
+    while (m = rowRe.exec(tableHtml)) {
+      const cells = [];
+      let isHeader = false;
+      const cellRe = /<(t[hd])\b([^>]*)>([\s\S]*?)(?=<t[hd]\b|<\/tr>|$)/gi;
+      let c;
+      while (c = cellRe.exec(m[1])) {
+        if (c[1].toLowerCase() === "th") isHeader = true;
+        const text = cellText(c[3].replace(/<\/t[hd]>\s*$/i, ""));
+        const span = /colspan\s*=\s*"?(\d+)/i.exec(c[2]);
+        cells.push(text);
+        for (let k = 1; span && k < Number(span[1]); k++) cells.push("");
+      }
+      if (cells.length) rows.push({ cells, isHeader });
+    }
+    return rows;
+  }
+  function parseHTMLTable(html) {
+    const tables = html.match(/<table\b[\s\S]*?<\/table>/gi) || [];
+    let best = [];
+    for (const t of tables) {
+      const rows2 = parseRows(t);
+      if (rows2.length > best.length) best = rows2;
+    }
+    const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+    const title = titleMatch ? cellText(titleMatch[1]) : "";
+    if (!best.length) return { headers: [], rows: [], title };
+    let headerIndex = best.findIndex((r) => r.isHeader);
+    if (headerIndex < 0) headerIndex = 0;
+    const headers = best[headerIndex].cells;
+    const rows = best.slice(headerIndex + 1).filter((r) => !r.isHeader && r.cells.some((x) => x !== "")).map((r) => {
+      const cells = r.cells.slice(0, headers.length);
+      while (cells.length < headers.length) cells.push("");
+      return cells;
+    });
+    return { headers, rows, title };
+  }
+
+  // src/input/adapters.js
+  var fmViewExporter = {
+    id: "fm-view-exporter",
+    label: "FM View Exporter (F9 plugin)",
+    detect({ headers, filename }) {
+      let score2 = 0;
+      if (/^(?:[\w.-]+-)?(squad|player-database|shortlist)(_\d{8}_\d{6})?\.(csv|html?)$/i.test(baseName(filename))) score2 += 0.5;
+      if (headers.includes("Unique ID")) score2 += 0.3;
+      if (headers.includes("Player") || headers.includes("Name")) score2 += 0.1;
+      return score2;
+    },
+    aliases: {}
+  };
+  var vintesetExport = {
+    id: "fm27-player-export",
+    label: "FM27 Player Export (vinteset plugin)",
+    detect({ filename, delimiter, decimalComma }) {
+      let score2 = 0;
+      if (/player_export_\d{8}/i.test(baseName(filename))) score2 += 0.6;
+      if (delimiter === ";") score2 += 0.2;
+      if (decimalComma) score2 += 0.1;
+      return score2;
+    },
+    aliases: {}
+  };
+  var genericExport = {
+    id: "generic",
+    label: "Other CSV/HTML export",
+    detect() {
+      return 0.05;
+    },
+    aliases: {}
+  };
+  var ADAPTERS = [fmViewExporter, vintesetExport, genericExport];
+  function baseName(filename = "") {
+    return String(filename).split(/[\\/]/).pop();
+  }
+  function pickAdapter(meta) {
+    let best = genericExport;
+    let bestScore = -1;
+    for (const a of ADAPTERS) {
+      const s = a.detect(meta);
+      if (s > bestScore) {
+        best = a;
+        bestScore = s;
+      }
+    }
+    return best;
+  }
+
+  // src/input/index.js
+  function looksLikeHtml(text, filename = "") {
+    if (/\.html?$/i.test(filename)) return true;
+    return /<table\b/i.test(text.slice(0, 5e5)) && /<\/t[dh]>/i.test(text.slice(0, 5e5));
+  }
+  function readExport(text, filename = "") {
+    text = stripBom(String(text || ""));
+    const warnings = [];
+    let table;
+    let format;
+    if (looksLikeHtml(text, filename)) {
+      const t = parseHTMLTable(text);
+      table = { headers: t.headers, rows: t.rows, delimiter: null, decimalComma: guessDecimalComma(t.rows) };
+      format = "html";
+    } else {
+      table = parseCSV(text);
+      format = "csv";
+    }
+    if (!table.headers.length) warnings.push("The file has no table in it.");
+    else if (!table.rows.length) warnings.push("The table has a header row but no players.");
+    const adapter = pickAdapter({ ...table, filename, format });
+    return { ...table, format, adapter, warnings };
+  }
+  function guessDecimalComma(rows) {
+    let comma = 0;
+    let dot = 0;
+    for (const r of rows.slice(0, 50)) {
+      for (const cell of r) {
+        if (/^-?\d+,\d$/.test(cell)) comma++;
+        else if (/^-?\d+\.\d+$/.test(cell)) dot++;
+      }
+    }
+    return comma > dot;
+  }
+
+  // src/parse/columns.js
+  function normHeader(h) {
+    return String(h || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+  function buildHeaderMap(headers, columnsDoc, extraAliases = {}) {
+    const lookup = /* @__PURE__ */ new Map();
+    const add = (kind, name, header) => {
+      const key = normHeader(header);
+      if (key && !lookup.has(key)) lookup.set(key, { kind, name });
+    };
+    for (const a of columnsDoc.attributes) for (const h of a.headers) add("attr", a.field, h);
+    for (const f of columnsDoc.fields) for (const h of f.headers) add("field", f.field, h);
+    for (const [field, hs] of Object.entries(extraAliases)) for (const h of hs) add("field", field, h);
+    const fields = {};
+    const attributes = {};
+    const unknown = [];
+    headers.forEach((h, i) => {
+      const hit = lookup.get(normHeader(h));
+      if (!hit) {
+        if (h) unknown.push(h);
+        return;
+      }
+      const target = hit.kind === "attr" ? attributes : fields;
+      if (!(hit.name in target)) target[hit.name] = i;
+    });
+    return { fields, attributes, unknown };
+  }
+
+  // src/parse/positions.js
+  var SIDED = /* @__PURE__ */ new Set(["D", "WB", "M", "AM", "ST"]);
+  function parsePositions(text) {
+    const out = /* @__PURE__ */ new Set();
+    if (!text) return out;
+    const chunks = String(text).replace(/[–—]/g, "-").split(/,|;|\|/).map((s) => s.trim()).filter(Boolean);
+    for (const chunk of chunks) {
+      const m = /^([A-Za-z/ ]+?)\s*(?:\(([RLCrlc ]+)\))?$/.exec(chunk);
+      if (!m) continue;
+      const bases = m[1].toUpperCase().split("/").map((b) => b.trim()).filter(Boolean);
+      const sides = (m[2] || "").toUpperCase().replace(/\s/g, "").split("").filter(Boolean);
+      for (let base of bases) {
+        if (base === "GK" || base === "DM") {
+          out.add(base);
+          continue;
+        }
+        if (base === "S" || base === "F" || base === "FC") base = "ST";
+        if (base === "WB" && !sides.length) {
+          out.add("WB (L)");
+          out.add("WB (R)");
+          continue;
+        }
+        if (!SIDED.has(base)) continue;
+        const useSides = sides.length ? sides : ["C"];
+        for (const s of useSides) {
+          if (base === "ST") out.add("ST (C)");
+          else if (base === "WB" && s === "C") continue;
+          else out.add(`${base} (${s})`);
+        }
+      }
+    }
+    return out;
+  }
+  function buildAdjacency(tuning) {
+    const adj = {};
+    for (const [a, b, level] of tuning.familiarity.adjacent) {
+      (adj[a] ||= {})[b] = level;
+      (adj[b] ||= {})[a] = level;
+    }
+    return adj;
+  }
+  var ORDER = ["Natural", "Accomplished", "Competent", "Unconvincing", "Awkward"];
+  function familiarity(player, position, adjacency) {
+    if (player.bestPos.has(position)) return "Natural";
+    if (player.positions.has(position)) return player.bestPos.size ? "Accomplished" : "Natural";
+    if (position === "GK" || player.positions.has("GK")) return "Awkward";
+    let best = "Awkward";
+    for (const p of player.positions) {
+      const level = adjacency[p]?.[position];
+      if (level && ORDER.indexOf(level) < ORDER.indexOf(best)) best = level;
+    }
+    return best;
+  }
+
+  // src/parse/player.js
+  function parseAttribute(raw) {
+    if (raw == null) return null;
+    const s = String(raw).trim().replace(/[–—]/g, "-");
+    if (!s || s === "-" || s === "?" || /^n\/?a$/i.test(s)) return null;
+    const range = /^(\d{1,2})\s*-\s*(\d{1,2})$/.exec(s);
+    if (range) {
+      const lo = clampAttr(Number(range[1]));
+      const hi = clampAttr(Number(range[2]));
+      const a = Math.min(lo, hi);
+      const b = Math.max(lo, hi);
+      return { v: (a + b) / 2, lo: a, hi: b, range: a !== b };
+    }
+    const n = /^(\d{1,2})(?:[.,]\d+)?$/.exec(s);
+    if (n) {
+      const v = clampAttr(Number(n[1]));
+      return { v, lo: v, hi: v, range: false };
+    }
+    return null;
+  }
+  function clampAttr(n) {
+    return Math.max(1, Math.min(20, n));
+  }
+  function parseHeight(raw) {
+    if (!raw) return null;
+    const s = String(raw).trim();
+    let m = /^(\d{3})\s*cm$/i.exec(s) || /^(\d{3})$/.exec(s);
+    if (m) return Number(m[1]);
+    m = /^(\d)[.,](\d{2})\s*m$/i.exec(s);
+    if (m) return Number(m[1]) * 100 + Number(m[2]);
+    m = /^(\d)\s*(?:'|ft)\s*(\d{1,2})?\s*(?:"|''|in)?$/i.exec(s);
+    if (m) return Math.round((Number(m[1]) * 12 + Number(m[2] || 0)) * 2.54);
+    return null;
+  }
+  function parseNumber(raw, decimalComma = false) {
+    if (raw == null) return null;
+    let s = String(raw).trim().replace("%", "");
+    if (!s || s === "-") return null;
+    if (decimalComma) s = s.replace(/\./g, "").replace(",", ".");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+  function footStrength(raw, tuning) {
+    if (!raw) return null;
+    const s = String(raw).trim().toLowerCase();
+    for (const [label, value] of Object.entries(tuning.foot.strength)) {
+      if (label.toLowerCase() === s) return value;
+    }
+    return null;
+  }
+  function splitList(raw) {
+    if (!raw) return [];
+    return String(raw).split(/\s*(?:,|;|\||\n| \/ )\s*/).map((s) => s.trim()).filter((s) => s && s !== "-");
+  }
+  var CONDITION_WORDS = { "fully fit": 100, "match fit": 95, fit: 90, "slightly tired": 85, tired: 75, "very tired": 65, exhausted: 55 };
+  function parseCondition(raw, decimalComma) {
+    const n = parseNumber(raw, decimalComma);
+    if (n != null) return n <= 1 ? Math.round(n * 100) : n;
+    const w = CONDITION_WORDS[String(raw || "").trim().toLowerCase()];
+    return w ?? null;
+  }
+  function cleanText(raw) {
+    const s = String(raw ?? "").trim();
+    return s && s !== "-" ? s : "";
+  }
+  function parsePlayers(table, map, columnsDoc, tuning) {
+    const attrNames = columnsDoc.attributes.map((a) => a.field);
+    const get = (row, field) => field in map.fields ? row[map.fields[field]] : void 0;
+    const players = [];
+    const seenNames = /* @__PURE__ */ new Map();
+    table.rows.forEach((row, index) => {
+      const name = cleanText(get(row, "name"));
+      if (!name) return;
+      const attrs = {};
+      const uncertainAttrs = [];
+      const unknownAttrs = [];
+      for (const a of attrNames) {
+        if (!(a in map.attributes)) {
+          attrs[a] = null;
+          continue;
+        }
+        const value = parseAttribute(row[map.attributes[a]]);
+        attrs[a] = value;
+        if (!value) unknownAttrs.push(a);
+        else if (value.range && value.hi - value.lo >= 2) uncertainAttrs.push(a);
+      }
+      const positions = parsePositions(get(row, "position"));
+      for (const p of parsePositions(get(row, "secPosition"))) positions.add(p);
+      const bestPos = parsePositions(get(row, "bestPos"));
+      for (const p of bestPos) positions.add(p);
+      let left = footStrength(get(row, "leftFoot"), tuning);
+      let right = footStrength(get(row, "rightFoot"), tuning);
+      const preferredFoot = cleanText(get(row, "preferredFoot"));
+      if (left == null && right == null && preferredFoot) {
+        const p = preferredFoot.toLowerCase();
+        if (p.startsWith("left")) [left, right] = [1, p.includes("only") ? 0 : 0.25];
+        else if (p.startsWith("right")) [left, right] = [p.includes("only") ? 0 : 0.25, 1];
+        else if (p.startsWith("either")) [left, right] = [0.85, 0.85];
+      }
+      const injury = cleanText(get(row, "injury"));
+      const info = cleanText(get(row, "info"));
+      const injured = !!injury && !/^(none|no|fit)$/i.test(injury) || /\binj/i.test(info);
+      const suspended = /\b(ban|sus)/i.test(info);
+      const uid = cleanText(get(row, "id"));
+      let id = uid || name;
+      if (seenNames.has(id)) id = `${id} #${index + 1}`;
+      seenNames.set(id, true);
+      players.push({
+        id,
+        uid,
+        name,
+        age: parseNumber(get(row, "age")),
+        club: cleanText(get(row, "club")),
+        positionsText: cleanText(get(row, "position")),
+        positions,
+        bestPos,
+        isGoalkeeper: positions.has("GK") && positions.size === 1,
+        attrs,
+        uncertainAttrs,
+        unknownAttrs,
+        heightCm: parseHeight(get(row, "height")),
+        preferredFoot,
+        leftFoot: left,
+        rightFoot: right,
+        personality: cleanText(get(row, "personality")),
+        traits: splitList(get(row, "traits")),
+        condition: parseCondition(get(row, "condition"), table.decimalComma),
+        sharpness: parseCondition(get(row, "sharpness"), table.decimalComma),
+        fatigue: cleanText(get(row, "fatigue")),
+        injury,
+        info,
+        injured,
+        suspended,
+        rating: parseNumber(get(row, "rating"), table.decimalComma),
+        fmBestRole: cleanText(get(row, "bestRole")),
+        fmRoleStars: parseNumber(get(row, "roleAbility"), table.decimalComma),
+        fmRoleStarsOOP: parseNumber(get(row, "roleAbilityOOP"), table.decimalComma)
+      });
+    });
+    return players;
+  }
+
+  // src/parse/validate.js
+  var GK_ONLY = /* @__PURE__ */ new Set([
+    "Aerial Reach",
+    "Command of Area",
+    "Communication",
+    "Eccentricity",
+    "Handling",
+    "Kicking",
+    "One on Ones",
+    "Punching (Tendency)",
+    "Reflexes",
+    "Rushing Out (Tendency)",
+    "Throwing"
+  ]);
+  function checkColumns(map, columnsDoc) {
+    const missingEssential = [];
+    const missingRecommended = [];
+    const note = (item, label) => {
+      const entry = { label, menu: item.menu, why: item.why || "" };
+      if (item.importance === "essential") missingEssential.push(entry);
+      else if (item.importance === "recommended") missingRecommended.push(entry);
+    };
+    for (const f of columnsDoc.fields) if (!(f.field in map.fields)) note(f, f.headers[0]);
+    for (const a of columnsDoc.attributes) if (!(a.field in map.attributes)) note(a, a.headers.includes(a.field) ? a.field : a.headers[0]);
+    const attributesFound = Object.keys(map.attributes).length;
+    const outfieldFound = Object.keys(map.attributes).filter((a) => !GK_ONLY.has(a)).length;
+    let fatal = null;
+    if (!("name" in map.fields)) {
+      fatal = 'No player name column was found. Is this a squad export from FM27? The first column should be "Player" or "Name".';
+    } else if (outfieldFound < 10) {
+      fatal = `Only ${outfieldFound} player attributes were found in this file, so a tactic can't be built from it. Export your squad with a view that shows the attributes (see "Set up the squad view" in the README).`;
+    }
+    return {
+      fatal,
+      missingEssential,
+      missingRecommended,
+      attributesFound,
+      attributesTotal: columnsDoc.attributes.length,
+      unknownHeaders: map.unknown
+    };
+  }
+
+  // src/engine/hungarian.js
+  function hungarianMin(cost) {
+    const n = cost.length;
+    if (!n) return [];
+    const m = cost[0].length;
+    if (n > m) throw new Error("hungarianMin needs rows <= columns");
+    const INF = Number.MAX_VALUE;
+    const u = new Float64Array(n + 1);
+    const v = new Float64Array(m + 1);
+    const p = new Int32Array(m + 1);
+    const way = new Int32Array(m + 1);
+    for (let i = 1; i <= n; i++) {
+      p[0] = i;
+      let j0 = 0;
+      const minv = new Float64Array(m + 1).fill(INF);
+      const used = new Uint8Array(m + 1);
+      do {
+        used[j0] = 1;
+        const i0 = p[j0];
+        let delta = INF;
+        let j1 = 0;
+        const row = cost[i0 - 1];
+        for (let j = 1; j <= m; j++) {
+          if (used[j]) continue;
+          const cur = row[j - 1] - u[i0] - v[j];
+          if (cur < minv[j]) {
+            minv[j] = cur;
+            way[j] = j0;
+          }
+          if (minv[j] < delta) {
+            delta = minv[j];
+            j1 = j;
+          }
+        }
+        for (let j = 0; j <= m; j++) {
+          if (used[j]) {
+            u[p[j]] += delta;
+            v[j] -= delta;
+          } else {
+            minv[j] -= delta;
+          }
+        }
+        j0 = j1;
+      } while (p[j0] !== 0);
+      do {
+        const j1 = way[j0];
+        p[j0] = p[j1];
+        j0 = j1;
+      } while (j0);
+    }
+    const rowToCol = new Array(n).fill(-1);
+    for (let j = 1; j <= m; j++) if (p[j]) rowToCol[p[j] - 1] = j - 1;
+    return rowToCol;
+  }
+  function assignMax(value) {
+    const rows = value.length;
+    if (!rows) return { rowToCol: [], total: 0 };
+    const cols = value[0].length;
+    let rowToCol;
+    if (rows <= cols) {
+      rowToCol = hungarianMin(value.map((r) => r.map((x) => -x)));
+    } else {
+      const t = Array.from({ length: cols }, (_, c) => Array.from({ length: rows }, (_2, r) => -value[r][c]));
+      const colToRow = hungarianMin(t);
+      rowToCol = new Array(rows).fill(-1);
+      colToRow.forEach((r, c) => {
+        if (r >= 0) rowToCol[r] = c;
+      });
+    }
+    let total = 0;
+    rowToCol.forEach((c, r) => {
+      if (c >= 0) total += value[r][c];
+    });
+    return { rowToCol, total };
+  }
+
+  // src/engine/roles.js
+  var norm = (v) => (v - 1) / 19 * 100;
+  function prepareRoles(rolesDoc) {
+    const roles = rolesDoc.roles.map((r) => ({ ...r, keySet: new Set(r.key), tagSet: new Set(r.tags || []) }));
+    const byId = Object.fromEntries(roles.map((r) => [r.id, r]));
+    const byPhasePosition = { IP: {}, OOP: {} };
+    for (const r of roles) {
+      for (const pos of r.positions) (byPhasePosition[r.phase][pos] ||= []).push(r);
+    }
+    return { roles, byId, byPhasePosition };
+  }
+  function weightedAttributes(player, weights) {
+    let sum = 0;
+    let lo = 0;
+    let hi = 0;
+    let known = 0;
+    let total = 0;
+    for (const [attr, w] of weights) {
+      total += w;
+      const a = player.attrs[attr];
+      if (!a) continue;
+      known += w;
+      sum += w * norm(a.v);
+      lo += w * norm(a.lo);
+      hi += w * norm(a.hi);
+    }
+    if (!known) return { v: null, lo: null, hi: null, missingShare: 1 };
+    return { v: sum / known, lo: lo / known, hi: hi / known, missingShare: total ? 1 - known / total : 0 };
+  }
+  function roleWeights(role, tuning) {
+    const { keyWeight, preferredWeight } = tuning.roleScore;
+    const w = /* @__PURE__ */ new Map();
+    for (const a of role.key) w.set(a, keyWeight);
+    for (const a of role.preferred) if (!w.has(a)) w.set(a, preferredWeight);
+    return [...w.entries()];
+  }
+  var isGoalkeeperRole = (role) => role.positions.includes("GK");
+  function baseRoleScore(player, role, tuning) {
+    const cache = player._base ||= {};
+    if (cache[role.id]) return cache[role.id];
+    const rs = tuning.roleScore;
+    const roleAvg = weightedAttributes(player, role._w ||= roleWeights(role, tuning));
+    const gk = isGoalkeeperRole(role);
+    const generalWeights = Object.entries(gk ? rs.goalkeeperGeneralWeights : rs.generalWeights);
+    const general = weightedAttributes(player, generalWeights);
+    const gBlend = gk ? rs.goalkeeperGeneralBlend : rs.generalBlend;
+    let result;
+    if (roleAvg.v == null) {
+      result = { v: 0, lo: 0, hi: 0, missingShare: 1, heightBonus: 0 };
+    } else {
+      const g = general.v == null ? roleAvg : general;
+      const blend = (x, y) => (1 - gBlend) * x + gBlend * y;
+      const hb = heightBonus(player, role, tuning);
+      result = {
+        v: blend(roleAvg.v, g.v) + hb,
+        lo: blend(roleAvg.lo, g.lo) + hb,
+        hi: blend(roleAvg.hi, g.hi) + hb,
+        missingShare: roleAvg.missingShare,
+        heightBonus: hb
+      };
+    }
+    cache[role.id] = result;
+    return result;
+  }
+  function heightBonus(player, role, tuning) {
+    const h = tuning.roleScore.height;
+    if (!player.heightCm || !h.appliesWhenKeyIncludes.every((a) => role.keySet.has(a))) return 0;
+    const pts = (player.heightCm - h.pivotCm) * h.pointsPerCm;
+    return Math.max(-h.maxPoints, Math.min(h.maxPoints, pts));
+  }
+  function slotSide(slotCode) {
+    if (/L$/.test(slotCode)) return "L";
+    if (/R$/.test(slotCode)) return "R";
+    return "C";
+  }
+  function footFactor(player, role, slotCode, tuning) {
+    const rule = tuning.foot.rules[role.foot || "either"];
+    const side = slotSide(slotCode);
+    if (!rule || side === "C" || rule.span === 0) return 1;
+    const sameFoot = side === "L" ? player.leftFoot : player.rightFoot;
+    const otherFoot = side === "L" ? player.rightFoot : player.leftFoot;
+    const wanted = role.foot.startsWith("inverted") ? otherFoot : sameFoot;
+    if (wanted == null) return 1;
+    return rule.base + rule.span * wanted;
+  }
+  function roleFitsSlot(role, slotCode, slotsDoc, formationSlots) {
+    const pos = slotsDoc[slotCode][2];
+    if (!role.positions.includes(pos)) return false;
+    if (role.slotRule === "wideCentreBackInBackThree") {
+      return (slotCode === "DCL" || slotCode === "DCR") && formationSlots.includes("DC");
+    }
+    if (role.slotRule === "sideCentralMidfield") return slotCode === "MCL" || slotCode === "MCR";
+    return true;
+  }
+  function slotRoleScore(player, role, slotCode, ctx) {
+    const key = `${role.id}@${slotCode}`;
+    const cache = player._slot ||= {};
+    if (cache[key]) return cache[key];
+    const pos = ctx.slots[slotCode][2];
+    const fam = familiarity(player, pos, ctx.adjacency);
+    const famFactor = ctx.tuning.familiarity.levels[fam];
+    const ff = footFactor(player, role, slotCode, ctx.tuning);
+    const base = baseRoleScore(player, role, ctx.tuning);
+    const k = famFactor * ff;
+    const result = {
+      score: base.v * k,
+      lo: base.lo * k,
+      hi: base.hi * k,
+      base: base.v,
+      familiarity: fam,
+      famFactor,
+      footFactor: ff,
+      missingShare: base.missingShare
+    };
+    cache[key] = result;
+    return result;
+  }
+  function bestRoleScore(player, role, ctx) {
+    let best = null;
+    for (const pos of role.positions) {
+      const slot = ctx.slotForPosition[pos];
+      if (!slot) continue;
+      const s = slotRoleScore(player, role, slot, ctx);
+      if (!best || s.score > best.score) best = { ...s, position: pos };
+    }
+    return best;
+  }
+
+  // src/engine/balance.js
+  var CENTRAL_MID = /* @__PURE__ */ new Set(["DM", "M (C)", "AM (C)"]);
+  var DEEP_MID = /* @__PURE__ */ new Set(["DM", "M (C)"]);
+  function evaluateBalance(lanes, slots, cfg) {
+    const notes = [];
+    const add = (points2, text) => {
+      if (points2) notes.push({ points: points2, text });
+    };
+    const ip = lanes.map((l) => ({ role: l.ipRole, slot: l.ip, pos: slots[l.ip][2], x: slots[l.ip][0] }));
+    const oop = lanes.map((l) => ({ role: l.oopRole, slot: l.oop, pos: slots[l.oop][2], x: slots[l.oop][0] }));
+    const has = (list, tag, filter = () => true) => list.filter((e) => e.role && e.role.tagSet.has(tag) && filter(e));
+    const named = (list, name) => list.filter((e) => e.role && e.role.name === name);
+    const attackingBacks = has(ip, "attackingBack");
+    const holders = has(ip, "holder");
+    const centreBacksIP = ip.filter((e) => e.pos === "D (C)").length;
+    if (attackingBacks.length >= 2 && !holders.length && centreBacksIP < 3) {
+      add(cfg.attackingBacksWithoutCover, "Two attacking full-backs/wing-backs with no holding midfielder or back three behind them.");
+    }
+    const creators = has(ip, "creator");
+    const midCreators = creators.filter((e) => CENTRAL_MID.has(e.pos));
+    const midWinners = has(oop, "ballWinner", (e) => DEEP_MID.has(e.pos));
+    const midScreens = has(oop, "screen", (e) => DEEP_MID.has(e.pos));
+    if (!creators.length) add(cfg.noCreator, "No playmaker anywhere in the side: chances will be hard to create.");
+    if (midCreators.length && midWinners.length) add(cfg.creatorAndBallWinner, "Midfield has both a playmaker and a ball-winner.");
+    if (!midWinners.length) add(cfg.noBallWinnerInMidfield, "No pressing ball-winner in central midfield out of possession.");
+    if (!midScreens.length && !holders.length) add(cfg.noScreenOrHolder, "Nobody shields the back line (no screening or holding midfielder).");
+    if (creators.length > cfg.maxCreators) {
+      add(cfg.tooManyCreatorsEach * (creators.length - cfg.maxCreators), `${creators.length} playmakers: too many players asking for the ball in the same spaces.`);
+    }
+    const freeRoles = named(ip, "Free Role");
+    if (freeRoles.length > 1) add(cfg.duplicateFreeRoleEach * (freeRoles.length - 1), "More than one Free Role.");
+    for (const name of ["Half Back"]) {
+      const n = named(ip, name).length;
+      if (n > 1) add(cfg.duplicateHalfBackOrDroppingEach * (n - 1), `More than one ${name}.`);
+    }
+    const dropping = named(oop, "Dropping Defensive Midfielder").length;
+    if (dropping > 1) add(cfg.duplicateHalfBackOrDroppingEach * (dropping - 1), "More than one Dropping Defensive Midfielder.");
+    for (const [side, test] of [["left", (e) => e.x < 30], ["right", (e) => e.x > 70]]) {
+      const wide = ip.filter(test);
+      if (wide.length && !wide.some((e) => e.role && e.role.tagSet.has("width"))) {
+        add(cfg.flankWithoutWidth, `Nobody stays wide on the ${side} in possession.`);
+      } else if (!wide.length) {
+        add(cfg.flankWithoutWidth, `No player is positioned on the ${side} flank in possession.`);
+      }
+    }
+    const crossers = has(ip, "crosser");
+    const runners = has(ip, "runner");
+    if (named(ip, "Target Forward").length && crossers.length < 2) {
+      add(cfg.targetForwardWithoutCrossers, "Target Forward with fewer than two crossers to supply him.");
+    }
+    if (named(ip, "False Nine").length && runners.length < 2) {
+      add(cfg.falseNineWithoutRunners, "False Nine without at least two runners to use the space he creates.");
+    }
+    if (!has(ip, "finisher").length) add(cfg.noFinisher, "No natural goalscorer role in the side.");
+    const outlets = has(oop, "outlet");
+    if (outlets.length > cfg.maxOutlets) {
+      add(cfg.tooManyOutletsEach * (outlets.length - cfg.maxOutlets), `${outlets.length} players stay forward as outlets: too few defend.`);
+    }
+    const stoppers = has(oop, "stopper");
+    const covers = has(oop, "cover", (e) => e.pos === "D (C)");
+    if (stoppers.length && covers.length) add(cfg.stopperAndCoverPair, "Centre-backs pair a stopper with a covering defender.");
+    if (stoppers.length >= 2 && !covers.length) add(cfg.twoStoppersNoCover, "Two stopping centre-backs and no cover behind them.");
+    const points = notes.reduce((s, n) => s + n.points, 0);
+    return { points, notes };
+  }
+
+  // src/engine/search.js
+  var FORBIDDEN = -1e3;
+  var REPRESENTATIVE_SLOT = {
+    GK: "GK",
+    "D (L)": "DL",
+    "D (C)": "DC",
+    "D (R)": "DR",
+    "WB (L)": "WBL",
+    "WB (R)": "WBR",
+    DM: "DMC",
+    "M (L)": "ML",
+    "M (C)": "MC",
+    "M (R)": "MR",
+    "AM (L)": "AML",
+    "AM (C)": "AMC",
+    "AM (R)": "AMR",
+    "ST (C)": "STC"
+  };
+  function createContext(players, docs, options = {}) {
+    const tuning = docs.tuning;
+    const search = { ...tuning.search, ...options };
+    const ctx = {
+      players,
+      tuning,
+      search,
+      roles: prepareRoles(docs.roles),
+      slots: docs.formations.slots,
+      formations: docs.formations,
+      adjacency: buildAdjacency(tuning),
+      slotForPosition: REPRESENTATIVE_SLOT,
+      allowedFam: new Set(tuning.familiarity.allowInStartingXI),
+      warnings: []
+    };
+    let available = players.filter((p) => !(search.excludeInjured && p.injured));
+    if (available.length < 11) {
+      ctx.warnings.push("Fewer than 11 fit players, so injured players were included.");
+      available = players.slice();
+    }
+    ctx.available = available;
+    return ctx;
+  }
+  function laneMatching(ipSlots, oopSlots, ctx) {
+    const { laneCostX, laneCostY, laneMaxCost } = ctx.search;
+    const cost = (a, b) => {
+      const [ax, ay] = ctx.slots[a];
+      const [bx, by] = ctx.slots[b];
+      return laneCostX * Math.abs(ax - bx) + laneCostY * Math.abs(ay - by);
+    };
+    const matrix = ipSlots.map(
+      (a) => oopSlots.map((b) => {
+        if (a === "GK" !== (b === "GK")) return 1e9;
+        const c = cost(a, b);
+        return c * c;
+      })
+    );
+    const rowToCol = hungarianMin(matrix);
+    const lanes = ipSlots.map((a, i) => ({ ip: a, oop: oopSlots[rowToCol[i]], cost: cost(a, oopSlots[rowToCol[i]]) }));
+    const maxCost = Math.max(...lanes.map((l) => l.cost));
+    const meanCost = lanes.reduce((s, l) => s + l.cost, 0) / lanes.length;
+    return { lanes, maxCost, meanCost, valid: maxCost <= laneMaxCost };
+  }
+  function allowedRoles(ctx, phase, slot, formationSlots) {
+    const pos = ctx.slots[slot][2];
+    return (ctx.roles.byPhasePosition[phase][pos] || []).filter((r) => roleFitsSlot(r, slot, ctx.slots, formationSlots));
+  }
+  function laneAllowed(ctx, player, lane) {
+    const ipFam = familiarity(player, ctx.slots[lane.ip][2], ctx.adjacency);
+    const oopFam = familiarity(player, ctx.slots[lane.oop][2], ctx.adjacency);
+    return ctx.allowedFam.has(ipFam) && ctx.allowedFam.has(oopFam);
+  }
+  function roleReference(ctx, role) {
+    const cache = ctx._roleRef ||= {};
+    if (role.id in cache) return cache[role.id];
+    const natural = ctx.players.filter((p) => role.positions.some((pos) => p.positions.has(pos)));
+    const gkRole = role.positions.includes("GK");
+    const pool = natural.length >= 2 ? natural : ctx.players.filter((p) => p.isGoalkeeper === gkRole);
+    const values = pool.map((p) => baseRoleScore(p, role, ctx.tuning).v);
+    cache[role.id] = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+    return cache[role.id];
+  }
+  function choiceScore(ctx, player, role, slot) {
+    const s = slotRoleScore(player, role, slot, ctx);
+    const spec = s.base - roleReference(ctx, role);
+    return s.score + ctx.tuning.roleScore.specialisationWeight * spec;
+  }
+  function bestOf(ctx, player, roles, slot, byChoice = false) {
+    let best = null;
+    for (const role of roles) {
+      const s = slotRoleScore(player, role, slot, ctx);
+      const v = byChoice ? choiceScore(ctx, player, role, slot) : s.score;
+      if (!best || v > best.v) best = { role, s, v };
+    }
+    return best;
+  }
+  function laneValue(ctx, player, lane, fixed) {
+    if (!laneAllowed(ctx, player, lane)) return FORBIDDEN;
+    const { ipWeight, oopWeight } = ctx.search;
+    const ipS = fixed ? slotRoleScore(player, fixed.ipRole, lane.ip, ctx).score : bestOf(ctx, player, lane.ipRoles, lane.ip).s.score;
+    const oopS = fixed ? slotRoleScore(player, fixed.oopRole, lane.oop, ctx).score : bestOf(ctx, player, lane.oopRoles, lane.oop).s.score;
+    return ipWeight * ipS + oopWeight * oopS;
+  }
+  function pickXI(ctx, lanes, roles) {
+    const pool = ctx.available;
+    const value = lanes.map((lane, i) => pool.map((p) => laneValue(ctx, p, lane, roles && roles[i])));
+    const { rowToCol } = assignMax(value);
+    return rowToCol.map((c) => pool[c]);
+  }
+  function objective(ctx, lanes, xi, roles) {
+    const { ipWeight, oopWeight } = ctx.search;
+    let fit = 0;
+    let choice = 0;
+    const full = lanes.map((lane, i) => {
+      const p = xi[i];
+      if (laneAllowed(ctx, p, lane)) {
+        fit += ipWeight * slotRoleScore(p, roles[i].ipRole, lane.ip, ctx).score + oopWeight * slotRoleScore(p, roles[i].oopRole, lane.oop, ctx).score;
+        choice += ipWeight * choiceScore(ctx, p, roles[i].ipRole, lane.ip) + oopWeight * choiceScore(ctx, p, roles[i].oopRole, lane.oop);
+      } else {
+        fit += FORBIDDEN;
+        choice += FORBIDDEN;
+      }
+      return { ...lane, ipRole: roles[i].ipRole, oopRole: roles[i].oopRole };
+    });
+    fit /= lanes.length;
+    choice /= lanes.length;
+    const balance = evaluateBalance(full, ctx.slots, ctx.tuning.balance);
+    return { fit, balance, total: choice + balance.points };
+  }
+  function refineRoles(ctx, lanes, xi, roles) {
+    roles = roles.map((r) => ({ ...r }));
+    let best = objective(ctx, lanes, xi, roles).total;
+    for (let pass = 0; pass < ctx.search.refinePasses; pass++) {
+      let improved = false;
+      lanes.forEach((lane, i) => {
+        for (const [key, list] of [["ipRole", lane.ipRoles], ["oopRole", lane.oopRoles]]) {
+          const current = roles[i][key];
+          let bestRole = current;
+          for (const role of list) {
+            if (role === current) continue;
+            roles[i][key] = role;
+            const t = objective(ctx, lanes, xi, roles).total;
+            if (t > best + 1e-9) {
+              best = t;
+              bestRole = role;
+              improved = true;
+            }
+          }
+          roles[i][key] = bestRole;
+        }
+      });
+      if (!improved) break;
+    }
+    return roles;
+  }
+  function evaluateSystem(ctx, ipF, oopF) {
+    const match = laneMatching(ipF.slots, oopF.slots, ctx);
+    if (!match.valid) return null;
+    const lanes = match.lanes.map((l) => ({
+      ...l,
+      ipRoles: allowedRoles(ctx, "IP", l.ip, ipF.slots),
+      oopRoles: allowedRoles(ctx, "OOP", l.oop, oopF.slots)
+    }));
+    if (lanes.some((l) => !l.ipRoles.length || !l.oopRoles.length)) return null;
+    let xi = pickXI(ctx, lanes, null);
+    let roles = xi.map((p, i) => ({
+      ipRole: bestOf(ctx, p, lanes[i].ipRoles, lanes[i].ip, true).role,
+      oopRole: bestOf(ctx, p, lanes[i].oopRoles, lanes[i].oop, true).role
+    }));
+    roles = refineRoles(ctx, lanes, xi, roles);
+    let best = { xi, roles, obj: objective(ctx, lanes, xi, roles) };
+    for (let iter = 0; iter < 3; iter++) {
+      const xi2 = pickXI(ctx, lanes, roles);
+      if (xi2.every((p, i) => p === xi[i])) break;
+      xi = xi2;
+      roles = refineRoles(ctx, lanes, xi, roles);
+      const obj = objective(ctx, lanes, xi, roles);
+      if (obj.total > best.obj.total) best = { xi, roles, obj };
+      else break;
+    }
+    const { ipWeight, oopWeight } = ctx.search;
+    const resultLanes = lanes.map((lane, i) => {
+      const player = best.xi[i];
+      const ipRole = best.roles[i].ipRole;
+      const oopRole = best.roles[i].oopRole;
+      const ipScore = slotRoleScore(player, ipRole, lane.ip, ctx);
+      const oopScore = slotRoleScore(player, oopRole, lane.oop, ctx);
+      return {
+        ip: lane.ip,
+        oop: lane.oop,
+        cost: lane.cost,
+        ipRoles: lane.ipRoles,
+        oopRoles: lane.oopRoles,
+        player,
+        ipRole,
+        oopRole,
+        ipScore,
+        oopScore,
+        value: ipWeight * ipScore.score + oopWeight * oopScore.score,
+        forbidden: !laneAllowed(ctx, player, lane)
+      };
+    });
+    const complexity = match.meanCost * ctx.search.complexityPenaltyPerCost;
+    const fit = best.obj.fit;
+    return {
+      ipName: ipF.name,
+      oopName: oopF.name,
+      ipSlots: ipF.slots,
+      oopSlots: oopF.slots,
+      lanes: resultLanes,
+      fit,
+      balance: best.obj.balance,
+      complexity,
+      score: fit + best.obj.balance.points - complexity,
+      valid: !resultLanes.some((l) => l.forbidden)
+    };
+  }
+  function searchSystems(ctx) {
+    const results = [];
+    for (const ipF of ctx.formations.inPossession) {
+      for (const oopF of ctx.formations.outOfPossession) {
+        const r = evaluateSystem(ctx, ipF, oopF);
+        if (r) results.push(r);
+      }
+    }
+    const valid = results.filter((r) => r.valid);
+    const ranked = (valid.length ? valid : results).sort((a, b) => b.score - a.score);
+    if (!valid.length && results.length) ctx.warnings.push("No formation could be filled without playing someone out of position.");
+    return { best: ranked[0] || null, ranking: ranked, tested: results.length };
+  }
+  function suitabilityTable(ctx) {
+    return ctx.players.map((p) => ({
+      player: p,
+      scores: Object.fromEntries(ctx.roles.roles.map((r) => [r.id, bestRoleScore(p, r, ctx)]))
+    }));
+  }
+
+  // src/analyse.js
+  function analyse(text, filename, docs, options = {}) {
+    const table = readExport(text, filename);
+    const map = buildHeaderMap(table.headers, docs.columns, table.adapter.aliases);
+    const columns = checkColumns(map, docs.columns);
+    const base = { filename, source: table.adapter.label, format: table.format, columns };
+    if (!table.headers.length || !table.rows.length) {
+      return { ...base, ok: false, error: table.warnings[0] || "The file is empty." };
+    }
+    if (columns.fatal) return { ...base, ok: false, error: columns.fatal };
+    const players = parsePlayers(table, map, docs.columns, docs.tuning);
+    if (players.length < 11) {
+      return { ...base, ok: false, error: `Only ${players.length} players were found in the file; at least 11 are needed.` };
+    }
+    const ctx = createContext(players, docs, options);
+    const search = searchSystems(ctx);
+    if (!search.best) {
+      return { ...base, ok: false, error: "No formation could be filled with the players in this file." };
+    }
+    return {
+      ...base,
+      ok: true,
+      club: commonClub(players),
+      players,
+      ctx,
+      search,
+      suitability: suitabilityTable(ctx),
+      warnings: [...table.warnings, ...ctx.warnings]
+    };
+  }
+  function commonClub(players) {
+    const counts = /* @__PURE__ */ new Map();
+    for (const p of players) if (p.club) counts.set(p.club, (counts.get(p.club) || 0) + 1);
+    let best = "";
+    let n = 0;
+    for (const [club, c] of counts) if (c > n) [best, n] = [club, c];
+    return n >= players.length / 2 ? best : "";
+  }
+
+  // data/roles.json
+  var roles_default = {
+    _about: [
+      "FM27 player roles. One role per phase: IP = In Possession, OOP = Out of Possession. FM27 roles have no duties.",
+      "Role names, positions and key/preferred attributes are the game's own (as shown when FM27 highlights key attributes for a role),",
+      "transcribed from the game by the FM Player Analyzer project (github.com/ElectroHugin/FM-Player-Analyzer). Tags, foot rules and slot rules are this tool's own.",
+      "After a patch: edit 'key'/'preferred' lists here, then load this file in the app (Advanced > Load my own roles.json).",
+      "foot: same = wants the foot on his side (e.g. a left winger crossing with his left), inverted = wants the opposite foot (cut inside),",
+      "      sameMild/invertedMild = small effect, either = no effect.",
+      "slotRule: wideCentreBackInBackThree = only on the outside centre-back spots of a back three; sideCentralMidfield = only left/right central midfield spots."
+    ],
+    version: "fm27-roles-1",
+    roles: [
+      {
+        id: "IP:BGK",
+        name: "Ball-Playing Goalkeeper",
+        abbr: "BGK",
+        phase: "IP",
+        positions: ["GK"],
+        key: ["Aerial Reach", "Command of Area", "Communication", "Handling", "Kicking", "Reflexes", "Concentration", "Positioning", "Agility"],
+        preferred: ["Eccentricity", "One on Ones", "Passing", "Throwing", "Anticipation", "Composure", "Decisions"],
+        foot: "either",
+        tags: ["distributor"]
+      },
+      {
+        id: "IP:GK",
+        name: "Goalkeeper",
+        abbr: "GK",
+        phase: "IP",
+        positions: ["GK"],
+        key: ["Aerial Reach", "Command of Area", "Communication", "Handling", "Reflexes", "Concentration", "Positioning", "Agility"],
+        preferred: ["Kicking", "One on Ones", "Throwing", "Anticipation", "Decisions"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "IP:NGK",
+        name: "No-Nonsense Goalkeeper",
+        abbr: "NGK",
+        phase: "IP",
+        positions: ["GK"],
+        key: ["Aerial Reach", "Command of Area", "Communication", "Handling", "Reflexes", "Concentration", "Positioning", "Agility"],
+        preferred: ["One on Ones", "Anticipation", "Decisions"],
+        foot: "either",
+        tags: ["safe"]
+      },
+      {
+        id: "IP:ACB",
+        name: "Advanced Centre-Back",
+        abbr: "ACB",
+        phase: "IP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Passing", "Tackling", "Technique", "Anticipation", "Composure", "Decisions", "Positioning", "Teamwork", "Jumping Reach", "Strength"],
+        preferred: ["Dribbling", "First Touch", "Aggression", "Bravery", "Concentration", "Vision", "Pace", "Stamina"],
+        foot: "sameMild",
+        tags: ["stepsUp", "distributor"]
+      },
+      {
+        id: "IP:BCB",
+        name: "Ball-Playing Centre-Back",
+        abbr: "BCB",
+        phase: "IP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Passing", "Tackling", "Anticipation", "Composure", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["First Touch", "Technique", "Aggression", "Bravery", "Concentration", "Decisions", "Vision", "Pace"],
+        foot: "sameMild",
+        tags: ["distributor"]
+      },
+      {
+        id: "IP:CB",
+        name: "Centre-Back",
+        abbr: "CB",
+        phase: "IP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["Aggression", "Bravery", "Composure", "Concentration", "Decisions", "Pace"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "IP:NCB",
+        name: "No-Nonsense Centre-Back",
+        abbr: "NCB",
+        phase: "IP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["Aggression", "Bravery", "Concentration", "Pace"],
+        foot: "either",
+        tags: ["safe"]
+      },
+      {
+        id: "IP:OCB",
+        name: "Overlapping Centre-Back",
+        abbr: "OCB",
+        phase: "IP",
+        positions: ["D (C)"],
+        key: ["Crossing", "Heading", "Marking", "Tackling", "Anticipation", "Work Rate", "Jumping Reach", "Pace", "Stamina", "Strength"],
+        preferred: ["Dribbling", "Technique", "Aggression", "Bravery", "Composure", "Concentration", "Decisions", "Off the Ball", "Positioning", "Acceleration", "Agility"],
+        foot: "same",
+        tags: ["attackingBack", "width", "crosser"],
+        slotRule: "wideCentreBackInBackThree"
+      },
+      {
+        id: "IP:WCB",
+        name: "Wide Centre-Back",
+        abbr: "WCB",
+        phase: "IP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["Dribbling", "Aggression", "Bravery", "Composure", "Concentration", "Decisions", "Work Rate", "Acceleration", "Agility", "Pace", "Stamina"],
+        foot: "sameMild",
+        tags: ["carrier"],
+        slotRule: "wideCentreBackInBackThree"
+      },
+      {
+        id: "IP:FB",
+        name: "Full-Back",
+        abbr: "FB",
+        phase: "IP",
+        positions: ["D (L)", "D (R)"],
+        key: ["Marking", "Tackling", "Anticipation", "Concentration", "Positioning", "Teamwork", "Acceleration"],
+        preferred: ["Crossing", "Dribbling", "Passing", "Technique", "Decisions", "Work Rate", "Agility", "Pace", "Stamina"],
+        foot: "same",
+        tags: ["width", "safeBack"]
+      },
+      {
+        id: "IP:IFB",
+        name: "Inside Full-Back",
+        abbr: "IFB",
+        phase: "IP",
+        positions: ["D (L)", "D (R)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Positioning", "Strength"],
+        preferred: ["Dribbling", "Aggression", "Bravery", "Composure", "Concentration", "Decisions", "Work Rate", "Acceleration", "Agility", "Jumping Reach", "Pace", "Stamina"],
+        foot: "sameMild",
+        tags: ["insideBack", "safeBack"]
+      },
+      {
+        id: "IP:IWB",
+        name: "Inside Wing-Back",
+        abbr: "IWB",
+        phase: "IP",
+        positions: ["D (L)", "D (R)", "WB (L)", "WB (R)"],
+        key: ["Passing", "Tackling", "Anticipation", "Composure", "Decisions", "Positioning", "Teamwork", "Acceleration"],
+        preferred: ["First Touch", "Marking", "Technique", "Concentration", "Work Rate", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: ["insideBack"]
+      },
+      {
+        id: "IP:PWB",
+        name: "Playmaking Wing-Back",
+        abbr: "PWB",
+        phase: "IP",
+        positions: ["D (L)", "D (R)", "WB (L)", "WB (R)"],
+        key: ["First Touch", "Passing", "Tackling", "Technique", "Composure", "Decisions", "Teamwork", "Vision", "Acceleration"],
+        preferred: ["Crossing", "Dribbling", "Marking", "Anticipation", "Concentration", "Off the Ball", "Positioning", "Work Rate", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: ["insideBack", "creator"]
+      },
+      {
+        id: "IP:WB",
+        name: "Wing-Back",
+        abbr: "WB",
+        phase: "IP",
+        positions: ["D (L)", "D (R)", "WB (L)", "WB (R)"],
+        key: ["Crossing", "Marking", "Tackling", "Teamwork", "Work Rate", "Acceleration", "Pace", "Stamina"],
+        preferred: ["Dribbling", "First Touch", "Passing", "Technique", "Anticipation", "Concentration", "Decisions", "Off the Ball", "Positioning", "Agility", "Balance"],
+        foot: "same",
+        tags: ["width", "attackingBack", "crosser"]
+      },
+      {
+        id: "IP:AWB",
+        name: "Advanced Wing-Back",
+        abbr: "AWB",
+        phase: "IP",
+        positions: ["WB (L)", "WB (R)"],
+        key: ["Crossing", "Dribbling", "Technique", "Off the Ball", "Teamwork", "Work Rate", "Acceleration", "Agility", "Pace", "Stamina"],
+        preferred: ["First Touch", "Marking", "Passing", "Tackling", "Anticipation", "Decisions", "Flair", "Positioning", "Balance"],
+        foot: "same",
+        tags: ["width", "attackingBack", "crosser", "runner"]
+      },
+      {
+        id: "IP:BBM",
+        name: "Box-To-Box Midfielder",
+        abbr: "BBM",
+        phase: "IP",
+        positions: ["DM"],
+        key: ["Passing", "Tackling", "Off the Ball", "Teamwork", "Work Rate", "Stamina"],
+        preferred: ["Dribbling", "Finishing", "First Touch", "Long Shots", "Technique", "Aggression", "Anticipation", "Composure", "Decisions", "Positioning", "Acceleration", "Balance", "Pace", "Strength"],
+        foot: "either",
+        tags: ["runner"]
+      },
+      {
+        id: "IP:BBP",
+        name: "Box-To-Box Playmaker",
+        abbr: "BBP",
+        phase: "IP",
+        positions: ["DM"],
+        key: ["First Touch", "Passing", "Technique", "Composure", "Decisions", "Off the Ball", "Teamwork", "Vision", "Work Rate", "Stamina"],
+        preferred: ["Dribbling", "Long Shots", "Marking", "Tackling", "Anticipation", "Positioning", "Acceleration", "Agility", "Balance", "Pace"],
+        foot: "either",
+        tags: ["creator", "runner"]
+      },
+      {
+        id: "IP:DLP",
+        name: "Deep-Lying Playmaker",
+        abbr: "DLP",
+        phase: "IP",
+        positions: ["DM"],
+        key: ["First Touch", "Passing", "Technique", "Composure", "Decisions", "Teamwork", "Vision"],
+        preferred: ["Marking", "Tackling", "Anticipation", "Concentration", "Off the Ball", "Positioning", "Work Rate", "Agility", "Balance", "Stamina"],
+        foot: "either",
+        tags: ["creator"]
+      },
+      {
+        id: "IP:DM",
+        name: "Defensive Midfielder",
+        abbr: "DM",
+        phase: "IP",
+        positions: ["DM"],
+        key: ["Tackling", "Anticipation", "Concentration", "Positioning", "Teamwork"],
+        preferred: ["First Touch", "Marking", "Passing", "Aggression", "Composure", "Decisions", "Work Rate", "Stamina", "Strength"],
+        foot: "either",
+        tags: ["holder"]
+      },
+      {
+        id: "IP:HB",
+        name: "Half Back",
+        abbr: "HB",
+        phase: "IP",
+        positions: ["DM"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Concentration", "Positioning", "Teamwork", "Jumping Reach", "Strength"],
+        preferred: ["First Touch", "Passing", "Aggression", "Bravery", "Composure", "Decisions", "Work Rate", "Stamina"],
+        foot: "either",
+        tags: ["holder", "dropsIn"]
+      },
+      {
+        id: "IP:AP",
+        name: "Advanced Playmaker",
+        abbr: "AP",
+        phase: "IP",
+        positions: ["M (C)", "AM (C)"],
+        key: ["First Touch", "Passing", "Technique", "Composure", "Decisions", "Off the Ball", "Teamwork", "Vision"],
+        preferred: ["Crossing", "Dribbling", "Anticipation", "Flair", "Acceleration", "Agility"],
+        foot: "either",
+        tags: ["creator"]
+      },
+      {
+        id: "IP:AM",
+        name: "Attacking Midfielder",
+        abbr: "AM",
+        phase: "IP",
+        positions: ["M (C)", "AM (C)"],
+        key: ["First Touch", "Long Shots", "Passing", "Technique", "Composure", "Flair", "Off the Ball"],
+        preferred: ["Crossing", "Dribbling", "Finishing", "Anticipation", "Decisions", "Vision", "Acceleration", "Agility"],
+        foot: "either",
+        tags: ["runner", "shooter"]
+      },
+      {
+        id: "IP:CM",
+        name: "Central Midfielder",
+        abbr: "CM",
+        phase: "IP",
+        positions: ["M (C)"],
+        key: ["First Touch", "Passing", "Tackling", "Decisions", "Teamwork"],
+        preferred: ["Technique", "Anticipation", "Composure", "Concentration", "Off the Ball", "Positioning", "Vision", "Work Rate", "Stamina"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "IP:CHM",
+        name: "Channel Midfielder",
+        abbr: "CHM",
+        phase: "IP",
+        positions: ["M (C)", "AM (C)"],
+        key: ["Crossing", "First Touch", "Passing", "Technique", "Composure", "Off the Ball", "Work Rate", "Acceleration"],
+        preferred: ["Dribbling", "Long Shots", "Anticipation", "Decisions", "Flair", "Vision", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: ["runner", "crosser"]
+      },
+      {
+        id: "IP:MPM",
+        name: "Midfield Playmaker",
+        abbr: "MPM",
+        phase: "IP",
+        positions: ["M (C)"],
+        key: ["First Touch", "Passing", "Technique", "Composure", "Decisions", "Off the Ball", "Teamwork", "Vision"],
+        preferred: ["Dribbling", "Tackling", "Anticipation", "Flair", "Positioning", "Work Rate", "Agility", "Stamina"],
+        foot: "either",
+        tags: ["creator"]
+      },
+      {
+        id: "IP:WCM",
+        name: "Wide Central Midfielder",
+        abbr: "WCM",
+        phase: "IP",
+        positions: ["M (C)"],
+        key: ["First Touch", "Passing", "Tackling", "Decisions", "Teamwork"],
+        preferred: ["Crossing", "Dribbling", "Technique", "Anticipation", "Composure", "Concentration", "Off the Ball", "Positioning", "Vision", "Work Rate", "Agility", "Stamina"],
+        foot: "either",
+        tags: ["drifter"],
+        slotRule: "sideCentralMidfield"
+      },
+      {
+        id: "IP:IW",
+        name: "Inside Winger",
+        abbr: "IW",
+        phase: "IP",
+        positions: ["M (L)", "M (R)", "AM (L)", "AM (R)"],
+        key: ["Dribbling", "First Touch", "Technique", "Composure", "Teamwork", "Acceleration", "Agility"],
+        preferred: ["Crossing", "Long Shots", "Passing", "Anticipation", "Flair", "Off the Ball", "Vision", "Work Rate", "Balance", "Pace", "Stamina"],
+        foot: "inverted",
+        tags: ["inside"]
+      },
+      {
+        id: "IP:PW",
+        name: "Playmaking Winger",
+        abbr: "PW",
+        phase: "IP",
+        positions: ["M (L)", "M (R)", "AM (L)", "AM (R)"],
+        key: ["Crossing", "Dribbling", "First Touch", "Passing", "Technique", "Composure", "Decisions", "Off the Ball", "Teamwork", "Vision", "Acceleration"],
+        preferred: ["Anticipation", "Flair", "Work Rate", "Agility", "Pace", "Stamina"],
+        foot: "invertedMild",
+        tags: ["inside", "creator", "crosser"]
+      },
+      {
+        id: "IP:WM",
+        name: "Wide Midfielder",
+        abbr: "WM",
+        phase: "IP",
+        positions: ["M (L)", "M (R)"],
+        key: ["Crossing", "Passing", "Technique", "Decisions", "Teamwork", "Work Rate", "Pace", "Stamina"],
+        preferred: ["Dribbling", "First Touch", "Anticipation", "Composure", "Off the Ball", "Vision", "Acceleration", "Agility"],
+        foot: "same",
+        tags: ["width", "crosser"]
+      },
+      {
+        id: "IP:W",
+        name: "Winger",
+        abbr: "W",
+        phase: "IP",
+        positions: ["M (L)", "M (R)", "AM (L)", "AM (R)"],
+        key: ["Crossing", "Dribbling", "Technique", "Teamwork", "Acceleration", "Agility", "Pace"],
+        preferred: ["First Touch", "Passing", "Anticipation", "Flair", "Off the Ball", "Work Rate", "Balance", "Stamina"],
+        foot: "same",
+        tags: ["width", "crosser"]
+      },
+      {
+        id: "IP:FR",
+        name: "Free Role",
+        abbr: "FR",
+        phase: "IP",
+        positions: ["AM (C)"],
+        key: ["Dribbling", "First Touch", "Long Shots", "Passing", "Technique", "Composure", "Flair", "Off the Ball", "Vision"],
+        preferred: ["Crossing", "Finishing", "Anticipation", "Decisions", "Acceleration", "Agility"],
+        foot: "either",
+        tags: ["creator", "free"]
+      },
+      {
+        id: "IP:SS",
+        name: "Second Striker",
+        abbr: "SS",
+        phase: "IP",
+        positions: ["AM (C)"],
+        key: ["Finishing", "First Touch", "Anticipation", "Composure", "Off the Ball", "Acceleration"],
+        preferred: ["Dribbling", "Long Shots", "Passing", "Technique", "Concentration", "Decisions", "Work Rate", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: ["runner", "finisher"]
+      },
+      {
+        id: "IP:IF",
+        name: "Inside Forward",
+        abbr: "IF",
+        phase: "IP",
+        positions: ["AM (L)", "AM (R)"],
+        key: ["Dribbling", "First Touch", "Technique", "Anticipation", "Composure", "Off the Ball", "Acceleration", "Agility"],
+        preferred: ["Crossing", "Finishing", "Long Shots", "Passing", "Flair", "Vision", "Work Rate", "Balance", "Pace", "Stamina"],
+        foot: "inverted",
+        tags: ["inside", "runner", "finisher"]
+      },
+      {
+        id: "IP:WFD",
+        name: "Wide Forward",
+        abbr: "WFD",
+        phase: "IP",
+        positions: ["AM (L)", "AM (R)"],
+        key: ["Dribbling", "First Touch", "Technique", "Anticipation", "Off the Ball", "Acceleration", "Agility", "Pace"],
+        preferred: ["Crossing", "Finishing", "Passing", "Composure", "Flair", "Work Rate", "Balance", "Stamina"],
+        foot: "sameMild",
+        tags: ["width", "runner", "finisher"]
+      },
+      {
+        id: "IP:CFD",
+        name: "Centre Forward",
+        abbr: "CFD",
+        phase: "IP",
+        positions: ["ST (C)"],
+        key: ["Finishing", "First Touch", "Heading", "Technique", "Composure", "Off the Ball", "Acceleration", "Strength"],
+        preferred: ["Dribbling", "Passing", "Anticipation", "Decisions", "Agility", "Balance", "Jumping Reach", "Pace"],
+        foot: "either",
+        tags: ["finisher", "aerial"]
+      },
+      {
+        id: "IP:CHF",
+        name: "Channel Forward",
+        abbr: "CHF",
+        phase: "IP",
+        positions: ["ST (C)"],
+        key: ["Dribbling", "Finishing", "First Touch", "Technique", "Composure", "Off the Ball", "Work Rate", "Acceleration"],
+        preferred: ["Crossing", "Heading", "Passing", "Anticipation", "Decisions", "Agility", "Balance", "Pace", "Stamina"],
+        foot: "either",
+        tags: ["runner", "finisher"]
+      },
+      {
+        id: "IP:DLF",
+        name: "Deep-Lying Forward",
+        abbr: "DLF",
+        phase: "IP",
+        positions: ["ST (C)"],
+        key: ["Finishing", "First Touch", "Technique", "Composure", "Off the Ball", "Strength"],
+        preferred: ["Dribbling", "Passing", "Anticipation", "Decisions", "Teamwork", "Vision", "Balance"],
+        foot: "either",
+        tags: ["link"]
+      },
+      {
+        id: "IP:F9",
+        name: "False Nine",
+        abbr: "F9",
+        phase: "IP",
+        positions: ["ST (C)"],
+        key: ["Dribbling", "First Touch", "Passing", "Technique", "Composure", "Decisions", "Off the Ball", "Teamwork", "Vision", "Acceleration"],
+        preferred: ["Finishing", "Anticipation", "Flair", "Agility", "Balance"],
+        foot: "either",
+        tags: ["link", "creator", "dropsDeep"]
+      },
+      {
+        id: "IP:P",
+        name: "Poacher",
+        abbr: "P",
+        phase: "IP",
+        positions: ["ST (C)"],
+        key: ["Finishing", "Heading", "Anticipation", "Composure", "Concentration", "Off the Ball", "Acceleration"],
+        preferred: ["First Touch", "Technique", "Decisions", "Balance"],
+        foot: "either",
+        tags: ["finisher"]
+      },
+      {
+        id: "IP:TF",
+        name: "Target Forward",
+        abbr: "TF",
+        phase: "IP",
+        positions: ["ST (C)"],
+        key: ["Finishing", "Heading", "Aggression", "Bravery", "Composure", "Off the Ball", "Balance", "Jumping Reach", "Strength"],
+        preferred: ["First Touch", "Anticipation", "Decisions", "Teamwork"],
+        foot: "either",
+        tags: ["target", "aerial", "finisher"]
+      },
+      {
+        id: "OOP:GK",
+        name: "Goalkeeper",
+        abbr: "GK",
+        phase: "OOP",
+        positions: ["GK"],
+        key: ["Aerial Reach", "Command of Area", "Communication", "Handling", "Reflexes", "Concentration", "Positioning", "Agility"],
+        preferred: ["One on Ones", "Rushing Out (Tendency)", "Anticipation", "Decisions"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:LHK",
+        name: "Line-Holding Goalkeeper",
+        abbr: "LHK",
+        phase: "OOP",
+        positions: ["GK"],
+        key: ["Aerial Reach", "Command of Area", "Communication", "Handling", "Reflexes", "Concentration", "Positioning", "Agility"],
+        preferred: ["One on Ones", "Anticipation", "Decisions"],
+        foot: "either",
+        tags: ["deepKeeper"]
+      },
+      {
+        id: "OOP:SK",
+        name: "Sweeper Keeper",
+        abbr: "SK",
+        phase: "OOP",
+        positions: ["GK"],
+        key: ["Aerial Reach", "Command of Area", "Communication", "Handling", "One on Ones", "Reflexes", "Rushing Out (Tendency)", "Anticipation", "Decisions", "Agility"],
+        preferred: ["Eccentricity", "Concentration", "Positioning", "Acceleration"],
+        foot: "either",
+        tags: ["sweeper"]
+      },
+      {
+        id: "OOP:CB",
+        name: "Centre-Back",
+        abbr: "CB",
+        phase: "OOP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["Aggression", "Bravery", "Composure", "Concentration", "Decisions", "Pace"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:CCB",
+        name: "Covering Centre-Back",
+        abbr: "CCB",
+        phase: "OOP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Concentration", "Decisions", "Positioning", "Jumping Reach", "Pace", "Strength"],
+        preferred: ["Bravery", "Acceleration"],
+        foot: "either",
+        tags: ["cover"]
+      },
+      {
+        id: "OOP:CWD",
+        name: "Covering Wide Centre-Back",
+        abbr: "CWD",
+        phase: "OOP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Concentration", "Decisions", "Positioning", "Jumping Reach", "Pace", "Strength"],
+        preferred: ["Bravery", "Acceleration", "Agility"],
+        foot: "either",
+        tags: ["cover"],
+        slotRule: "wideCentreBackInBackThree"
+      },
+      {
+        id: "OOP:SCB",
+        name: "Stopping Centre-Back",
+        abbr: "SCB",
+        phase: "OOP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Aggression", "Anticipation", "Bravery", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["Concentration", "Decisions", "Pace"],
+        foot: "either",
+        tags: ["stopper", "ballWinner"]
+      },
+      {
+        id: "OOP:SWD",
+        name: "Stopping Wide Centre-Back",
+        abbr: "SWD",
+        phase: "OOP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Aggression", "Anticipation", "Bravery", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["Concentration", "Decisions", "Acceleration", "Agility", "Pace"],
+        foot: "either",
+        tags: ["stopper", "ballWinner"],
+        slotRule: "wideCentreBackInBackThree"
+      },
+      {
+        id: "OOP:WCB",
+        name: "Wide Centre-Back",
+        abbr: "WCB",
+        phase: "OOP",
+        positions: ["D (C)"],
+        key: ["Heading", "Marking", "Tackling", "Anticipation", "Positioning", "Jumping Reach", "Strength"],
+        preferred: ["Aggression", "Bravery", "Concentration", "Decisions", "Acceleration", "Agility", "Pace"],
+        foot: "either",
+        tags: [],
+        slotRule: "wideCentreBackInBackThree"
+      },
+      {
+        id: "OOP:FB",
+        name: "Full-Back",
+        abbr: "FB",
+        phase: "OOP",
+        positions: ["D (L)", "D (R)"],
+        key: ["Marking", "Tackling", "Anticipation", "Positioning", "Teamwork", "Acceleration"],
+        preferred: ["Aggression", "Concentration", "Decisions", "Work Rate", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:HFB",
+        name: "Holding Full-Back",
+        abbr: "HFB",
+        phase: "OOP",
+        positions: ["D (L)", "D (R)"],
+        key: ["Marking", "Tackling", "Anticipation", "Concentration", "Decisions", "Positioning", "Acceleration"],
+        preferred: ["Teamwork", "Agility", "Pace"],
+        foot: "either",
+        tags: ["cover"]
+      },
+      {
+        id: "OOP:PFB",
+        name: "Pressing Full-Back",
+        abbr: "PFB",
+        phase: "OOP",
+        positions: ["D (L)", "D (R)"],
+        key: ["Marking", "Tackling", "Aggression", "Anticipation", "Positioning", "Teamwork", "Work Rate", "Acceleration"],
+        preferred: ["Bravery", "Concentration", "Decisions", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: ["presser", "ballWinner"]
+      },
+      {
+        id: "OOP:HWB",
+        name: "Holding Wing-Back",
+        abbr: "HWB",
+        phase: "OOP",
+        positions: ["WB (L)", "WB (R)"],
+        key: ["Marking", "Tackling", "Anticipation", "Concentration", "Decisions", "Positioning", "Acceleration"],
+        preferred: ["Teamwork", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: ["cover"]
+      },
+      {
+        id: "OOP:PWB",
+        name: "Pressing Wing-Back",
+        abbr: "PWB",
+        phase: "OOP",
+        positions: ["WB (L)", "WB (R)"],
+        key: ["Marking", "Tackling", "Aggression", "Anticipation", "Positioning", "Teamwork", "Work Rate", "Acceleration", "Stamina"],
+        preferred: ["Bravery", "Concentration", "Decisions", "Agility", "Pace"],
+        foot: "either",
+        tags: ["presser", "ballWinner"]
+      },
+      {
+        id: "OOP:WB",
+        name: "Wing-Back",
+        abbr: "WB",
+        phase: "OOP",
+        positions: ["WB (L)", "WB (R)"],
+        key: ["Marking", "Tackling", "Anticipation", "Positioning", "Teamwork", "Acceleration", "Stamina"],
+        preferred: ["Aggression", "Concentration", "Decisions", "Work Rate", "Agility", "Pace"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:DM",
+        name: "Defensive Midfielder",
+        abbr: "DM",
+        phase: "OOP",
+        positions: ["DM"],
+        key: ["Tackling", "Anticipation", "Decisions", "Positioning", "Teamwork", "Work Rate"],
+        preferred: ["Marking", "Aggression", "Concentration", "Stamina", "Strength"],
+        foot: "either",
+        tags: ["screen"]
+      },
+      {
+        id: "OOP:DDM",
+        name: "Dropping Defensive Midfielder",
+        abbr: "DDM",
+        phase: "OOP",
+        positions: ["DM"],
+        key: ["Marking", "Tackling", "Anticipation", "Concentration", "Decisions", "Positioning", "Teamwork", "Work Rate", "Jumping Reach", "Strength"],
+        preferred: ["Aggression", "Stamina"],
+        foot: "either",
+        tags: ["screen", "cover"]
+      },
+      {
+        id: "OOP:PDM",
+        name: "Pressing Defensive Midfielder",
+        abbr: "PDM",
+        phase: "OOP",
+        positions: ["DM"],
+        key: ["Tackling", "Aggression", "Anticipation", "Decisions", "Positioning", "Teamwork", "Work Rate", "Stamina"],
+        preferred: ["Marking", "Concentration", "Pace", "Strength"],
+        foot: "either",
+        tags: ["presser", "ballWinner"]
+      },
+      {
+        id: "OOP:SDM",
+        name: "Screening Defensive Midfielder",
+        abbr: "SDM",
+        phase: "OOP",
+        positions: ["DM"],
+        key: ["Marking", "Tackling", "Anticipation", "Concentration", "Decisions", "Positioning"],
+        preferred: ["Teamwork", "Work Rate", "Stamina", "Strength"],
+        foot: "either",
+        tags: ["screen"]
+      },
+      {
+        id: "OOP:WDM",
+        name: "Wide Covering Defensive Midfielder",
+        abbr: "WDM",
+        phase: "OOP",
+        positions: ["DM"],
+        key: ["Marking", "Tackling", "Anticipation", "Decisions", "Positioning", "Teamwork", "Work Rate", "Agility", "Stamina"],
+        preferred: ["Aggression", "Concentration", "Pace", "Strength"],
+        foot: "either",
+        tags: ["coverWide"]
+      },
+      {
+        id: "OOP:CM",
+        name: "Central Midfielder",
+        abbr: "CM",
+        phase: "OOP",
+        positions: ["M (C)"],
+        key: ["Tackling", "Decisions", "Teamwork", "Work Rate"],
+        preferred: ["Marking", "Aggression", "Anticipation", "Concentration", "Positioning", "Stamina"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:PCM",
+        name: "Pressing Central Midfielder",
+        abbr: "PCM",
+        phase: "OOP",
+        positions: ["M (C)"],
+        key: ["Tackling", "Aggression", "Anticipation", "Decisions", "Teamwork", "Work Rate", "Stamina"],
+        preferred: ["Marking", "Concentration", "Positioning", "Pace", "Strength"],
+        foot: "either",
+        tags: ["presser", "ballWinner"]
+      },
+      {
+        id: "OOP:SCM",
+        name: "Screening Central Midfielder",
+        abbr: "SCM",
+        phase: "OOP",
+        positions: ["M (C)"],
+        key: ["Marking", "Tackling", "Concentration", "Decisions", "Positioning"],
+        preferred: ["Anticipation", "Teamwork", "Work Rate", "Stamina"],
+        foot: "either",
+        tags: ["screen"]
+      },
+      {
+        id: "OOP:WCM",
+        name: "Wide Covering Central Midfielder",
+        abbr: "WCM",
+        phase: "OOP",
+        positions: ["M (C)"],
+        key: ["Marking", "Tackling", "Decisions", "Teamwork", "Work Rate", "Agility", "Stamina"],
+        preferred: ["Aggression", "Anticipation", "Concentration", "Positioning", "Pace"],
+        foot: "either",
+        tags: ["coverWide"],
+        slotRule: "sideCentralMidfield"
+      },
+      {
+        id: "OOP:TWM",
+        name: "Tracking Wide Midfielder",
+        abbr: "TWM",
+        phase: "OOP",
+        positions: ["M (L)", "M (R)"],
+        key: ["Aggression", "Anticipation", "Decisions", "Teamwork", "Work Rate", "Acceleration", "Stamina"],
+        preferred: ["Marking", "Tackling", "Off the Ball", "Positioning", "Agility", "Pace"],
+        foot: "either",
+        tags: ["tracker"]
+      },
+      {
+        id: "OOP:WMF",
+        name: "Wide Midfielder",
+        abbr: "WMF",
+        phase: "OOP",
+        positions: ["M (L)", "M (R)"],
+        key: ["Decisions", "Teamwork", "Work Rate", "Acceleration"],
+        preferred: ["Marking", "Aggression", "Anticipation", "Off the Ball", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:OWM",
+        name: "Wide Outlet Wide Midfielder",
+        abbr: "OWM",
+        phase: "OOP",
+        positions: ["M (L)", "M (R)"],
+        key: ["Anticipation", "Concentration", "Decisions", "Off the Ball", "Teamwork", "Pace"],
+        preferred: ["Dribbling", "First Touch", "Marking", "Composure", "Acceleration", "Agility"],
+        foot: "either",
+        tags: ["outlet"]
+      },
+      {
+        id: "OOP:AM",
+        name: "Attacking Midfielder",
+        abbr: "AM",
+        phase: "OOP",
+        positions: ["AM (C)"],
+        key: ["Anticipation", "Decisions", "Work Rate"],
+        preferred: ["Marking", "Aggression", "Off the Ball", "Teamwork", "Stamina"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:OAM",
+        name: "Central Outlet Attacking Midfielder",
+        abbr: "OAM",
+        phase: "OOP",
+        positions: ["AM (C)"],
+        key: ["Anticipation", "Concentration", "Decisions", "Off the Ball", "Teamwork", "Balance"],
+        preferred: ["First Touch", "Marking", "Composure", "Strength"],
+        foot: "either",
+        tags: ["outlet"]
+      },
+      {
+        id: "OOP:SAM",
+        name: "Splitting Outlet Attacking Midfielder",
+        abbr: "SAM",
+        phase: "OOP",
+        positions: ["AM (C)"],
+        key: ["Anticipation", "Concentration", "Decisions", "Off the Ball", "Teamwork", "Pace"],
+        preferred: ["First Touch", "Marking", "Composure", "Acceleration"],
+        foot: "either",
+        tags: ["outlet"]
+      },
+      {
+        id: "OOP:TAM",
+        name: "Tracking Attacking Midfielder",
+        abbr: "TAM",
+        phase: "OOP",
+        positions: ["AM (C)"],
+        key: ["Aggression", "Anticipation", "Decisions", "Teamwork", "Work Rate", "Stamina"],
+        preferred: ["Marking", "Off the Ball", "Positioning"],
+        foot: "either",
+        tags: ["tracker", "presser"]
+      },
+      {
+        id: "OOP:IOW",
+        name: "Inside Outlet Winger",
+        abbr: "IOW",
+        phase: "OOP",
+        positions: ["AM (L)", "AM (R)"],
+        key: ["Anticipation", "Concentration", "Decisions", "Off the Ball", "Teamwork", "Balance"],
+        preferred: ["Dribbling", "First Touch", "Marking", "Composure", "Acceleration", "Strength"],
+        foot: "either",
+        tags: ["outlet"]
+      },
+      {
+        id: "OOP:TW",
+        name: "Tracking Winger",
+        abbr: "TW",
+        phase: "OOP",
+        positions: ["AM (L)", "AM (R)"],
+        key: ["Aggression", "Anticipation", "Decisions", "Teamwork", "Work Rate", "Acceleration", "Stamina"],
+        preferred: ["Marking", "Tackling", "Off the Ball", "Positioning", "Agility", "Pace"],
+        foot: "either",
+        tags: ["tracker"]
+      },
+      {
+        id: "OOP:WOW",
+        name: "Wide Outlet Winger",
+        abbr: "WOW",
+        phase: "OOP",
+        positions: ["AM (L)", "AM (R)"],
+        key: ["Anticipation", "Concentration", "Decisions", "Off the Ball", "Teamwork", "Pace"],
+        preferred: ["Dribbling", "First Touch", "Marking", "Composure", "Acceleration", "Agility"],
+        foot: "either",
+        tags: ["outlet"]
+      },
+      {
+        id: "OOP:W",
+        name: "Winger",
+        abbr: "W",
+        phase: "OOP",
+        positions: ["AM (L)", "AM (R)"],
+        key: ["Anticipation", "Decisions", "Teamwork", "Work Rate", "Acceleration"],
+        preferred: ["Marking", "Aggression", "Off the Ball", "Agility", "Pace", "Stamina"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:OCF",
+        name: "Central Outlet Centre Forward",
+        abbr: "OCF",
+        phase: "OOP",
+        positions: ["ST (C)"],
+        key: ["Anticipation", "Concentration", "Decisions", "Off the Ball", "Teamwork", "Balance"],
+        preferred: ["First Touch", "Marking", "Composure", "Strength"],
+        foot: "either",
+        tags: ["outlet"]
+      },
+      {
+        id: "OOP:CFD",
+        name: "Centre Forward",
+        abbr: "CFD",
+        phase: "OOP",
+        positions: ["ST (C)"],
+        key: ["Anticipation", "Decisions", "Work Rate"],
+        preferred: ["Marking", "Aggression", "Off the Ball", "Teamwork", "Stamina"],
+        foot: "either",
+        tags: []
+      },
+      {
+        id: "OOP:SCF",
+        name: "Splitting Outlet Centre Forward",
+        abbr: "SCF",
+        phase: "OOP",
+        positions: ["ST (C)"],
+        key: ["Anticipation", "Concentration", "Decisions", "Off the Ball", "Teamwork", "Pace"],
+        preferred: ["First Touch", "Marking", "Composure", "Acceleration"],
+        foot: "either",
+        tags: ["outlet"]
+      },
+      {
+        id: "OOP:TCF",
+        name: "Tracking Centre Forward",
+        abbr: "TCF",
+        phase: "OOP",
+        positions: ["ST (C)"],
+        key: ["Aggression", "Anticipation", "Decisions", "Teamwork", "Work Rate", "Stamina"],
+        preferred: ["Marking", "Off the Ball", "Positioning"],
+        foot: "either",
+        tags: ["tracker", "presser"]
+      }
+    ]
+  };
+
+  // data/formations.json
+  var formations_default = {
+    _about: [
+      "Formations the tool tests. In FM27 every tactic has an In Possession (IP) shape and an Out of Possession (OOP) shape.",
+      "Names follow FM27's preset naming where one exists; FM27 lets you drag players to any slot, so the slot list is what matters.",
+      "slots: code -> [x, y, FM position, label]. x: 0 = left touchline, 100 = right. y: 0 = own goal line, 100 = opposition goal line.",
+      "Add a formation by adding {name, slots} with 11 slot codes starting with GK."
+    ],
+    slots: {
+      GK: [50, 5, "GK", "GK"],
+      DL: [9, 24, "D (L)", "DL"],
+      DCL: [32, 21, "D (C)", "DCL"],
+      DC: [50, 19, "D (C)", "DC"],
+      DCR: [68, 21, "D (C)", "DCR"],
+      DR: [91, 24, "D (R)", "DR"],
+      WBL: [8, 40, "WB (L)", "WBL"],
+      DMCL: [36, 37, "DM", "DMCL"],
+      DMC: [50, 35, "DM", "DMC"],
+      DMCR: [64, 37, "DM", "DMCR"],
+      WBR: [92, 40, "WB (R)", "WBR"],
+      ML: [9, 55, "M (L)", "ML"],
+      MCL: [33, 53, "M (C)", "MCL"],
+      MC: [50, 52, "M (C)", "MC"],
+      MCR: [67, 53, "M (C)", "MCR"],
+      MR: [91, 55, "M (R)", "MR"],
+      AML: [12, 72, "AM (L)", "AML"],
+      AMCL: [37, 70, "AM (C)", "AMCL"],
+      AMC: [50, 69, "AM (C)", "AMC"],
+      AMCR: [63, 70, "AM (C)", "AMCR"],
+      AMR: [88, 72, "AM (R)", "AMR"],
+      STCL: [39, 87, "ST (C)", "STCL"],
+      STC: [50, 88, "ST (C)", "STC"],
+      STCR: [61, 87, "ST (C)", "STCR"]
+    },
+    inPossession: [
+      {
+        name: "4-3-3 DM Wide",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AML", "AMR", "STC"]
+      },
+      {
+        name: "4-2-3-1 DM AM Wide",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AML", "AMC", "AMR", "STC"]
+      },
+      {
+        name: "4-2-4 DM Wide",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AML", "AMR", "STCL", "STCR"]
+      },
+      {
+        name: "4-4-2",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "ML", "MCL", "MCR", "MR", "STCL", "STCR"]
+      },
+      {
+        name: "4-1-4-1 DM",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "ML", "MCL", "MCR", "MR", "STC"]
+      },
+      {
+        name: "4-4-1-1",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "ML", "MCL", "MCR", "MR", "AMC", "STC"]
+      },
+      {
+        name: "4-4-2 Diamond Narrow",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMC", "STCL", "STCR"]
+      },
+      {
+        name: "4-3-2-1 DM AM Narrow",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMCL", "AMCR", "STC"]
+      },
+      {
+        name: "4-2-2-2 DM AM Narrow",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AMCL", "AMCR", "STCL", "STCR"]
+      },
+      {
+        name: "3-4-3 DM Wide",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AML", "AMR", "STC"],
+        note: "Back three, wing-backs, two wide forwards."
+      },
+      {
+        name: "3-4-2-1 DM AM Narrow",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMCL", "AMCR", "STC"],
+        note: "Back three, wing-backs, two number 10s."
+      },
+      {
+        name: "3-2-4-1",
+        slots: ["GK", "DCL", "DC", "DCR", "DMCL", "DMCR", "AML", "AMCL", "AMCR", "AMR", "STC"],
+        note: "Back three, double pivot, box of four behind the striker."
+      },
+      {
+        name: "3-5-2 DM WB",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMC", "MCL", "MCR", "WBR", "STCL", "STCR"],
+        note: "FM may list this as 5-3-2 DM WB."
+      },
+      {
+        name: "3-4-1-2 DM WB",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMC", "STCL", "STCR"],
+        note: "FM may list this as 5-2-1-2 DM AM."
+      }
+    ],
+    outOfPossession: [
+      {
+        name: "4-4-2 2DM",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "ML", "MR", "STCL", "STCR"]
+      },
+      {
+        name: "4-4-1-1 2DM",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "ML", "MR", "AMC", "STC"]
+      },
+      {
+        name: "4-1-4-1 DM",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "ML", "MCL", "MCR", "MR", "STC"]
+      },
+      {
+        name: "4-3-3 DM Wide",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AML", "AMR", "STC"]
+      },
+      {
+        name: "4-2-3-1 DM AM Wide",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AML", "AMC", "AMR", "STC"]
+      },
+      {
+        name: "4-4-2",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "ML", "MCL", "MCR", "MR", "STCL", "STCR"]
+      },
+      {
+        name: "4-4-2 Diamond Narrow",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMC", "STCL", "STCR"]
+      },
+      {
+        name: "4-3-2-1 DM AM Narrow",
+        slots: ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMCL", "AMCR", "STC"]
+      },
+      {
+        name: "5-3-2 DM WB",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMC", "MCL", "MCR", "WBR", "STCL", "STCR"]
+      },
+      {
+        name: "5-2-3 DM Wide",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AML", "AMR", "STC"]
+      },
+      {
+        name: "5-2-2-1 DM AM",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMCL", "AMCR", "STC"]
+      },
+      {
+        name: "5-2-1-2 DM AM",
+        slots: ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMC", "STCL", "STCR"]
+      },
+      {
+        name: "5-4-1",
+        slots: ["GK", "DL", "DCL", "DC", "DCR", "DR", "ML", "MCL", "MCR", "MR", "STC"]
+      }
+    ]
+  };
+
+  // data/columns.json
+  var columns_default = {
+    _about: ["Columns the tool reads. 'headers' lists every column name accepted for a field (FM27 names first; FM24-style abbreviations also work).", "'menu' is where to find the column in FM27: in the squad table, right-click a column header (or open the view menu) > Insert Column > this path.", "importance: essential = needed for a useful tactic; recommended = improves it; optional = shown if present."],
+    fields: [
+      {
+        field: "id",
+        headers: ["Unique ID", "UID", "ID"],
+        menu: "General > Unique ID",
+        importance: "recommended",
+        why: "Lets the tool tell apart two players with the same name."
+      },
+      {
+        field: "name",
+        headers: ["Player", "Name"],
+        menu: null,
+        importance: "essential",
+        why: "Always part of the squad table."
+      },
+      {
+        field: "position",
+        headers: ["Position", "Positions"],
+        menu: "General > Position",
+        importance: "essential",
+        why: "Which positions the player can play."
+      },
+      {
+        field: "bestPos",
+        headers: ["Best Pos", "Best Position"],
+        menu: "Ability and Roles > Assistant manager's opinion of this player's best position",
+        importance: "recommended",
+        why: "Used as the player's natural position."
+      },
+      {
+        field: "secPosition",
+        headers: ["Sec. Position", "Secondary Position"],
+        menu: "General > Secondary Position",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "age",
+        headers: ["Age"],
+        menu: "General > Age",
+        importance: "recommended",
+        why: ""
+      },
+      {
+        field: "height",
+        headers: ["Height"],
+        menu: "General > Height",
+        importance: "recommended",
+        why: "Aerial targets and centre-backs."
+      },
+      {
+        field: "preferredFoot",
+        headers: ["Preferred Foot", "Foot"],
+        menu: "General > Preferred Foot",
+        importance: "recommended",
+        why: ""
+      },
+      {
+        field: "leftFoot",
+        headers: ["Left Foot"],
+        menu: "General > Left Foot",
+        importance: "recommended",
+        why: "Footedness for wide roles (e.g. inside forwards)."
+      },
+      {
+        field: "rightFoot",
+        headers: ["Right Foot"],
+        menu: "General > Right Foot",
+        importance: "recommended",
+        why: "Footedness for wide roles (e.g. inside forwards)."
+      },
+      {
+        field: "personality",
+        headers: ["Personality"],
+        menu: "General > Personality",
+        importance: "recommended",
+        why: "Captain choice."
+      },
+      {
+        field: "traits",
+        headers: ["Player Trait", "Player Traits", "Traits", "PPMs", "Preferred Moves"],
+        menu: "Training > Player Trait",
+        importance: "recommended",
+        why: "Player instructions and role choices."
+      },
+      {
+        field: "condition",
+        headers: ["CON", "Condition", "Overall Physical Condition", "Cond"],
+        menu: "Fitness and Injuries > Overall Physical Condition",
+        importance: "recommended",
+        why: "Fitness notes."
+      },
+      {
+        field: "sharpness",
+        headers: ["SHP", "Match Sharpness"],
+        menu: "Fitness and Injuries > Match Sharpness",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "fatigue",
+        headers: ["Fatigue"],
+        menu: "Fitness and Injuries > Fatigue",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "injury",
+        headers: ["Injury", "Injuries", "Current Injury"],
+        menu: "Fitness and Injuries > Injury",
+        importance: "recommended",
+        why: "Injured players are left out of the starting XI."
+      },
+      {
+        field: "info",
+        headers: ["Inf", "Player Status", "Information"],
+        menu: "General > Player Status",
+        importance: "recommended",
+        why: "Injury, suspension and other flags."
+      },
+      {
+        field: "bestRole",
+        headers: ["Best Role"],
+        menu: "Ability and Roles > Assistant manager's opinion of this player's best tactical role",
+        importance: "optional",
+        why: "FM's own best-role opinion, shown for comparison."
+      },
+      {
+        field: "roleAbility",
+        headers: ["Role Ability"],
+        menu: "Ability and Roles > Assistant manager's opinion of this player's current ability in the selected role - IP",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "roleAbilityOOP",
+        headers: ["Role Ability Out Of Possession"],
+        menu: "Ability and Roles > Assistant manager's opinion of this player's current ability in the selected role - OOP",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "ability",
+        headers: ["Ability", "Current Ability (stars)"],
+        menu: "Ability and Roles > Assistant manager's opinion of this player's current ability",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "potential",
+        headers: ["Potential"],
+        menu: "Ability and Roles > Assistant manager's opinion of this player's potential ability",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "rating",
+        headers: ["Rating", "Av Rat", "Average Rating"],
+        menu: "Stats (General) > General > Average Rating",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "club",
+        headers: ["Club"],
+        menu: "Club > Club",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "squadNumber",
+        headers: ["No.", "Squad Number", "Num"],
+        menu: "General > Squad Number",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "nation",
+        headers: ["Nation", "Nationality"],
+        menu: "General > Nationality",
+        importance: "optional",
+        why: ""
+      }
+    ],
+    attributes: [
+      {
+        field: "Aerial Reach",
+        group: "Goalkeeping",
+        headers: ["Aer", "Aerial Reach"],
+        menu: "Attributes > Goalkeeping > Aerial Reach",
+        importance: "essential"
+      },
+      {
+        field: "Command of Area",
+        group: "Goalkeeping",
+        headers: ["Cmd", "Command Of Area", "Command of Area"],
+        menu: "Attributes > Goalkeeping > Command Of Area",
+        importance: "essential"
+      },
+      {
+        field: "Communication",
+        group: "Goalkeeping",
+        headers: ["Com", "Communication"],
+        menu: "Attributes > Goalkeeping > Communication",
+        importance: "essential"
+      },
+      {
+        field: "Eccentricity",
+        group: "Goalkeeping",
+        headers: ["Ecc", "Eccentricity"],
+        menu: "Attributes > Goalkeeping > Eccentricity",
+        importance: "recommended"
+      },
+      {
+        field: "Handling",
+        group: "Goalkeeping",
+        headers: ["Han", "Handling"],
+        menu: "Attributes > Goalkeeping > Handling",
+        importance: "essential"
+      },
+      {
+        field: "Kicking",
+        group: "Goalkeeping",
+        headers: ["Kic", "Kicking"],
+        menu: "Attributes > Goalkeeping > Kicking",
+        importance: "essential"
+      },
+      {
+        field: "One on Ones",
+        group: "Goalkeeping",
+        headers: ["1v1", "One On Ones", "One on Ones", "1 v 1", "One vs One"],
+        menu: "Attributes > Goalkeeping > One on Ones",
+        importance: "essential"
+      },
+      {
+        field: "Punching (Tendency)",
+        group: "Goalkeeping",
+        headers: ["Pun", "Punching", "Punching (Tendency)"],
+        menu: "Attributes > Goalkeeping > Punching (Tendency)",
+        importance: "recommended"
+      },
+      {
+        field: "Reflexes",
+        group: "Goalkeeping",
+        headers: ["Ref", "Reflexes"],
+        menu: "Attributes > Goalkeeping > Reflexes",
+        importance: "essential"
+      },
+      {
+        field: "Rushing Out (Tendency)",
+        group: "Goalkeeping",
+        headers: ["Rushing Out", "Rushing Out (Tendency)", "TRO", "Rushing Out", "Rushing out"],
+        menu: "Attributes > Goalkeeping > Rushing out (Tendency)",
+        importance: "essential"
+      },
+      {
+        field: "Throwing",
+        group: "Goalkeeping",
+        headers: ["Thr", "Throwing"],
+        menu: "Attributes > Goalkeeping > Throwing",
+        importance: "essential"
+      },
+      {
+        field: "Corners",
+        group: "Technical",
+        headers: ["Cor", "Corners"],
+        menu: "Attributes > Technical > Corners",
+        importance: "recommended"
+      },
+      {
+        field: "Crossing",
+        group: "Technical",
+        headers: ["Cro", "Crossing"],
+        menu: "Attributes > Technical > Crossing",
+        importance: "essential"
+      },
+      {
+        field: "Dribbling",
+        group: "Technical",
+        headers: ["Dri", "Dribbling"],
+        menu: "Attributes > Technical > Dribbling",
+        importance: "essential"
+      },
+      {
+        field: "Finishing",
+        group: "Technical",
+        headers: ["Fin", "Finishing"],
+        menu: "Attributes > Technical > Finishing",
+        importance: "essential"
+      },
+      {
+        field: "First Touch",
+        group: "Technical",
+        headers: ["Fir", "First Touch"],
+        menu: "Attributes > Technical > First Touch",
+        importance: "essential"
+      },
+      {
+        field: "Free Kick Taking",
+        group: "Technical",
+        headers: ["Fre", "Free Kick Taking", "Free Kicks"],
+        menu: "Attributes > Technical > Free Kicks",
+        importance: "recommended"
+      },
+      {
+        field: "Heading",
+        group: "Technical",
+        headers: ["Hea", "Heading"],
+        menu: "Attributes > Technical > Heading",
+        importance: "essential"
+      },
+      {
+        field: "Long Shots",
+        group: "Technical",
+        headers: ["Lon", "Long Shots"],
+        menu: "Attributes > Technical > Long Shots",
+        importance: "essential"
+      },
+      {
+        field: "Long Throws",
+        group: "Technical",
+        headers: ["L Th", "Long Throws"],
+        menu: "Attributes > Technical > Long Throws",
+        importance: "recommended"
+      },
+      {
+        field: "Marking",
+        group: "Technical",
+        headers: ["Mar", "Marking"],
+        menu: "Attributes > Technical > Marking",
+        importance: "essential"
+      },
+      {
+        field: "Passing",
+        group: "Technical",
+        headers: ["Pas", "Passing"],
+        menu: "Attributes > Technical > Passing",
+        importance: "essential"
+      },
+      {
+        field: "Penalty Taking",
+        group: "Technical",
+        headers: ["Pen", "Penalty Taking"],
+        menu: "Attributes > Technical > Penalty Taking",
+        importance: "recommended"
+      },
+      {
+        field: "Tackling",
+        group: "Technical",
+        headers: ["Tackling", "Tck"],
+        menu: "Attributes > Technical > Tackling",
+        importance: "essential"
+      },
+      {
+        field: "Technique",
+        group: "Technical",
+        headers: ["Tec", "Technique"],
+        menu: "Attributes > Technical > Technique",
+        importance: "essential"
+      },
+      {
+        field: "Aggression",
+        group: "Mental",
+        headers: ["Agg", "Aggression"],
+        menu: "Attributes > Mental > Aggression",
+        importance: "essential"
+      },
+      {
+        field: "Anticipation",
+        group: "Mental",
+        headers: ["Ant", "Anticipation"],
+        menu: "Attributes > Mental > Anticipation",
+        importance: "essential"
+      },
+      {
+        field: "Bravery",
+        group: "Mental",
+        headers: ["Bra", "Bravery"],
+        menu: "Attributes > Mental > Bravery",
+        importance: "essential"
+      },
+      {
+        field: "Composure",
+        group: "Mental",
+        headers: ["Cmp", "Composure"],
+        menu: "Attributes > Mental > Composure",
+        importance: "essential"
+      },
+      {
+        field: "Concentration",
+        group: "Mental",
+        headers: ["Cnt", "Concentration"],
+        menu: "Attributes > Mental > Concentration",
+        importance: "essential"
+      },
+      {
+        field: "Decisions",
+        group: "Mental",
+        headers: ["Dec", "Decisions"],
+        menu: "Attributes > Mental > Decisions",
+        importance: "essential"
+      },
+      {
+        field: "Determination",
+        group: "Mental",
+        headers: ["Det", "Determination"],
+        menu: "Attributes > Mental > Determination",
+        importance: "recommended"
+      },
+      {
+        field: "Flair",
+        group: "Mental",
+        headers: ["Fla", "Flair"],
+        menu: "Attributes > Mental > Flair",
+        importance: "essential"
+      },
+      {
+        field: "Leadership",
+        group: "Mental",
+        headers: ["Ldr", "Leadership"],
+        menu: "Attributes > Mental > Leadership",
+        importance: "recommended"
+      },
+      {
+        field: "Off the Ball",
+        group: "Mental",
+        headers: ["Off The Ball", "Off the Ball", "OtB"],
+        menu: "Attributes > Mental > Off The Ball",
+        importance: "essential"
+      },
+      {
+        field: "Positioning",
+        group: "Mental",
+        headers: ["Pos", "Positioning"],
+        menu: "Attributes > Mental > Positioning",
+        importance: "essential"
+      },
+      {
+        field: "Teamwork",
+        group: "Mental",
+        headers: ["Tea", "Team Work", "Teamwork", "Team work"],
+        menu: "Attributes > Mental > Teamwork",
+        importance: "essential"
+      },
+      {
+        field: "Vision",
+        group: "Mental",
+        headers: ["Vis", "Vision"],
+        menu: "Attributes > Mental > Vision",
+        importance: "essential"
+      },
+      {
+        field: "Work Rate",
+        group: "Mental",
+        headers: ["Wor", "Work Rate"],
+        menu: "Attributes > Mental > Work Rate",
+        importance: "essential"
+      },
+      {
+        field: "Acceleration",
+        group: "Physical",
+        headers: ["Acc", "Acceleration"],
+        menu: "Attributes > Physical > Acceleration",
+        importance: "essential"
+      },
+      {
+        field: "Agility",
+        group: "Physical",
+        headers: ["Agi", "Agility"],
+        menu: "Attributes > Physical > Agility",
+        importance: "essential"
+      },
+      {
+        field: "Balance",
+        group: "Physical",
+        headers: ["Bal", "Balance"],
+        menu: "Attributes > Physical > Balance",
+        importance: "essential"
+      },
+      {
+        field: "Jumping Reach",
+        group: "Physical",
+        headers: ["Jum", "Jumping Reach"],
+        menu: "Attributes > Physical > Jumping Reach",
+        importance: "essential"
+      },
+      {
+        field: "Natural Fitness",
+        group: "Physical",
+        headers: ["Nat", "Natural Fitness"],
+        menu: "Attributes > Physical > Natural Fitness",
+        importance: "recommended"
+      },
+      {
+        field: "Pace",
+        group: "Physical",
+        headers: ["Pac", "Pace"],
+        menu: "Attributes > Physical > Pace",
+        importance: "essential"
+      },
+      {
+        field: "Stamina",
+        group: "Physical",
+        headers: ["Sta", "Stamina"],
+        menu: "Attributes > Physical > Stamina",
+        importance: "essential"
+      },
+      {
+        field: "Strength",
+        group: "Physical",
+        headers: ["Str", "Strength"],
+        menu: "Attributes > Physical > Strength",
+        importance: "essential"
+      }
+    ]
+  };
+
+  // data/tuning.json
+  var tuning_default = {
+    _about: [
+      "Numbers that steer the tactic engine. Safe to edit; the app can load a changed copy (Advanced > Load my own tuning.json).",
+      "Scores are 0-100. An attribute of 1 counts as 0 and 20 as 100."
+    ],
+    roleScore: {
+      keyWeight: 3,
+      preferredWeight: 1.5,
+      roleBlend: 0.8,
+      generalBlend: 0.2,
+      goalkeeperGeneralBlend: 0.1,
+      lowConfidenceMissingShare: 0.35,
+      specialisationWeight: 0.5,
+      generalWeights: {
+        Acceleration: 1,
+        Pace: 1,
+        Agility: 0.6,
+        Anticipation: 0.6,
+        Decisions: 0.6,
+        Balance: 0.4,
+        Concentration: 0.4,
+        Composure: 0.4,
+        Stamina: 0.4,
+        "Work Rate": 0.4,
+        Strength: 0.35,
+        "Jumping Reach": 0.35,
+        "First Touch": 0.3,
+        Positioning: 0.3,
+        Passing: 0.3,
+        Dribbling: 0.25,
+        Vision: 0.25,
+        "Off the Ball": 0.25,
+        Technique: 0.2,
+        Teamwork: 0.2,
+        Determination: 0.2,
+        Bravery: 0.15
+      },
+      goalkeeperGeneralWeights: {
+        Reflexes: 1,
+        Handling: 0.8,
+        Positioning: 0.8,
+        Agility: 0.8,
+        "One on Ones": 0.6,
+        "Aerial Reach": 0.6,
+        "Command of Area": 0.5,
+        Concentration: 0.5,
+        Anticipation: 0.5,
+        Decisions: 0.5,
+        Kicking: 0.3,
+        Composure: 0.3
+      },
+      height: {
+        appliesWhenKeyIncludes: ["Heading", "Jumping Reach"],
+        pivotCm: 183,
+        pointsPerCm: 0.15,
+        maxPoints: 3
+      }
+    },
+    familiarity: {
+      levels: {
+        Natural: 1,
+        Accomplished: 0.97,
+        Competent: 0.9,
+        Unconvincing: 0.8,
+        Awkward: 0.6
+      },
+      allowInStartingXI: ["Natural", "Accomplished", "Competent", "Unconvincing"],
+      adjacent: [
+        ["D (L)", "WB (L)", "Competent"],
+        ["D (R)", "WB (R)", "Competent"],
+        ["WB (L)", "M (L)", "Unconvincing"],
+        ["WB (R)", "M (R)", "Unconvincing"],
+        ["D (C)", "DM", "Unconvincing"],
+        ["D (C)", "D (L)", "Unconvincing"],
+        ["D (C)", "D (R)", "Unconvincing"],
+        ["DM", "M (C)", "Competent"],
+        ["M (C)", "AM (C)", "Competent"],
+        ["M (L)", "AM (L)", "Competent"],
+        ["M (R)", "AM (R)", "Competent"],
+        ["AM (L)", "AM (R)", "Unconvincing"],
+        ["M (L)", "M (R)", "Unconvincing"],
+        ["AM (C)", "ST (C)", "Unconvincing"],
+        ["AM (L)", "ST (C)", "Unconvincing"],
+        ["AM (R)", "ST (C)", "Unconvincing"],
+        ["D (L)", "D (R)", "Unconvincing"],
+        ["WB (L)", "WB (R)", "Unconvincing"],
+        ["M (C)", "M (L)", "Unconvincing"],
+        ["M (C)", "M (R)", "Unconvincing"],
+        ["AM (C)", "AM (L)", "Unconvincing"],
+        ["AM (C)", "AM (R)", "Unconvincing"],
+        ["DM", "D (L)", "Unconvincing"],
+        ["DM", "D (R)", "Unconvincing"]
+      ]
+    },
+    foot: {
+      strength: { "Very Weak": 0, Weak: 0.25, Reasonable: 0.5, "Fairly Strong": 0.7, Strong: 0.85, "Very Strong": 1 },
+      rules: {
+        same: { base: 0.88, span: 0.12 },
+        inverted: { base: 0.88, span: 0.12 },
+        sameMild: { base: 0.95, span: 0.05 },
+        invertedMild: { base: 0.95, span: 0.05 },
+        either: { base: 1, span: 0 }
+      }
+    },
+    search: {
+      ipWeight: 0.5,
+      oopWeight: 0.5,
+      laneMaxCost: 52,
+      laneCostX: 1.2,
+      laneCostY: 0.8,
+      complexityPenaltyPerCost: 0.06,
+      refinePasses: 4,
+      topSystems: 5,
+      excludeInjured: true
+    },
+    balance: {
+      _about: "Points added to (or taken from) a system's 0-100 score. See src/engine/balance.js for what each rule checks.",
+      attackingBacksWithoutCover: -4,
+      noCreator: -4,
+      creatorAndBallWinner: 1.5,
+      noBallWinnerInMidfield: -2,
+      tooManyCreatorsEach: -2,
+      maxCreators: 2,
+      duplicateFreeRoleEach: -4,
+      flankWithoutWidth: -2.5,
+      targetForwardWithoutCrossers: -3,
+      falseNineWithoutRunners: -3,
+      noFinisher: -3,
+      tooManyOutletsEach: -2.5,
+      maxOutlets: 2,
+      stopperAndCoverPair: 1,
+      twoStoppersNoCover: -2,
+      noScreenOrHolder: -2,
+      duplicateHalfBackOrDroppingEach: -3
+    }
+  };
+
+  // src/data.js
+  var DEFAULT_DOCS = { roles: roles_default, formations: formations_default, columns: columns_default, tuning: tuning_default };
+
+  // src/report/util.js
+  function esc(s) {
+    return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function scoreClass(score2) {
+    if (score2 == null) return "s-none";
+    if (score2 >= 75) return "s-top";
+    if (score2 >= 65) return "s-good";
+    if (score2 >= 55) return "s-ok";
+    return "s-low";
+  }
+  function shortName(name) {
+    const parts = String(name).trim().split(/\s+/);
+    return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+  }
+  var fmt = (n, d = 0) => n == null || Number.isNaN(n) ? "–" : Number(n).toFixed(d);
+
+  // src/report/pitch.js
+  var W = 340;
+  var H = 500;
+  var PAD_X = 26;
+  var PAD_TOP = 30;
+  var PAD_BOTTOM = 58;
+  var px = (x) => PAD_X + x / 100 * (W - 2 * PAD_X);
+  var py = (y) => H - PAD_BOTTOM - y / 100 * (H - PAD_TOP - PAD_BOTTOM);
+  function markings() {
+    const l = 'fill="none" stroke="var(--pitch-line)" stroke-width="2"';
+    return [
+      `<rect x="4" y="4" width="${W - 8}" height="${H - 8}" rx="6" fill="var(--pitch)" />`,
+      `<rect x="12" y="12" width="${W - 24}" height="${H - 24}" ${l} />`,
+      `<line x1="12" y1="${H / 2}" x2="${W - 12}" y2="${H / 2}" ${l} />`,
+      `<circle cx="${W / 2}" cy="${H / 2}" r="44" ${l} />`,
+      `<rect x="${W / 2 - 80}" y="12" width="160" height="62" ${l} />`,
+      `<rect x="${W / 2 - 80}" y="${H - 74}" width="160" height="62" ${l} />`,
+      `<rect x="${W / 2 - 34}" y="12" width="68" height="22" ${l} />`,
+      `<rect x="${W / 2 - 34}" y="${H - 34}" width="68" height="22" ${l} />`
+    ].join("");
+  }
+  function pitchSVG(items, slots, title) {
+    const players = items.map((it) => {
+      const [x, y] = slots[it.slot];
+      const cx = px(x);
+      const cy = py(y);
+      const cls = scoreClass(Math.round(it.score));
+      return `<g class="pl ${cls}">
+  <title>${esc(it.name)}: ${esc(it.roleName)} (${Math.round(it.score)})</title>
+  <circle cx="${cx}" cy="${cy}" r="17" class="dot" />
+  <text x="${cx}" y="${cy + 3.5}" class="abbr">${esc(it.abbr)}</text>
+  <text x="${cx}" y="${cy + 30}" class="nm">${esc(shortName(it.name))}</text>
+  <text x="${cx}" y="${cy + 41}" class="sc">${Math.round(it.score)}</text>
+</g>`;
+    }).join("\n");
+    return `<svg class="pitch" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">${markings()}${players}</svg>`;
+  }
+
+  // src/report/report-css.js
+  var REPORT_CSS = `
+.report {
+  --ink: #17202a; --muted: #5b6672; --line: #d9dee3; --soft: #f4f6f8; --card: #ffffff;
+  --accent: #1f6f50; --accent-soft: #e5f2ec; --warn: #8a5a00; --warn-soft: #fff4dc;
+  --pitch: #2f7d4f; --pitch-line: rgba(255,255,255,.75);
+  --s-top: #1b7a43; --s-good: #5d9b3a; --s-ok: #c08a12; --s-low: #b4473a; --s-none: #9aa3ab;
+  color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  max-width: 1120px; margin: 0 auto; padding: 8px 16px 48px; background: var(--card);
+}
+.report * { box-sizing: border-box; }
+.report h1 { font-size: 28px; line-height: 1.2; margin: 4px 0 6px; }
+.report h2 { font-size: 21px; margin: 36px 0 10px; padding-top: 10px; border-top: 2px solid var(--ink); }
+.report h3 { font-size: 16px; margin: 22px 0 8px; }
+.report p { margin: 6px 0; }
+.report .eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 700; color: var(--accent); }
+.report .meta { color: var(--muted); font-size: 13px; }
+.report .notice { border: 1px solid #e6c46a; background: var(--warn-soft); color: #4d3600; border-radius: 8px; padding: 10px 14px; margin: 14px 0; }
+.report .notice strong { color: #4d3600; }
+.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 12px 0 16px; }
+.report .kpi { background: var(--soft); border-radius: 8px; padding: 10px 12px; }
+.report .kpi .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.report .kpi .v { font-size: 19px; font-weight: 700; }
+.report .pitches { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.report figure { margin: 0; }
+.report figcaption { font-weight: 700; margin: 0 0 6px; }
+.report figcaption span { font-weight: 400; color: var(--muted); }
+.report svg.pitch { width: 100%; max-width: 420px; height: auto; display: block; }
+.report .pl .dot { fill: #fff; stroke: var(--s-none); stroke-width: 3; }
+.report .pl.s-top .dot { stroke: var(--s-top); } .report .pl.s-good .dot { stroke: var(--s-good); }
+.report .pl.s-ok .dot { stroke: var(--s-ok); } .report .pl.s-low .dot { stroke: var(--s-low); }
+.report .pl text { text-anchor: middle; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+.report .pl .abbr { font-size: 10px; font-weight: 800; fill: #17202a; }
+.report .pl .nm { font-size: 11.5px; font-weight: 700; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.45); stroke-width: 3px; }
+.report .pl .sc { font-size: 10px; fill: #e9f5ee; }
+.report table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0 4px; }
+.report th, .report td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.report th { background: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+.report td.num, .report th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.report .tablewrap { overflow-x: auto; }
+.report .score { display: inline-block; min-width: 34px; padding: 1px 6px; border-radius: 10px; text-align: center; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.report .score.s-top { background: var(--s-top); } .report .score.s-good { background: var(--s-good); }
+.report .score.s-ok { background: var(--s-ok); } .report .score.s-low { background: var(--s-low); } .report .score.s-none { background: var(--s-none); }
+.report table.matrix td, .report table.matrix th { padding: 4px 5px; text-align: center; }
+.report table.matrix td:first-child, .report table.matrix th:first-child { text-align: left; white-space: nowrap; }
+.report table.matrix .score { min-width: 30px; font-size: 12px; }
+.report table.matrix .best { outline: 2px solid var(--ink); outline-offset: 1px; }
+.report .phase-ip { color: #0f5e8c; } .report .phase-oop { color: #8c2f4b; }
+.report .tag { display: inline-block; font-size: 11.5px; padding: 0 6px; border-radius: 9px; background: var(--soft); color: var(--muted); margin: 1px 2px 1px 0; }
+.report .tag.warn { background: var(--warn-soft); color: var(--warn); }
+.report ul.notes { padding-left: 20px; margin: 6px 0; }
+.report ul.notes li.plus::marker { content: "+  "; color: var(--s-top); font-weight: 700; }
+.report ul.notes li.minus::marker { content: "–  "; color: var(--s-low); font-weight: 700; }
+.report ol.steps li { margin: 4px 0; }
+.report .legend { font-size: 12.5px; color: var(--muted); }
+.report .muted { color: var(--muted); }
+.report .small { font-size: 12.5px; }
+.report .next { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; margin-top: 18px; }
+@media print {
+  .report { max-width: none; padding: 0; font-size: 12px; }
+  .report h2 { break-before: page; border-top: none; margin-top: 0; }
+  .report section.keep-with-prev h2 { break-before: auto; }
+  .report table, .report figure { break-inside: avoid; }
+  .report .tablewrap { overflow: visible; }
+  .report .score { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .report svg.pitch { max-width: 300px; }
+}
+`;
+
+  // src/report/render.js
+  var GROUPS = [
+    { title: "Goalkeepers", positions: ["GK"] },
+    { title: "Centre-backs", positions: ["D (C)"] },
+    { title: "Full-backs and wing-backs", positions: ["D (L)", "D (R)", "WB (L)", "WB (R)"] },
+    { title: "Defensive midfielders", positions: ["DM"] },
+    { title: "Central midfielders", positions: ["M (C)"] },
+    { title: "Wide midfielders and wingers", positions: ["M (L)", "M (R)", "AM (L)", "AM (R)"] },
+    { title: "Attacking midfielders", positions: ["AM (C)"] },
+    { title: "Strikers", positions: ["ST (C)"] }
+  ];
+  var score = (v, extra = "") => `<span class="score ${scoreClass(v == null ? v : Math.round(v))}${extra}">${fmt(v)}</span>`;
+  function slotLabel(slots, code) {
+    return slots[code][3];
+  }
+  function bySlotOrder(slots, key) {
+    return (a, b) => {
+      const [ax, ay] = slots[a[key]];
+      const [bx, by] = slots[b[key]];
+      return ay - by || ax - bx;
+    };
+  }
+  function laneNotes(lane) {
+    const notes = [];
+    for (const [phase, s, slot] of [["IP", lane.ipScore, lane.ip], ["OOP", lane.oopScore, lane.oop]]) {
+      if (s.familiarity !== "Natural") {
+        const est = s.familiarity === "Accomplished" ? "" : " (estimated)";
+        notes.push(`<span class="tag${s.familiarity === "Accomplished" ? "" : " warn"}">${phase}: ${esc(s.familiarity)} at ${esc(slot)}${est}</span>`);
+      }
+      if (s.footFactor < 0.96) notes.push(`<span class="tag warn">${phase}: weaker foot for this side</span>`);
+      if (s.hi - s.lo >= 6) notes.push(`<span class="tag warn">${phase}: ±${fmt((s.hi - s.lo) / 2)} (scouting ranges)</span>`);
+      if (s.missingShare > 0.35) notes.push(`<span class="tag warn">${phase}: some key attributes unknown</span>`);
+    }
+    if (lane.player.condition != null && lane.player.condition < 85) notes.push(`<span class="tag warn">Condition ${fmt(lane.player.condition)}%</span>`);
+    return [...new Set(notes)].join(" ");
+  }
+  function overview(result) {
+    const best = result.search.best;
+    const slots = result.ctx.slots;
+    const ipItems = best.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score }));
+    const oopItems = best.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score }));
+    const balance = best.balance.points;
+    return `
+<section id="overview">
+  <h2>1. The tactic at a glance</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="k">In possession</div><div class="v">${esc(best.ipName)}</div></div>
+    <div class="kpi"><div class="k">Out of possession</div><div class="v">${esc(best.oopName)}</div></div>
+    <div class="kpi"><div class="k">Team fit (0–100)</div><div class="v">${fmt(best.fit, 1)}</div></div>
+    <div class="kpi"><div class="k">Balance</div><div class="v">${balance >= 0 ? "+" : ""}${fmt(balance, 1)} points</div></div>
+  </div>
+  <div class="pitches">
+    <figure><figcaption class="phase-ip">In possession <span>· ${esc(best.ipName)}</span></figcaption>${pitchSVG(ipItems, slots, "In possession shape")}</figure>
+    <figure><figcaption class="phase-oop">Out of possession <span>· ${esc(best.oopName)}</span></figcaption>${pitchSVG(oopItems, slots, "Out of possession shape")}</figure>
+  </div>
+  <p class="legend">Each circle shows the role's FM27 abbreviation, the player's surname and his fit score for that role (0–100; ring colour:
+  <span class="score s-top">75+</span> excellent, <span class="score s-good">65+</span> good, <span class="score s-ok">55+</span> usable, <span class="score s-low">&lt;55</span> weak).</p>
+</section>`;
+  }
+  function setup(result) {
+    const best = result.search.best;
+    const slots = result.ctx.slots;
+    const lanes = best.lanes.slice().sort(bySlotOrder(slots, "ip"));
+    const rows = lanes.map(
+      (l) => `<tr>
+  <td><strong>${esc(l.player.name)}</strong><div class="small muted">${esc(l.player.positionsText || [...l.player.positions].join(", "))}</div></td>
+  <td>${esc(slotLabel(slots, l.ip))}</td>
+  <td><span class="phase-ip">${esc(l.ipRole.name)}</span> <span class="muted small">(${esc(l.ipRole.abbr)})</span></td>
+  <td class="num">${score(l.ipScore.score)}</td>
+  <td>${esc(slotLabel(slots, l.oop))}</td>
+  <td><span class="phase-oop">${esc(l.oopRole.name)}</span> <span class="muted small">(${esc(l.oopRole.abbr)})</span></td>
+  <td class="num">${score(l.oopScore.score)}</td>
+  <td>${laneNotes(l)}</td>
+</tr>`
+    ).join("\n");
+    return `
+<section id="setup">
+  <h2>2. Enter it in FM27</h2>
+  <ol class="steps">
+    <li>Open <strong>Tactics</strong>. Pick an empty tactic slot (or one you don't mind changing).</li>
+    <li>Switch the pitch to <strong>In Possession</strong> and choose the formation <strong>${esc(best.ipName)}</strong>
+      (or drag players until the shape matches the left-hand pitch above).</li>
+    <li>Put each player in the <em>In possession</em> spot below and give him the <span class="phase-ip">In possession role</span>.</li>
+    <li>Switch the pitch to <strong>Out of Possession</strong>, choose <strong>${esc(best.oopName)}</strong>, and set each player's spot and
+      <span class="phase-oop">Out of possession role</span> the same way.</li>
+    <li>FM27 roles have no duties, so there is nothing else to pick per player.</li>
+  </ol>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Player</th><th>IP spot</th><th>In possession role</th><th class="num">Fit</th><th>OOP spot</th><th>Out of possession role</th><th class="num">Fit</th><th>Notes</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>
+</section>`;
+  }
+  function why(result) {
+    const { best, ranking, tested } = result.search;
+    const notes = best.balance.notes.length ? `<ul class="notes">${best.balance.notes.map((n) => `<li class="${n.points >= 0 ? "plus" : "minus"}">${esc(n.text)} <span class="muted small">(${n.points > 0 ? "+" : ""}${fmt(n.points, 1)})</span></li>`).join("")}</ul>` : "<p>No balance problems found.</p>";
+    const top = ranking.slice(0, result.ctx.search.topSystems);
+    const rows = top.map(
+      (r, i) => `<tr${i === 0 ? ' style="font-weight:700"' : ""}><td>${i + 1}</td><td>${esc(r.ipName)}</td><td>${esc(r.oopName)}</td>
+  <td class="num">${fmt(r.fit, 1)}</td><td class="num">${r.balance.points >= 0 ? "+" : ""}${fmt(r.balance.points, 1)}</td>
+  <td class="num">${r.complexity >= 0.05 ? "−" : ""}${fmt(r.complexity, 1)}</td><td class="num">${fmt(r.score, 1)}</td></tr>`
+    ).join("");
+    const runnerUp = top[1];
+    const gap = runnerUp ? best.score - runnerUp.score : 0;
+    return `
+<section id="why">
+  <h2>3. Why this system</h2>
+  <p>The tool tested <strong>${tested}</strong> combinations of in-possession and out-of-possession formations. For each one it chose the
+  best eleven with the Hungarian algorithm (an exact method, so no other line-up of your players fits that system better), then picked
+  each player's two roles for fit and team balance.</p>
+  ${runnerUp && gap < 1 ? `<p>The top systems are close (${fmt(gap, 1)} points apart), so any of them suits this squad. Pick the one you prefer to watch.</p>` : ""}
+  <h3>Team balance of the chosen system</h3>
+  ${notes}
+  <h3>Best systems tested</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>In possession</th><th>Out of possession</th><th class="num">Fit</th><th class="num">Balance</th><th class="num">Complexity</th><th class="num">Total</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>
+  <p class="legend">Fit = average of the eleven players' role scores (half in possession, half out of possession). Complexity = a small
+  deduction when players move a long way between the two shapes, because FM27 rates complex tactics as harder to learn.</p>
+</section>`;
+  }
+  function groupScore(ctx, player, role, positions) {
+    let best = null;
+    for (const pos of role.positions) {
+      if (!positions.includes(pos)) continue;
+      const s = slotRoleScore(player, role, ctx.slotForPosition[pos], ctx);
+      if (!best || s.score > best.score) best = { ...s, position: pos };
+    }
+    return best;
+  }
+  function suitability(result) {
+    const { ctx, players } = result;
+    const roles = ctx.roles.roles;
+    const xiIds = new Set(result.search.best.lanes.map((l) => l.player.id));
+    const bestRows = players.map((p) => {
+      const scored = result.suitability.find((s) => s.player === p).scores;
+      const top = (phase) => roles.filter((r) => r.phase === phase && scored[r.id]).map((r) => ({ r, s: scored[r.id] })).sort((a, b) => b.s.score - a.s.score).slice(0, 3).map(({ r, s }) => `${score(s.score)} ${esc(r.name)}`).join("<br>");
+      const flags = [];
+      if (xiIds.has(p.id)) flags.push('<span class="tag">Starting XI</span>');
+      if (p.injured) flags.push(`<span class="tag warn">Injured${p.injury ? ": " + esc(p.injury) : ""}</span>`);
+      if (p.uncertainAttrs.length) flags.push(`<span class="tag warn">${p.uncertainAttrs.length} attributes are scouting ranges</span>`);
+      if (p.unknownAttrs.length > 3) flags.push(`<span class="tag warn">${p.unknownAttrs.length} attributes unknown</span>`);
+      return `<tr><td><strong>${esc(p.name)}</strong><div class="small muted">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}</div></td>
+<td>${top("IP")}</td><td>${top("OOP")}</td><td>${esc(p.fmBestRole || "–")}</td><td>${flags.join(" ")}</td></tr>`;
+    }).join("\n");
+    const matrices = GROUPS.map((g) => {
+      const groupRoles = roles.filter((r) => r.positions.some((pos) => g.positions.includes(pos)));
+      const ipRoles = groupRoles.filter((r) => r.phase === "IP");
+      const oopRoles = groupRoles.filter((r) => r.phase === "OOP");
+      const members = players.filter((p) => g.positions.some((pos) => p.positions.has(pos)));
+      if (!members.length) return `<h3>${esc(g.title)}</h3><p class="muted">Nobody in the squad lists these positions.</p>`;
+      const head = [...ipRoles, ...oopRoles].map((r) => `<th class="${r.phase === "IP" ? "phase-ip" : "phase-oop"}" title="${esc(r.name)}">${esc(r.abbr)}</th>`).join("");
+      const body = members.map((p) => {
+        const cells = [ipRoles, oopRoles].map((list) => {
+          const vals = list.map((r) => groupScore(ctx, p, r, g.positions));
+          const max = Math.max(...vals.map((v) => v ? v.score : -1));
+          return vals.map((v) => `<td>${v ? score(v.score, v.score === max ? " best" : "") : ""}</td>`).join("");
+        });
+        return `<tr><td>${esc(p.name)}${p.injured ? ' <span class="tag warn">inj</span>' : ""}</td>${cells.join("")}</tr>`;
+      }).join("");
+      const legend = [...ipRoles, ...oopRoles].map((r) => `<strong>${esc(r.abbr)}</strong> ${esc(r.name)}`).join(" · ");
+      return `<h3>${esc(g.title)}</h3>
+<div class="tablewrap"><table class="matrix"><thead><tr><th>Player</th>${head}</tr></thead><tbody>${body}</tbody></table></div>
+<p class="legend"><span class="phase-ip">Blue = in possession</span>, <span class="phase-oop">red = out of possession</span>. ${legend}</p>`;
+    }).join("\n");
+    return `
+<section id="suitability">
+  <h2>4. Role suitability for the whole squad</h2>
+  <p>Every player scored for every FM27 role. A score weighs the role's key attributes three times and its preferred attributes 1.5 times
+  (the same attributes FM27 highlights for that role), adds the attributes the match engine rewards in every role (pace, acceleration,
+  anticipation, decisions…), then adjusts for position familiarity and, on the wings, for the stronger foot.</p>
+  <h3>Best roles per player</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Player</th><th>Best in possession</th><th>Best out of possession</th><th>FM's best role</th><th>Notes</th></tr></thead>
+    <tbody>${bestRows}</tbody>
+  </table></div>
+  <p class="legend">"FM's best role" is the assistant manager's opinion from your export (if the column was included), for comparison.</p>
+  ${matrices}
+</section>`;
+  }
+  function dataNotes(result) {
+    const { columns, players } = result;
+    const items = [];
+    items.push(`Read <strong>${players.length}</strong> players from <strong>${esc(result.filename)}</strong> (${esc(result.source)}, ${result.format.toUpperCase()}).`);
+    items.push(`${columns.attributesFound} of ${columns.attributesTotal} attributes found.`);
+    const menuList = (list) => `<ul>${list.map((c) => `<li><strong>${esc(c.label)}</strong>${c.menu ? ` – in FM27: Insert Column › ${esc(c.menu)}` : ""}${c.why ? ` <span class="muted">(${esc(c.why)})</span>` : ""}</li>`).join("")}</ul>`;
+    if (columns.missingEssential.length) {
+      items.push(`<strong>Missing columns that matter</strong> (scores use the attributes that are present; add these for better results):${menuList(columns.missingEssential)}`);
+    }
+    if (columns.missingRecommended.length) {
+      items.push(`Missing columns that would improve the report:${menuList(columns.missingRecommended)}`);
+    }
+    const ranged = players.filter((p) => p.uncertainAttrs.length);
+    if (ranged.length) {
+      items.push(`${ranged.length} player(s) have attributes shown as scouting ranges (e.g. "11-14"). The tool uses the middle of the range and shows the possible spread as ±: ${ranged.map((p) => esc(p.name)).join(", ")}.`);
+    }
+    const unknown = players.filter((p) => p.unknownAttrs.length > 3);
+    if (unknown.length) items.push(`Some attributes are unknown ("-") for: ${unknown.map((p) => esc(p.name)).join(", ")}. Their scores use only the known attributes.`);
+    const injured = players.filter((p) => p.injured);
+    if (injured.length) {
+      const left = result.ctx.search.excludeInjured;
+      items.push(`${left ? "Left out of the starting XI because injured" : "Injured (still considered for the XI)"}: ${injured.map((p) => `${esc(p.name)}${p.injury ? ` (${esc(p.injury)})` : ""}`).join(", ")}.`);
+    }
+    items.push('Position familiarity: FM27 only shows it as coloured dots, which no export contains. The tool treats <em>Best Pos</em> as Natural, other positions in the <em>Position</em> column as Accomplished, and neighbouring positions as Competent or Unconvincing (marked "estimated").');
+    for (const w of result.warnings) items.push(esc(w));
+    return `
+<section id="data">
+  <h2>5. About your data</h2>
+  <ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>
+</section>`;
+  }
+  function renderReport(result, opts = {}) {
+    const when = (opts.generatedAt || /* @__PURE__ */ new Date()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    const club = result.club ? `${esc(result.club)}: ` : "";
+    return `<article class="report">
+<header>
+  <div class="eyebrow">FM27 Tactic Builder</div>
+  <h1>${club}suggested tactic</h1>
+  <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · made ${esc(when)}</p>
+</header>
+<aside class="notice"><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your export file and never touches the
+game or your save. Enter the settings by hand, in the order shown in section 2.</aside>
+${overview(result)}
+${setup(result)}
+${why(result)}
+${suitability(result)}
+${dataNotes(result)}
+${opts.stageNote ? `<div class="next"><strong>Coming in the next version:</strong> team instructions (mentality, pressing, defensive line, passing and the rest, in FM27's screen order, with reasons), player instructions, a depth chart with second choices and weak areas, set-piece takers, captain, training focus and 2–3 alternative tactics.</div>` : ""}
+</article>`;
+  }
+  function standaloneReport(result, opts = {}) {
+    const title = `${result.club ? result.club + " – " : ""}FM27 tactic`;
+    return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(title)}</title><style>body{margin:0;background:#fff}${REPORT_CSS}</style></head>
+<body>${renderReport(result, opts)}</body></html>
+`;
+  }
+
+  // samples/squad_20261108_201500.csv
+  var squad_20261108_201500_default = 'Unique ID,Player,Position,Best Pos,Age,Club,Nation,Height,Preferred Foot,Left Foot,Right Foot,Personality,Rating,Inf,Best Role,Ability,Potential,Aerial Reach,Command Of Area,Communication,Eccentricity,Handling,Kicking,One On Ones,Punching,Reflexes,Rushing Out (Tendency),Throwing,Aggression,Anticipation,Bravery,Composure,Concentration,Decisions,Determination,Flair,Leadership,Off The Ball,Positioning,Team Work,Vision,Work Rate,Acceleration,Agility,Balance,Jumping Reach,Natural Fitness,Pace,Stamina,Strength,Crossing,Dribbling,Finishing,First Touch,Heading,Long Shots,Marking,Passing,Tackling,Technique,Corners,Free Kick Taking,Long Throws,Penalty Taking,Player Trait,CON,Injury,Fatigue\r\n91000000,Callum Ashdown,GK,GK,29,Harbour City,ENG,191 cm,Right,Very Weak,Very Strong,Model Professional,7.18,,,3.5,3.5,19,17,16,13,16,14,18,14,19,15,16,12,13,13,16,18,16,12,12,11,10,17,12,13,11,11,17,11,11,10,13,12,11,6,7,7,7,8,8,9,13,8,6,13,14,13,11,Tries To Play Way Out Of Trouble,93%,,Tired\r\n91000137,Rafael Holloway,GK,GK,33,Harbour City,SCO,194 cm,Right,Very Weak,Very Strong,Resolute,7.16,,,2.5,2.5,14,14,12,11,15,6,14,10,13,7,9,10,8,10,7,16,11,9,9,9,9,14,10,10,11,10,11,10,11,9,10,9,9,6,3,6,5,5,6,5,8,4,4,11,11,10,9,,98%,,Fresh\r\n91000274,Tomas Okafor,GK,GK,19,Harbour City,IRL,188 cm,Left,Very Strong,Reasonable,Fairly Determined,6.82,,,0.5,1.5,10,12,12,6,12,10,13,7,10,11,11,9,9,9,9,10,11,7,6,6,6,14,5,9,6,6,13,7,7,7,6,8,8,4,2,2,1,1,2,1,12,2,2,8,7,9,6,,96%,,Fresh\r\n91000411,Elias Vantongeren,D (C),D (C),27,Harbour City,WAL,188 cm,Left,Very Strong,Reasonable,Model Citizen,6.77,,BCB,3.5,3.5,3,5,5,6,2,3,5,4,4,3,3,12,17,14,17,12,15,12,11,10,11,19,13,12,13,13,11,13,16,14,11,12,14,12,11,11,15,17,11,16,16,18,15,9,9,9,9,"Brings Ball Out Of Defence, Tries Long Range Passes",91%,,Fresh\r\n91000548,Kofi Draycott,D (C),D (C),30,Harbour City,NED,192 cm,Right,Weak,Very Strong,Born Leader,6.90,,SCB,3.0,3.0,1,3,4,2,3,2,2,4,1,4,2,15,14,15,11,15,13,11,8,17,12,14,9,9,10,8,10,11,17,11,7,10,16,10,7,10,11,15,9,18,9,14,7,7,10,9,9,"Dives Into Tackles, Marks Opponent Tightly",97%,,Fresh\r\n91000685,Mateo Falkner,"D (RC), DM",D (C),24,Harbour City,POR,184 cm,Right,Reasonable,Very Strong,Determined,7.16,,CCB,3.0,3.0,5,2,4,3,4,4,3,1,3,1,3,12,14,9,13,13,15,13,11,10,11,16,12,12,10,16,15,9,8,11,14,13,7,12,11,12,12,13,12,14,9,17,9,7,11,10,8,,91%,,Fresh\r\n91000822,Jonah Marlowe,D (C),D (C),21,Harbour City,GHA,190 cm,Left,Very Strong,Weak,Balanced,6.80,,,1.5,2.5,1,1,1,1,1,1,2,1,1,1,1,13,11,14,10,9,10,8,5,9,7,11,7,7,8,4,8,8,14,6,4,7,13,9,6,8,6,12,8,14,5,13,5,5,7,5,4,,97%,,Fresh\r\n91000959,Luca Thackeray,D/WB (L),D (L),25,Harbour City,SWE,176 cm,Left,Very Strong,Reasonable,Driven,7.05,,WB,3.0,3.0,5,4,4,3,2,1,4,1,1,2,4,13,11,10,12,10,11,12,13,12,17,10,13,11,15,17,12,11,10,10,15,16,7,18,13,11,10,7,12,15,10,15,13,9,10,11,8,"Gets Forward Whenever Possible, Runs With Ball Down Left",93%,,Fresh\r\n91001096,Andre Bellweather,D (L),D (L),28,Harbour City,ENG,180 cm,Left,Very Strong,Very Weak,Professional,6.69,,,2.0,2.0,3,1,1,1,1,2,1,2,2,1,1,11,12,9,9,15,13,10,5,8,7,14,13,10,12,12,8,9,10,9,7,9,13,6,5,8,11,8,10,13,10,14,10,7,5,7,5,,97%,,Fresh\r\n91001233,Niklas Dunmore,D/WB (R),D (R),26,Harbour City,SCO,178 cm,Right,Weak,Very Strong,Perfectionist,6.83,,IWB,3.0,3.0,1,3,3,5,3,5,2,2,2,2,4,9,16,13,18,11,15,11,11,10,10,13,15,13,11,14,10,11,10,10,10,11,10,13,13,11,16,11,10,11,14,17,15,9,7,9,10,Likes To Switch Ball To Other Flank,98%,,Fresh\r\n91001370,Oskar Kerrigan,"D/WB (R), M (R)",D (R),20,Harbour City,IRL,175 cm,Right,Weak,Very Strong,Fairly Ambitious,7.07,,,1.5,2.5,3,3,1,2,2,1,1,3,1,2,1,9,10,8,10,10,10,9,9,9,13,9,13,8,13,15,10,8,10,9,12,13,6,13,10,10,10,6,7,10,10,11,11,8,8,7,6,,96%,,Fresh\r\n91001507,Theo Radley,DM,DM,29,Harbour City,WAL,183 cm,Right,Very Weak,Very Strong,Resolute,6.73,,SDM,3.5,3.5,5,5,5,4,3,6,2,2,2,3,3,14,15,15,12,16,16,12,8,14,14,18,16,14,18,13,13,13,13,14,12,13,12,11,11,11,12,11,12,18,15,16,10,10,10,11,12,Marks Opponent Tightly,99%,,Fresh\r\n91001644,Malik Zelenko,"DM, M (C)",DM,31,Harbour City,NED,177 cm,Right,Very Weak,Very Strong,Model Professional,7.15,,DLP,3.5,3.5,3,3,6,2,4,2,4,2,4,5,4,13,14,12,16,16,19,14,13,12,11,14,15,18,11,12,11,14,11,13,9,12,9,13,12,11,16,9,15,13,16,13,17,18,20,8,8,"Likes To Switch Ball To Other Flank, Tries Long Range Passes",94%,,Fresh\r\n91001781,Dario Brennan,M (C),M (C),26,Harbour City,POR,181 cm,Right,Weak,Very Strong,Driven,6.74,,BBM,3.0,3.0,1,4,2,2,3,5,3,2,3,1,5,15,12,12,12,11,14,14,12,12,17,10,16,11,17,14,10,10,13,10,13,17,12,11,12,11,14,10,14,10,14,18,12,10,10,10,10,Gets Into Opposition Area,90%,,Fresh\r\n91001918,Ruben Iverson,"DM, M (C)",M (C),23,Harbour City,GHA,179 cm,Left,Very Strong,Very Weak,Determined,7.19,,,2.0,2.0,1,1,2,1,1,3,3,1,2,1,1,11,10,8,8,10,11,13,9,8,13,7,12,11,12,14,8,11,9,8,12,15,8,9,7,9,13,10,10,11,16,14,7,6,6,6,7,,98%,,Fresh\r\n91002055,Sami Pemberton,M/AM (C),M (C),24,Harbour City,SWE,174 cm,Left,Very Strong,Weak,Fairly Professional,7.13,,MPM,3.0,3.0,3,1,4,3,3,2,5,5,3,1,1,10,16,12,18,9,17,12,15,11,14,12,14,16,11,10,12,12,12,11,13,9,6,13,15,12,15,13,15,7,17,9,17,20,20,11,7,Plays One-Twos,98%,,Fresh\r\n91002192,Yannick Whitlock,M (C),M (C),18,Harbour City,ENG,172 cm,Right,Very Weak,Very Strong,Light-Hearted,6.96,,,1.0,2.0,1,1,2,2,2,1,1,1,1,1,1,7,10,6,13,6,15,9,11,7,8,6,10,14,7,9,8,9,8,8,8,8,4,9,9,9,11,9,10,7,13,4,14,5,5,7,7,,97%,,Fresh\r\n91002329,Bram Ellacombe,AM (C),AM (C),27,Harbour City,SCO,175 cm,Right,Weak,Very Strong,Balanced,7.08,,AP,3.5,3.5,5,6,6,4,3,5,2,4,4,3,4,14,13,12,17,11,14,13,15,13,15,12,12,16,11,13,15,13,13,13,12,12,11,13,14,13,16,8,12,11,18,11,17,8,20,8,20,"Tries Killer Balls Often, Shoots From Distance",90%,,Fresh\r\n91002466,Felix Garrow,M/AM (L),AM (L),22,Harbour City,IRL,173 cm,Left,Very Strong,Weak,Driven,6.98,,W,3.0,4.0,1,4,2,2,3,1,4,3,3,1,5,11,9,11,12,9,10,10,15,9,14,10,11,10,12,15,17,10,12,9,18,11,8,15,17,13,14,9,12,6,9,7,12,19,8,11,9,"Hugs Line, Runs With Ball Down Left",92%,,Fresh\r\n91002603,Idris Northcott,AM (RL),AM (L),25,Harbour City,WAL,178 cm,Right,Weak,Very Strong,Ambitious,7.09,,IF,3.5,3.5,5,4,4,6,5,2,6,3,5,4,6,13,12,13,14,11,12,12,15,10,16,14,10,10,12,15,18,13,11,14,14,10,12,10,17,16,16,10,12,8,10,10,19,11,12,9,20,"Cuts Inside From Left Wing, Curls Ball",96%,,Fresh\r\n91002740,Marco Ulloa,M/AM (R),AM (R),24,Harbour City,NED,176 cm,Left,Very Strong,Reasonable,Fairly Determined,7.14,,IF,3.0,3.0,2,5,2,4,4,2,4,2,1,4,4,10,16,10,13,12,11,10,15,12,18,10,12,9,10,16,16,13,12,9,16,10,13,9,17,16,16,8,13,7,12,8,17,10,7,10,9,Cuts Inside From Right Wing,96%,,Fresh\r\n91002877,Leon Corrigan,M/AM (R),M (R),21,Harbour City,POR,171 cm,Right,Reasonable,Very Strong,Unambitious,6.86,,,2.0,3.0,2,1,2,1,2,2,1,1,1,2,1,9,9,8,10,8,10,10,13,8,12,10,8,8,14,15,16,7,7,7,16,14,6,13,15,9,12,4,8,5,11,8,12,7,7,5,6,,95%,,Fresh\r\n91003014,Ivo Everly,ST (C),ST (C),28,Harbour City,GHA,182 cm,Right,Weak,Very Strong,Driven,6.99,Inj,P,3.5,3.5,5,5,3,4,5,5,3,3,4,5,6,13,16,14,16,13,13,13,13,11,18,10,11,8,11,18,16,13,11,12,13,13,11,14,14,19,13,11,11,8,7,9,11,9,12,9,20,"Gets Into Opposition Area, Moves Into Channels",61%,Hamstring Strain,Fresh\r\n91003151,Caleb Lindqvist,ST (C),ST (C),30,Harbour City,SWE,193 cm,Right,Very Weak,Very Strong,Resolute,6.67,,TF,3.0,3.0,3,3,2,4,2,1,2,3,4,4,4,13,11,17,14,12,13,9,12,9,14,13,9,12,9,7,6,15,15,10,10,10,16,11,9,15,12,15,10,10,9,13,9,7,10,7,8,Wins Aerial Balls,91%,,Fresh\r\n91003288,Tariq Stroud,"AM (C), ST (C)",ST (C),26,Harbour City,ENG,183 cm,Left,Very Strong,Reasonable,Professional,7.15,,DLF,3.0,3.0,2,4,5,2,2,1,4,5,4,2,4,9,10,10,16,12,12,10,9,10,16,11,16,15,9,10,11,14,12,12,12,11,14,11,13,18,17,13,11,12,14,12,16,10,10,9,9,Comes Deep To Get Ball,97%,,Fresh\r\n91003425,Emil Ambrose,ST (C),ST (C),19,Harbour City,SCO,179 cm,Right,Weak,Very Strong,Light-Hearted,6.66,,,1.5,2.5,1,2,1,2,1,1,1,1,2,1,1,8,13,7,12,12,9,6,8,10,14,8,10,6,6,13,9,6,7,8,10,7,9,7,10,14,10,8,9,6,6,5,9,7,7,8,6,,90%,,Fresh\r\n';
+
+  // src/app/main.js
+  var STORE_KEY = "fm27-tactic-builder.custom-docs";
+  var $ = (id) => document.getElementById(id);
+  var lastResult = null;
+  function store(read, value) {
+    try {
+      if (read) return JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      localStorage.setItem(STORE_KEY, JSON.stringify(value));
+    } catch {
+      return read ? {} : void 0;
+    }
+    return void 0;
+  }
+  function currentDocs() {
+    const custom = store(true) || {};
+    return {
+      ...DEFAULT_DOCS,
+      roles: custom.roles || DEFAULT_DOCS.roles,
+      tuning: custom.tuning ? { ...DEFAULT_DOCS.tuning, ...custom.tuning } : DEFAULT_DOCS.tuning
+    };
+  }
+  function setStatus(html, isError = false) {
+    $("status").innerHTML = isError ? `<div class="error">${html}</div>` : html;
+  }
+  function decode(buffer) {
+    const bytes = new Uint8Array(buffer);
+    if (bytes[0] === 255 && bytes[1] === 254) return new TextDecoder("utf-16le").decode(buffer);
+    if (bytes[0] === 254 && bytes[1] === 255) return new TextDecoder("utf-16be").decode(buffer);
+    const utf8 = new TextDecoder("utf-8").decode(buffer);
+    const bad = (utf8.match(/�/g) || []).length;
+    return bad > 3 ? new TextDecoder("windows-1252").decode(buffer) : utf8;
+  }
+  function showError(result) {
+    const c = result.columns;
+    let extra = "";
+    if (c && (c.missingEssential.length || c.fatal)) {
+      const list = c.missingEssential.slice(0, 20).map((m) => `<li><strong>${esc(m.label)}</strong>${m.menu ? ` – Insert Column › ${esc(m.menu)}` : ""}</li>`).join("");
+      if (list) extra = `<p>Columns to add to your squad view in FM27:</p><ul>${list}</ul>`;
+    }
+    setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
+  }
+  function run(text, filename) {
+    setStatus("Working out your tactic…");
+    setTimeout(() => {
+      let result;
+      try {
+        result = analyse(text, filename, currentDocs(), { excludeInjured: $("opt-injured").checked });
+      } catch (err) {
+        console.error(err);
+        setStatus(`<strong>Something went wrong while reading the file.</strong> ${esc(err.message)}. If this keeps happening, see "Common problems" in the README.`, true);
+        return;
+      }
+      if (!result.ok) {
+        showError(result);
+        return;
+      }
+      lastResult = result;
+      $("report-holder").innerHTML = renderReport(result, { stageNote: true });
+      $("start").classList.add("hidden");
+      $("result").classList.remove("hidden");
+      setStatus("");
+      window.scrollTo(0, 0);
+    }, 30);
+  }
+  async function readFile(file) {
+    if (!file) return;
+    if (file.size > 30 * 1024 * 1024) {
+      setStatus("That file is very large (over 30 MB). Export only your squad, not the whole player database.", true);
+      return;
+    }
+    const buffer = await file.arrayBuffer();
+    run(decode(buffer), file.name);
+  }
+  function download(name, content, type) {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2e3);
+  }
+  function safeName(s) {
+    return String(s || "").replace(/[\\/:*?"<>|]+/g, "").trim();
+  }
+  function init() {
+    const style = document.createElement("style");
+    style.textContent = REPORT_CSS;
+    document.head.appendChild(style);
+    const drop = $("drop");
+    const input = $("file");
+    $("choose").addEventListener("click", () => input.click());
+    drop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") input.click();
+    });
+    input.addEventListener("change", () => readFile(input.files[0]));
+    for (const ev of ["dragenter", "dragover"]) {
+      drop.addEventListener(ev, (e) => {
+        e.preventDefault();
+        drop.classList.add("over");
+      });
+    }
+    for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, () => drop.classList.remove("over"));
+    drop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      readFile(e.dataTransfer.files[0]);
+    });
+    window.addEventListener("dragover", (e) => e.preventDefault());
+    window.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (!$("start").classList.contains("hidden") && e.dataTransfer?.files?.[0]) readFile(e.dataTransfer.files[0]);
+    });
+    $("sample").addEventListener("click", () => run(squad_20261108_201500_default, "squad_20261108_201500.csv (sample)"));
+    $("print").addEventListener("click", () => window.print());
+    $("save").addEventListener("click", () => {
+      if (!lastResult) return;
+      const date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+      const club = safeName(lastResult.club);
+      download(`FM27 tactic${club ? " - " + club : ""} - ${date}.html`, standaloneReport(lastResult, { stageNote: true }), "text/html");
+    });
+    $("again").addEventListener("click", () => {
+      $("result").classList.add("hidden");
+      $("start").classList.remove("hidden");
+      input.value = "";
+      window.scrollTo(0, 0);
+    });
+    const jsonInput = $("json-file");
+    const showJsonStatus = () => {
+      const c = store(true) || {};
+      const parts = [];
+      if (c.roles) parts.push(`your roles.json (${c.roles.roles.length} roles)`);
+      if (c.tuning) parts.push("your tuning.json");
+      $("json-status").textContent = parts.length ? `Using ${parts.join(" and ")}.` : "Using the built-in files.";
+    };
+    $("dl-roles").addEventListener("click", () => download("roles.json", JSON.stringify(currentDocs().roles, null, 2), "application/json"));
+    $("dl-tuning").addEventListener("click", () => download("tuning.json", JSON.stringify(currentDocs().tuning, null, 2), "application/json"));
+    $("load-json").addEventListener("click", () => jsonInput.click());
+    $("reset-json").addEventListener("click", () => {
+      store(false, {});
+      showJsonStatus();
+    });
+    jsonInput.addEventListener("change", async () => {
+      const file = jsonInput.files[0];
+      if (!file) return;
+      try {
+        const doc = JSON.parse(await file.text());
+        const custom = store(true) || {};
+        if (Array.isArray(doc.roles) && doc.roles.every((r) => r.id && r.name && r.phase && Array.isArray(r.key))) custom.roles = doc;
+        else if (doc.roleScore && doc.search) custom.tuning = doc;
+        else throw new Error("This is neither a roles.json nor a tuning.json file.");
+        store(false, custom);
+        showJsonStatus();
+      } catch (err) {
+        $("json-status").textContent = `Could not use that file: ${err.message}`;
+      }
+      jsonInput.value = "";
+    });
+    showJsonStatus();
+  }
+  init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+{
+  "_about": [
+    "Formations the tool tests. In FM27 every tactic has an In Possession (IP) shape and an Out of Possession (OOP) shape.",
+    "Names follow FM27's preset naming where one exists; FM27 lets you drag players to any slot, so the slot list is what matters.",
+    "slots: code -> [x, y, FM position, label]. x: 0 = left touchline, 100 = right. y: 0 = own goal line, 100 = opposition goal line.",
+    "Add a formation by adding {name, slots} with 11 slot codes starting with GK."
+  ],
+  "slots": {
+    "GK": [50, 5, "GK", "GK"],
+    "DL": [9, 24, "D (L)", "DL"],
+    "DCL": [32, 21, "D (C)", "DCL"],
+    "DC": [50, 19, "D (C)", "DC"],
+    "DCR": [68, 21, "D (C)", "DCR"],
+    "DR": [91, 24, "D (R)", "DR"],
+    "WBL": [8, 40, "WB (L)", "WBL"],
+    "DMCL": [36, 37, "DM", "DMCL"],
+    "DMC": [50, 35, "DM", "DMC"],
+    "DMCR": [64, 37, "DM", "DMCR"],
+    "WBR": [92, 40, "WB (R)", "WBR"],
+    "ML": [9, 55, "M (L)", "ML"],
+    "MCL": [33, 53, "M (C)", "MCL"],
+    "MC": [50, 52, "M (C)", "MC"],
+    "MCR": [67, 53, "M (C)", "MCR"],
+    "MR": [91, 55, "M (R)", "MR"],
+    "AML": [12, 72, "AM (L)", "AML"],
+    "AMCL": [37, 70, "AM (C)", "AMCL"],
+    "AMC": [50, 69, "AM (C)", "AMC"],
+    "AMCR": [63, 70, "AM (C)", "AMCR"],
+    "AMR": [88, 72, "AM (R)", "AMR"],
+    "STCL": [39, 87, "ST (C)", "STCL"],
+    "STC": [50, 88, "ST (C)", "STC"],
+    "STCR": [61, 87, "ST (C)", "STCR"]
+  },
+  "inPossession": [
+    {
+      "name": "4-3-3 DM Wide",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AML", "AMR", "STC"]
+    },
+    {
+      "name": "4-2-3-1 DM AM Wide",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AML", "AMC", "AMR", "STC"]
+    },
+    {
+      "name": "4-2-4 DM Wide",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AML", "AMR", "STCL", "STCR"]
+    },
+    {
+      "name": "4-4-2",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "ML", "MCL", "MCR", "MR", "STCL", "STCR"]
+    },
+    {
+      "name": "4-1-4-1 DM",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "ML", "MCL", "MCR", "MR", "STC"]
+    },
+    {
+      "name": "4-4-1-1",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "ML", "MCL", "MCR", "MR", "AMC", "STC"]
+    },
+    {
+      "name": "4-4-2 Diamond Narrow",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMC", "STCL", "STCR"]
+    },
+    {
+      "name": "4-3-2-1 DM AM Narrow",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMCL", "AMCR", "STC"]
+    },
+    {
+      "name": "4-2-2-2 DM AM Narrow",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AMCL", "AMCR", "STCL", "STCR"]
+    },
+    {
+      "name": "3-4-3 DM Wide",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AML", "AMR", "STC"],
+      "note": "Back three, wing-backs, two wide forwards."
+    },
+    {
+      "name": "3-4-2-1 DM AM Narrow",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMCL", "AMCR", "STC"],
+      "note": "Back three, wing-backs, two number 10s."
+    },
+    {
+      "name": "3-2-4-1",
+      "slots": ["GK", "DCL", "DC", "DCR", "DMCL", "DMCR", "AML", "AMCL", "AMCR", "AMR", "STC"],
+      "note": "Back three, double pivot, box of four behind the striker."
+    },
+    {
+      "name": "3-5-2 DM WB",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMC", "MCL", "MCR", "WBR", "STCL", "STCR"],
+      "note": "FM may list this as 5-3-2 DM WB."
+    },
+    {
+      "name": "3-4-1-2 DM WB",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMC", "STCL", "STCR"],
+      "note": "FM may list this as 5-2-1-2 DM AM."
+    }
+  ],
+  "outOfPossession": [
+    {
+      "name": "4-4-2 2DM",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "ML", "MR", "STCL", "STCR"]
+    },
+    {
+      "name": "4-4-1-1 2DM",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "ML", "MR", "AMC", "STC"]
+    },
+    {
+      "name": "4-1-4-1 DM",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "ML", "MCL", "MCR", "MR", "STC"]
+    },
+    {
+      "name": "4-3-3 DM Wide",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AML", "AMR", "STC"]
+    },
+    {
+      "name": "4-2-3-1 DM AM Wide",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMCL", "DMCR", "AML", "AMC", "AMR", "STC"]
+    },
+    {
+      "name": "4-4-2",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "ML", "MCL", "MCR", "MR", "STCL", "STCR"]
+    },
+    {
+      "name": "4-4-2 Diamond Narrow",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMC", "STCL", "STCR"]
+    },
+    {
+      "name": "4-3-2-1 DM AM Narrow",
+      "slots": ["GK", "DL", "DCL", "DCR", "DR", "DMC", "MCL", "MCR", "AMCL", "AMCR", "STC"]
+    },
+    {
+      "name": "5-3-2 DM WB",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMC", "MCL", "MCR", "WBR", "STCL", "STCR"]
+    },
+    {
+      "name": "5-2-3 DM Wide",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AML", "AMR", "STC"]
+    },
+    {
+      "name": "5-2-2-1 DM AM",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMCL", "AMCR", "STC"]
+    },
+    {
+      "name": "5-2-1-2 DM AM",
+      "slots": ["GK", "DCL", "DC", "DCR", "WBL", "DMCL", "DMCR", "WBR", "AMC", "STCL", "STCR"]
+    },
+    {
+      "name": "5-4-1",
+      "slots": ["GK", "DL", "DCL", "DC", "DCR", "DR", "ML", "MCL", "MCR", "MR", "STC"]
+    }
+  ]
+}
