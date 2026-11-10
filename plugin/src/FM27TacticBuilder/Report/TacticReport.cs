@@ -126,6 +126,11 @@ namespace FM27TacticBuilder.Report
             try
             {
                 var view = Resources.Bytes("view-squad.fmf");
+                if (view != null && !ViewFiles.LooksLikeView(view))
+                {
+                    Plugin.Logger.LogWarning("The built-in squad view looks damaged; not installing it.");
+                    return;
+                }
                 if (view == null)
                 {
                     Plugin.Logger.LogInfo("This build has no built-in squad view yet; use the columns listed in the README.");
@@ -136,7 +141,7 @@ namespace FM27TacticBuilder.Report
                 var gameFolders = ViewFiles.GameUserFolders(OutputPaths.SportsInteractiveFolder, Directory.GetDirectories);
                 var (written, failed) = ViewFiles.Install(view, ViewFiles.Targets(OutputPaths.BaseFolder, gameFolders));
                 foreach (var path in written)
-                    Plugin.Logger.LogInfo($"Squad view copied to {path}");
+                    Plugin.Logger.LogInfo($"Squad view copied to {path} (in the game it is called {ViewFiles.ViewName}; import it once with Import View…).");
                 foreach (var folder in failed)
                     Plugin.Logger.LogWarning($"Could not copy the squad view to {folder}");
                 if (gameFolders.Count == 0)

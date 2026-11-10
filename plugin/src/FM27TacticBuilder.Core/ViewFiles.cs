@@ -19,6 +19,21 @@ namespace FM27TacticBuilder.Core
     {
         public const string FileName = "FM27 Tactic Builder - Squad.fmf";
 
+        /// <summary>The name the built-in view has inside FM27 (stored in the .fmf itself).</summary>
+        public const string ViewName = "FM27TFT";
+
+        /// <summary>
+        /// A quick sanity check of an FM27 view file: the "afe." header, then a table of contents
+        /// starting with "fmf." followed by a zstd frame. Catches a wrong or damaged file before it ships.
+        /// </summary>
+        public static bool LooksLikeView(byte[] file)
+        {
+            if (file.Length < 64 || file[0] != 2 || file[1] != 1 || file[2] != (byte)'a' || file[3] != (byte)'f' || file[4] != (byte)'e' || file[5] != (byte)'.')
+                return false;
+            var toc = file.AsSpan().LastIndexOf(new[] { (byte)'f', (byte)'m', (byte)'f', (byte)'.' });
+            return toc > 0 && toc + 11 <= file.Length && file.AsSpan(toc + 7, 4).SequenceEqual(new byte[] { 0x28, 0xB5, 0x2F, 0xFD });
+        }
+
         // "Football Manager 27", "Football Manager 2027", "Football Manager 27 Demo", …
         private static readonly Regex Fm27Folder = new(@"^Football Manager (20)?27(\b|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 

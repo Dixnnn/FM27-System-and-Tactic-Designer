@@ -407,7 +407,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
     <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
       <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
       <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
-    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.5.0 · works offline · only reads your squad, never changes your game</div></div>
+    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.5.1 · works offline · only reads your squad, never changes your game</div></div>
   </div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
     <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -472,7 +472,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         <h2>Getting your squad from FM27</h2>
         <ol class="howto">
           <li><span>Install the <strong>FM27 Tactic Builder plugin</strong> once with its setup (see the README).</span></li>
-          <li><span>In FM27 open <strong>Squad</strong> and switch the view to <strong>FM27 Tactic Builder</strong> (or any view with all attributes; the README lists the columns).</span></li>
+          <li><span>In FM27 open <strong>Squad</strong> and switch the view to <strong>FM27TFT</strong>, the plugin's built-in view (or any view with all attributes; the README lists the columns).</span></li>
           <li><span>Press <strong>F8</strong>. The plugin reads your players and opens this page with your tactic.</span></li>
           <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (F9) and drop the <code>squad_….csv</code> on the box.</span></li>
         </ol>
@@ -5759,7 +5759,7 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
   }
   function showError(result) {
     const c = result.columns;
-    let extra = lastInput?.fromGame ? "<p>In FM27, switch your Squad view to <strong>FM27 Tactic Builder</strong> (or add the columns below) and press <strong>F8</strong> again.</p>" : "";
+    let extra = lastInput?.fromGame ? "<p>In FM27, switch your Squad view to <strong>FM27TFT</strong>, the plugin’s built-in view (or add the columns below) and press <strong>F8</strong> again.</p>" : "";
     if (c && (c.missingEssential.length || c.fatal)) {
       const list = c.missingEssential.slice(0, 20).map((m) => `<li><strong>${esc(m.label)}</strong>${m.menu ? ` – Insert Column › ${esc(m.menu)}` : ""}</li>`).join("");
       if (list) extra += `<p>Columns to add to your squad view in FM27:</p><ul>${list}</ul>`;

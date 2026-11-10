@@ -29,7 +29,8 @@ Already using FM View Exporter? Both work side by side: F9 there, F8 here.
 Use it
 ------
 1. On the Squad screen open the table's view menu, choose Import View... and pick
-   "FM27 Tactic Builder - Squad.fmf" (once). The plugin copies it to
+   "FM27 Tactic Builder - Squad.fmf" (once); in the game the view is called
+   FM27TFT. The plugin copies it to
    Documents\Sports Interactive\Football Manager 27\views and to
    Documents\Sports Interactive\FM27 Tactic Builder\views.
 2. With your squad on screen press F8. Don't click until the message in the

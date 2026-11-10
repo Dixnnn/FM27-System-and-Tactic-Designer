@@ -37,7 +37,7 @@ namespace FM27TacticBuilder.Core
             if (Usable)
                 return $"{Players} players, {AttributesFound} of {AttributesTotal} attributes.";
             var missing = string.Join(", ", MissingEssential.Take(4)) + (MissingEssential.Count > 4 ? $" and {MissingEssential.Count - 4} more" : "");
-            return $"{Players} players, but this view lacks {missing}. Switch the squad view to \"FM27 Tactic Builder\".";
+            return $"{Players} players, but this view lacks {missing}. Switch the squad view to \"{ViewFiles.ViewName}\".";
         }
     }
 

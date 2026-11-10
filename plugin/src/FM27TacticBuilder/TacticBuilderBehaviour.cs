@@ -71,7 +71,7 @@ namespace FM27TacticBuilder
                     _greeted = true;
                     if (Plugin.Settings.InGameMessages.Value)
                         Toast.Show($"{PluginInfo.Name} is ready",
-                            $"Open your Squad screen and press {_build?.Name ?? "F8"} to build a tactic for your players.", 9f);
+                            $"Open your Squad screen, switch to the {Core.ViewFiles.ViewName} view and press {_build?.Name ?? "F8"} to build a tactic for your players.", 10f);
                 }
             }
             catch (Exception ex)

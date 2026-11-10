@@ -109,7 +109,7 @@ namespace FM27TacticBuilder.Tests
             var summary = ExportCheck.Check(new[] { "Player", "Age", "Club", "Wage" }, 30, Columns);
             Assert.False(summary.Usable);
             Assert.Contains("Position", summary.MissingEssential);
-            Assert.Contains("FM27 Tactic Builder", summary.Describe());
+            Assert.Contains("FM27TFT", summary.Describe());
         }
 
         [Fact]
@@ -138,6 +138,22 @@ namespace FM27TacticBuilder.Tests
                 .Select(n => Path.Combine(_root, n)).ToList();
             var found = ViewFiles.GameUserFolders(_root, _ => folders).Select(Path.GetFileName).ToList();
             Assert.Equal(new[] { "Football Manager 2027", "Football Manager 27", "Football Manager 27 Demo" }, found);
+        }
+
+        [Fact]
+        public void The_built_in_view_is_an_fm27_view()
+        {
+            var view = File.ReadAllBytes(Path.Combine(Repo.Root, "plugin", "views", "squad.fmf"));
+            Assert.True(ViewFiles.LooksLikeView(view));
+            Assert.False(ViewFiles.LooksLikeView(System.Text.Encoding.UTF8.GetBytes(new string('x', 200))));
+            Assert.False(ViewFiles.LooksLikeView(view.Take(view.Length - 150).ToArray()));
+        }
+
+        [Fact]
+        public void The_plugin_embeds_the_built_in_view()
+        {
+            var project = Repo.Read("plugin", "src", "FM27TacticBuilder", "FM27TacticBuilder.csproj");
+            Assert.Contains("plugin\\views\\squad.fmf\" LogicalName=\"view-squad.fmf\"", project);
         }
 
         [Fact]

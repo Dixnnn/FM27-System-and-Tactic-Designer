@@ -87,7 +87,7 @@ function decode(buffer) {
 function showError(result) {
   const c = result.columns;
   let extra = lastInput?.fromGame
-    ? '<p>In FM27, switch your Squad view to <strong>FM27 Tactic Builder</strong> (or add the columns below) and press <strong>F8</strong> again.</p>'
+    ? '<p>In FM27, switch your Squad view to <strong>FM27TFT</strong>, the plugin’s built-in view (or add the columns below) and press <strong>F8</strong> again.</p>'
     : '';
   if (c && (c.missingEssential.length || c.fatal)) {
     const list = c.missingEssential.slice(0, 20).map((m) => `<li><strong>${esc(m.label)}</strong>${m.menu ? ` – Insert Column › ${esc(m.menu)}` : ''}</li>`).join('');

@@ -5,8 +5,8 @@ show every column the Tactic Builder uses. You only do this once: FM27 remembers
 
 There are three ways to get the view:
 
-- **The built-in view (plugin):** once the plugin carries its own view, it copies *FM27 Tactic Builder - Squad* into FM27's
-  `views` folder. On the **Squad** screen open the table's view menu, choose **Import View…** and pick it. Done.
+- **The built-in view (plugin):** the plugin copies its view into FM27's `views` folder as
+  `FM27 Tactic Builder - Squad.fmf` (in the game it's called **FM27TFT**). On the **Squad** screen open the table's view menu, choose **Import View…** and pick it. Done.
 - **Option A (quickest by hand):** import the free ready-made view that comes with FM View Exporter, then add 2 extra columns.
 - **Option B:** build the view yourself from the list below (about 10 minutes).
 

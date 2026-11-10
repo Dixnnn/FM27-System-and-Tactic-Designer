@@ -146,7 +146,7 @@ namespace FM27TacticBuilder.Setup
 
             var how = Para("How to use it\n" +
                            "1. Start FM27 (the first start after installing takes a few minutes).\n" +
-                           "2. Open your Squad screen and switch the view to \"FM27 Tactic Builder\" (see the README).\n" +
+                           "2. Open your Squad screen and switch the view to \"FM27TFT\" (see the README).\n" +
                            "3. Press F8. The plugin reads your players and opens your tactic in your browser.");
             how.Margin = new Padding(3, 16, 3, 3);
             grid.Controls.Add(how, 0, 4);

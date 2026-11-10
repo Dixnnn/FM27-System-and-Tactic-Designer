@@ -55,8 +55,9 @@ To remove it, run the setup again and click **Uninstall**. Your saves are not af
 
 The plugin reads the columns you can see, so the squad table needs to show all player attributes plus a few extras.
 
-- **With the built-in view:** the plugin copies its view, *FM27 Tactic Builder - Squad*, into FM27's `views` folder. On the
-  **Squad** screen open the table's view menu, choose **Import View…** and pick it.
+- **With the built-in view:** the plugin copies its view into FM27's `views` folder as `FM27 Tactic Builder - Squad.fmf`.
+  On the **Squad** screen open the table's view menu, choose **Import View…** and pick that file. In the game the view is
+  called **FM27TFT**; switch to it whenever you press F8.
 - **Without it** (or if Import View doesn't list it): set up the view by hand as in
   **[docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md)**. It takes about 10 minutes, and FM27 remembers it.
 
@@ -178,7 +179,7 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 | --- | --- |
 | **Nothing happens when I press F8** | The game window must be in front and a player list open (Squad screen). Look in `BepInEx\LogOutput.log` in the FM27 game folder for lines from *FM27 Tactic Builder*. No such lines at all: run the setup again and click **Update**. |
 | **"No player list on screen"** | Open the **Squad** screen (the list of your players, not a single player's profile) and press F8 again. |
-| **"This view lacks …" / "Opened, but columns are missing"** | Switch the squad view to *FM27 Tactic Builder* (or add the columns from [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md)) and press F8 again. |
+| **"This view lacks …" / "Opened, but columns are missing"** | Switch the squad view to *FM27TFT* (or add the columns from [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md)) and press F8 again. |
 | **The browser didn't open** | Open `Documents\Sports Interactive\FM27 Tactic Builder\FM27 Tactic Builder.html` yourself. To stop it opening, untick *Open the tactic in the browser* in the setup's Settings. |
 | **F8 already does something in my game** | Pick another key in the setup's **Settings** tab (for example `Ctrl+Shift+T`), then restart FM27. |
 | **No message appears in the game** | The message box is a nice-to-have; everything still works and is logged in `BepInEx\LogOutput.log`. It can be switched off in Settings. |
@@ -224,7 +225,7 @@ npm run report -- samples/squad_20261108_201500.csv out/report.html
 # The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
 dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
 dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
-plugin/packaging/package.sh 0.5.0                         # plugin zip, full package (downloads BepInEx), setup.exe
+plugin/packaging/package.sh 0.5.1                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
 
 GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the
