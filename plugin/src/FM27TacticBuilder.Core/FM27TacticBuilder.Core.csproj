@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Logic without Unity: table model, CSV, the tactic page, view files, column check.
+       Tested in CI and compiled straight into the plugin, so the plugin is a single DLL. -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>FM27TacticBuilder.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="FM27TacticBuilder.Tests" />
+  </ItemGroup>
+</Project>

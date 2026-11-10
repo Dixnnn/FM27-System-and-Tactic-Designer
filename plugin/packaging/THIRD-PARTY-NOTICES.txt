@@ -1,0 +1,28 @@
+Third-party components
+======================
+
+FM27 Tactic Builder is free software under the GNU General Public License v3
+(LICENSE.txt). Its squad reader (the part that reads the player table inside
+FM27), the setup program and their tests are based on FM View Exporter by
+ElectroHugin, GPL-3.0-or-later:
+https://github.com/ElectroHugin/FM-View-Exporter
+Those files say so at the top and were changed for this project (names,
+English texts, the tactic page, the squad view, in-game messages).
+
+The role list (names, key and preferred attributes) was transcribed from FM27
+by the FM Player Analyzer project: https://github.com/ElectroHugin/FM-Player-Analyzer
+
+The full package also contains an unchanged build of BepInEx 6 (bleeding
+edge, see packaging/bepinex.env in the repository). Source and licences:
+
+- BepInEx, LGPL-2.1: https://github.com/BepInEx/BepInEx
+- Il2CppInterop, LGPL-3.0: https://github.com/BepInEx/Il2CppInterop
+- UnityDoorstop, LGPL-2.1: https://github.com/NeighTools/UnityDoorstop
+- HarmonyX, MIT: https://github.com/BepInEx/HarmonyX
+- Cpp2IL, MIT: https://github.com/SamboyCoding/Cpp2IL
+- .NET Runtime, MIT: https://github.com/dotnet/runtime
+
+The LGPL licence texts are in the licenses folder.
+
+Not affiliated with Sports Interactive or SEGA. Football Manager is a
+trademark of Sports Interactive / SEGA.

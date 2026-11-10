@@ -1,13 +1,17 @@
 # Setting up the squad view in FM27
 
-The export plugin saves **exactly the columns you can see** in the squad table. So before you press F9, the table needs to
+The plugin (F8) and FM View Exporter (F9) read **exactly the columns you can see** in the squad table. So the table needs to
 show every column the Tactic Builder uses. You only do this once: FM27 remembers the view.
 
-FM27 can't produce a view file for you to download from here (its `.fmf` view format is the game's own), so there are two ways
-to get the view:
+There are three ways to get the view:
 
-- **Option A (quickest):** import the free ready-made view that comes with FM View Exporter, then add 2 extra columns.
+- **The built-in view (plugin):** once the plugin carries its own view, it copies *FM27 Tactic Builder - Squad* into FM27's
+  `views` folder. On the **Squad** screen open the table's view menu, choose **Import View…** and pick it. Done.
+- **Option A (quickest by hand):** import the free ready-made view that comes with FM View Exporter, then add 2 extra columns.
 - **Option B:** build the view yourself from the list below (about 10 minutes).
+
+FM27's `.fmf` view format is the game's own: a view file can only be made inside the game. That's why the built-in view
+starts as a view someone made in FM27 and exported (see [Sharing your view](#sharing-your-view-so-it-can-be-built-in)).
 
 ---
 
@@ -74,8 +78,16 @@ be well inside the limit.
 
 ## Checking it worked
 
-Press **F9** on the squad screen, then drop the file on the Tactic Builder. If anything is missing, the report's last
+Press **F8** on the squad screen (with the plugin), or press **F9** and drop the file on the Tactic Builder. If anything is missing, the report's last
 section ("About your data") lists exactly which columns to add and where they are in the *Insert Column* menu.
+
+## Sharing your view so it can be built in
+
+1. Set the view up as in Option A or B, on the **Squad** screen.
+2. Give it a clear name: in the view menu, create or rename the custom view as **FM27 Tactic Builder**.
+3. In the same view menu choose **Export Current View…** and save the file (FM27 suggests a folder; any folder is fine).
+4. Send that `.fmf` file. It goes into the repository as `plugin/views/squad.fmf`; the next plugin build carries it, and every
+   install copies it into FM27's `views` folder (see [plugin/views/README.md](../plugin/views/README.md)).
 
 ## Menu names may shift after a patch
 

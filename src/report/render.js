@@ -649,8 +649,8 @@ export function renderReport(result, opts = {}) {
   <div class="eyebrow">FM27 Tactic Builder</div>
   <h1>${club}your tactic</h1>
   <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · team strength: ${esc(result.instructions.strengthLabel)} · made ${esc(when)}</p>
-  <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your export file and never
-  touches the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
+  <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your squad and never
+  changes the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
   <nav class="toc"><a href="#overview">At a glance</a><a href="#setup">Enter it in FM27</a><a href="#why">Why</a><a href="#depth">Depth</a>
   <a href="#alternatives">Alternatives</a><a href="#training">Training</a><a href="#suitability">Role suitability</a><a href="#data">Your data</a></nav>
 </header>

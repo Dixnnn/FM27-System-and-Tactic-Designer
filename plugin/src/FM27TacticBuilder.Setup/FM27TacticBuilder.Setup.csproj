@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Windows setup program: installs BepInEx and the plugin, and edits the settings.
+       .NET Framework 4.8 is built into Windows 10/11, so the .exe needs no other runtime.
+       The full package is embedded at build time: dotnet build -p:PayloadZip=path\to\full-package.zip -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>FM27TacticBuilder.Setup</RootNamespace>
+    <AssemblyName>FM27TacticBuilder-Setup</AssemblyName>
+    <Nullable>disable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\FM27TacticBuilder.Setup.Logic\*.cs" LinkBase="Logic" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PayloadZip)' != ''">
+    <EmbeddedResource Include="$(PayloadZip)" LogicalName="payload.zip" />
+  </ItemGroup>
+</Project>

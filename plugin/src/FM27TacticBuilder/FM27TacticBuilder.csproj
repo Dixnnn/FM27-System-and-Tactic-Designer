@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The BepInEx 6 (IL2CPP) plugin for Football Manager 27. Build the page first (npm run build in the repo root):
+       it is embedded in the DLL together with data/columns.json and, when present, the squad view (plugin/views/squad.fmf). -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>FM27TacticBuilder</AssemblyName>
+    <RootNamespace>FM27TacticBuilder</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <DebugType>embedded</DebugType>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
+    <!-- Which game and BepInEx build the reference assemblies come from (see lib/ref/README.md). -->
+    <GameRefDir>$(MSBuildThisFileDirectory)..\..\lib\ref\fm27\</GameRefDir>
+    <BepInExRefDir>$(MSBuildThisFileDirectory)..\..\lib\ref\bepinex-be755\</BepInExRefDir>
+  </PropertyGroup>
+
+  <!-- The Unity-free core is compiled in, so the plugin folder holds a single DLL. -->
+  <ItemGroup>
+    <Compile Include="..\FM27TacticBuilder.Core\**\*.cs" Exclude="..\FM27TacticBuilder.Core\obj\**;..\FM27TacticBuilder.Core\bin\**" LinkBase="Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(RepoRoot)FM27-Tactic-Builder.html" LogicalName="FM27-Tactic-Builder.html" />
+    <EmbeddedResource Include="$(RepoRoot)data\columns.json" LogicalName="columns.json" />
+    <EmbeddedResource Include="$(RepoRoot)plugin\views\squad.fmf" LogicalName="view-squad.fmf" Condition="Exists('$(RepoRoot)plugin\views\squad.fmf')" />
+  </ItemGroup>
+
+  <!-- Interfaces only, no program code. At run time BepInEx and the game supply the real files. -->
+  <ItemGroup>
+    <Reference Include="$(BepInExRefDir)BepInEx.Core.dll" Private="false" />
+    <Reference Include="$(BepInExRefDir)BepInEx.Unity.IL2CPP.dll" Private="false" />
+    <Reference Include="$(BepInExRefDir)BepInEx.Unity.Common.dll" Private="false" />
+    <Reference Include="$(BepInExRefDir)Il2CppInterop.Runtime.dll" Private="false" />
+    <Reference Include="$(BepInExRefDir)Il2CppInterop.Common.dll" Private="false" />
+    <Reference Include="$(GameRefDir)Il2Cppmscorlib.dll" Private="false" />
+    <Reference Include="$(GameRefDir)Il2CppSystem.dll" Private="false" />
+    <Reference Include="$(GameRefDir)Il2CppSystem.Core.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.UIElementsModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.TextCoreTextEngineModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.TextCoreFontEngineModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.HierarchyCoreModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.InputForUIModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.PropertiesModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.SharedInternalsModule.dll" Private="false" />
+    <Reference Include="$(GameRefDir)UnityEngine.TextRenderingModule.dll" Private="false" />
+  </ItemGroup>
+</Project>
