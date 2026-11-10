@@ -2,7 +2,7 @@
 
 import { analyse } from '../analyse.js';
 import { DEFAULT_DOCS } from '../data.js';
-import { renderReport, standaloneReport } from '../report/render.js';
+import { renderReport, standaloneReport, SECTIONS } from '../report/render.js';
 import { esc, ICON } from '../report/util.js';
 import { renderPicker, pickCount } from './picker.js';
 import sampleCsv from '../../samples/squad_20261108_201500.csv';
@@ -105,9 +105,40 @@ function analyseNow(text, filename, picks) {
   });
 }
 
+let spy = null;
+
+/** The section bar under the toolbar: one link per report section, the one you're reading underlined. */
+function buildSectionNav() {
+  const nav = $('secnav');
+  const present = SECTIONS.filter(([id]) => document.getElementById(id));
+  nav.innerHTML = present.map(([id, label], i) => `<a href="#${id}" data-id="${id}"><span class="n">${i + 1}</span>${esc(label)}</a>`).join('');
+  const setOffset = () => document.documentElement.style.setProperty('--scroll-offset', `${$('result').querySelector('.topbar').offsetHeight + 12}px`);
+  setOffset();
+  window.addEventListener('resize', setOffset, { passive: true });
+  spy?.disconnect();
+  if (!('IntersectionObserver' in window)) return;
+  const visible = new Map();
+  const mark = () => {
+    const current = present.map(([id]) => id).find((id) => visible.get(id)) || null;
+    for (const a of nav.querySelectorAll('a')) a.classList.toggle('on', a.dataset.id === current);
+    const on = nav.querySelector('a.on');
+    if (on && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = on.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2; // keep it in view on phones
+  };
+  spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) visible.set(e.target.id, e.isIntersecting);
+      mark();
+    },
+    { rootMargin: '-140px 0px -55% 0px' },
+  );
+  for (const [id] of present) spy.observe(document.getElementById(id));
+}
+
 function showResult(result, note = '') {
   lastResult = result;
   $('report-holder').innerHTML = renderReport(result);
+  $('report-holder').classList.add('in-app');
+  buildSectionNav();
   $('start').classList.add('hidden');
   $('result').classList.remove('hidden');
   $('picker').classList.add('hidden');

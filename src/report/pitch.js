@@ -12,7 +12,10 @@ const PAD_BOTTOM = 58;
 const px = (x) => PAD_X + (x / 100) * (W - 2 * PAD_X);
 const py = (y) => H - PAD_BOTTOM - (y / 100) * (H - PAD_TOP - PAD_BOTTOM);
 
+let uid = 0;
+
 function markings() {
+  const id = `pg${++uid}`;
   const stripes = [];
   const bands = 10;
   const bh = (H - 24) / bands;
@@ -24,8 +27,10 @@ function markings() {
   const top = 12;
   const bot = H - 12;
   return [
+    `<defs><radialGradient id="${id}" cx="50%" cy="45%" r="65%"><stop offset="0" stop-color="var(--pitch-glow)" /><stop offset="1" stop-color="transparent" stop-opacity="0" /></radialGradient></defs>`,
     `<rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="var(--pitch)" />`,
     ...stripes,
+    `<rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="url(#${id})" />`,
     `<rect x="12" y="${top}" width="${W - 24}" height="${H - 24}" ${l} />`,
     `<line x1="12" y1="${H / 2}" x2="${W - 12}" y2="${H / 2}" ${l} />`,
     `<circle cx="${W / 2}" cy="${H / 2}" r="42" ${l} />`,
@@ -67,26 +72,41 @@ function pickMark(mark, x, y) {
   return '';
 }
 
+const RING = 18.5;
+const ARC = 2 * Math.PI * RING;
+
+/** Rough text width for the name pill (no layout engine in an SVG string). */
+const textWidth = (t, size) => [...t].reduce((w, c) => w + (/[ilj.,'’\s]/.test(c) ? 0.3 : /[mwMW]/.test(c) ? 0.85 : /[A-Z]/.test(c) ? 0.66 : 0.56), 0) * size;
+
 /**
- * Players in one phase: a token per player (ring colour = fit band), role abbreviation inside,
- * surname and fit score underneath.
- * @param {Array<{slot:string, abbr:string, roleName:string, name:string, score:number, mark?:string}>} items
+ * Players in one phase: a token per player with the role abbreviation inside and an arc around it that
+ * fills with the fit score (colour = fit band), and the surname with the score in a pill underneath.
+ * Badges: pick markers (top right) and C for the captain (top left).
+ * @param {Array<{slot:string, abbr:string, roleName:string, name:string, score:number, mark?:string, captain?:boolean}>} items
  */
 export function pitchSVG(items, slots, title) {
   const players = items
     .map((it) => {
       const [x, y] = slots[it.slot];
-      const cx = px(x).toFixed(1);
-      const cy = py(y).toFixed(1);
+      const cx = +px(x).toFixed(1);
+      const cy = +py(y).toFixed(1);
       const s = Math.round(it.score);
+      const fill = (Math.max(0, Math.min(100, it.score)) / 100) * ARC;
       const markTitle = it.mark === 'marquee' ? ' · marquee player' : it.mark === 'future' ? ' · future star' : it.mark === 'start' ? ' · must start' : '';
+      const nm = shortName(it.name);
+      const pw = Math.max(34, textWidth(nm, 10.5) + textWidth(String(s), 9.5) + 18);
+      const captain = it.captain
+        ? `<g class="cpt"><circle cx="${(cx - 14).toFixed(1)}" cy="${(cy - 14).toFixed(1)}" r="6.2" /><text x="${(cx - 14).toFixed(1)}" y="${(cy - 11.2).toFixed(1)}">C</text></g>`
+        : '';
       return `<g class="pl ${scoreClass(it.score)}" tabindex="0">
-  <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}</title>
-  <circle cx="${cx}" cy="${cy}" r="22" class="hit" />
-  <circle cx="${cx}" cy="${cy}" r="15.5" class="dot" />${pickMark(it.mark, +cx + 12.5, +cy - 12.5)}
-  <text x="${cx}" y="${(+cy + 3.4).toFixed(1)}" class="abbr">${esc(it.abbr)}</text>
-  <text x="${cx}" y="${(+cy + 29).toFixed(1)}" class="nm">${esc(shortName(it.name))}</text>
-  <text x="${cx}" y="${(+cy + 40.5).toFixed(1)}" class="sc">${s}</text>
+  <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}${it.captain ? ' · captain' : ''}</title>
+  <circle cx="${cx}" cy="${cy}" r="24" class="hit" />
+  <circle cx="${cx}" cy="${cy}" r="${RING}" class="trk" />
+  <circle cx="${cx}" cy="${cy}" r="${RING}" class="arc" stroke-dasharray="${fill.toFixed(1)} ${ARC.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})" />
+  <circle cx="${cx}" cy="${cy}" r="15" class="dot" />${captain}${pickMark(it.mark, cx + 14, cy - 14)}
+  <text x="${cx}" y="${(cy + 3.4).toFixed(1)}" class="abbr">${esc(it.abbr)}</text>
+  <rect x="${(cx - pw / 2).toFixed(1)}" y="${(cy + 23).toFixed(1)}" width="${pw.toFixed(1)}" height="15" rx="7.5" class="pill" />
+  <text x="${cx}" y="${(cy + 34).toFixed(1)}" class="nm">${esc(nm)}<tspan class="sc" dx="4">${s}</tspan></text>
 </g>`;
     })
     .join('\n');

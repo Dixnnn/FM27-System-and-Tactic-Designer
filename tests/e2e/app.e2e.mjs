@@ -44,6 +44,17 @@ const under = await page.textContent('#overview .kpis');
 assert.match(under, /Defensive|Cautious/);
 assert.match(await page.textContent('.report .meta'), /underdogs/);
 console.log('ok  sample button + team strength (underdogs)');
+// Section bar: one link per section; jumping to a section underlines it
+assert.equal(await page.$$eval('#secnav a', (as) => as.length), 8);
+await page.click('#secnav a[data-id="depth"]');
+await page.waitForFunction(() => document.querySelector('#secnav a.on')?.dataset.id === 'depth', null, { timeout: 5000 });
+// Hovering a heatmap row keeps its colours
+const cell = page.locator('#suitability table.matrix td.h').first();
+await cell.scrollIntoViewIfNeeded();
+const before = await cell.evaluate((td) => getComputedStyle(td).backgroundColor);
+await cell.hover();
+assert.equal(await cell.evaluate((td) => getComputedStyle(td).backgroundColor), before, 'hover keeps the heat colour');
+console.log('ok  section bar follows the scroll; heatmap keeps colours on hover');
 await page.click('#again');
 await page.reload();
 assert.equal(await page.$eval('input[name="strength"]:checked', (e) => e.value), '-2', 'strength answer remembered');

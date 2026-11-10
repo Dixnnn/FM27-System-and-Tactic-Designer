@@ -16,10 +16,11 @@
   --accent: #14ac77; --accent-ink: #03150d; --accent-soft: rgba(20, 172, 119, .13);
   --ip: #3987e5; --oop: #d95926;
   --pos: #3987e5; --neg: #e66767; --mid: #383835;
-  --fit-1: #035c3e; --fit-2: #068359; --fit-3: #14ac77; --fit-4: #66e7ae;
-  --heat: 20 172 119; --heat-ink-hi: #03150d;
+  --fit-1: #205d44; --fit-2: #169065; --fit-3: #25c48c; --fit-4: #8bf4c4;
+  --heat: 20 172 119; --heat-lo: #1d2421; --heat-hi: #8bf4c4; --heat-ink-hi: #03150d;
   --warn: #fab219; --warn-line: #b7820f; --warn-soft: rgba(250, 178, 25, .10);
-  --pitch: #13201a; --pitch-stripe: #15241c; --pitch-line: rgba(226, 240, 230, .17); --token: #0e1411;
+  --pitch: #12201a; --pitch-stripe: #16271e; --pitch-glow: rgba(120, 220, 170, .07); --pitch-line: rgba(226, 240, 230, .2); --token: #0d1310;
+  --pill: rgba(9, 14, 11, .82); --pill-line: rgba(226, 240, 230, .1); --topbar: rgba(13, 15, 14, .84);
   --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .28);
  }
 :root[data-theme="light"] { 
@@ -30,10 +31,11 @@
   --accent: #068359; --accent-ink: #ffffff; --accent-soft: rgba(6, 131, 89, .10);
   --ip: #2a78d6; --oop: #eb6834;
   --pos: #2a78d6; --neg: #e34948; --mid: #e3e5e1;
-  --fit-1: #37bf89; --fit-2: #068359; --fit-3: #035c3e; --fit-4: #003823;
-  --heat: 6 131 89; --heat-ink-hi: var(--ink);
+  --fit-1: #76d4a9; --fit-2: #21a475; --fit-3: #00734f; --fit-4: #00432d;
+  --heat: 6 131 89; --heat-lo: #eef2ee; --heat-hi: #00734f; --heat-ink-hi: #ffffff;
   --warn: #9a6400; --warn-line: #e3a72f; --warn-soft: rgba(237, 161, 0, .12);
-  --pitch: #e3eee6; --pitch-stripe: #dbe8de; --pitch-line: rgba(18, 60, 34, .26); --token: #fbfcfb;
+  --pitch: #dfece2; --pitch-stripe: #d5e6d9; --pitch-glow: rgba(255, 255, 255, .32); --pitch-line: rgba(18, 60, 34, .28); --token: #fbfcfb;
+  --pill: rgba(251, 252, 251, .9); --pill-line: rgba(18, 60, 34, .14); --topbar: rgba(238, 241, 238, .86);
   --shadow: 0 1px 2px rgba(16, 24, 18, .05), 0 6px 18px rgba(16, 24, 18, .05);
  }
 @media print { :root:root { 
@@ -44,10 +46,11 @@
   --accent: #068359; --accent-ink: #ffffff; --accent-soft: rgba(6, 131, 89, .10);
   --ip: #2a78d6; --oop: #eb6834;
   --pos: #2a78d6; --neg: #e34948; --mid: #e3e5e1;
-  --fit-1: #37bf89; --fit-2: #068359; --fit-3: #035c3e; --fit-4: #003823;
-  --heat: 6 131 89; --heat-ink-hi: var(--ink);
+  --fit-1: #76d4a9; --fit-2: #21a475; --fit-3: #00734f; --fit-4: #00432d;
+  --heat: 6 131 89; --heat-lo: #eef2ee; --heat-hi: #00734f; --heat-ink-hi: #ffffff;
   --warn: #9a6400; --warn-line: #e3a72f; --warn-soft: rgba(237, 161, 0, .12);
-  --pitch: #e3eee6; --pitch-stripe: #dbe8de; --pitch-line: rgba(18, 60, 34, .26); --token: #fbfcfb;
+  --pitch: #dfece2; --pitch-stripe: #d5e6d9; --pitch-glow: rgba(255, 255, 255, .32); --pitch-line: rgba(18, 60, 34, .28); --token: #fbfcfb;
+  --pill: rgba(251, 252, 251, .9); --pill-line: rgba(18, 60, 34, .14); --topbar: rgba(238, 241, 238, .86);
   --shadow: 0 1px 2px rgba(16, 24, 18, .05), 0 6px 18px rgba(16, 24, 18, .05);
  } }
 :root {
@@ -80,20 +83,27 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
   background: var(--surface); border-radius: 10px; padding: 10px 14px; margin: 12px 0 4px; color: var(--ink-2); font-size: 14px; }
 .report .notice .ico { color: var(--warn); margin-top: 3px; }
 .report .notice strong { color: var(--ink); }
-.report nav.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
+.report nav.toc { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px; margin: 6px -8px 2px; padding: 8px;
+  background: var(--topbar, var(--bg)); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .report nav.toc a { font-size: 12.5px; color: var(--ink-2); text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
 .report nav.toc a:hover { color: var(--ink); border-color: var(--line-2); }
+.report .hint-line { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.report .hint-line .ico { margin-top: 2px; }
+.report .hint-line strong { color: var(--ink-2); }
 
-.report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: 70px; }
+.report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: var(--scroll-offset, 64px); }
 .report .lede { color: var(--ink-2); max-width: 78ch; }
 
 /* stat tiles */
-.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 20px; }
-.report .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px 12px; }
-.report .kpi .k { font-size: 12px; color: var(--muted); }
-.report .kpi .v { font-size: 18px; font-weight: 650; line-height: 1.25; margin-top: 2px; }
+.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 10px; margin: 4px 0 20px; }
+.report .kpi { background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line); border-radius: 11px; padding: 11px 13px 12px; }
+.report .kpi .k { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.report .kpi .k .ki { width: 13px; height: 13px; color: var(--ink-2); flex: none; }
+.report .kpi .k .key { width: 8px; height: 8px; margin: 0 2px; }
+.report .kpi .v { font-size: 17px; font-weight: 650; line-height: 1.25; margin-top: 3px; text-wrap: balance; }
 .report .kpi .meter { height: 4px; border-radius: 2px; background: var(--line); margin-top: 9px; overflow: hidden; }
-.report .kpi .meter i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+.report .kpi .meter i { display: block; height: 100%; border-radius: 2px; background: var(--fit-3); }
+.report .kpi .meter.f1 i { background: var(--fit-1); } .report .kpi .meter.f2 i { background: var(--fit-2); } .report .kpi .meter.f4 i { background: var(--fit-4); }
 
 /* pitches */
 .report .pitches { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 420px)); justify-content: center; gap: 22px 40px; align-items: start; }
@@ -107,14 +117,21 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 .report .pitches.small svg.pitch { max-width: 300px; }
 .report .pl { outline: none; cursor: default; }
 .report .pl .hit { fill: transparent; }
-.report .pl .dot { fill: var(--token); stroke: var(--line-2); stroke-width: 2.5; transition: stroke-width .12s; }
-.report .pl.f1 .dot { stroke: var(--fit-1); } .report .pl.f2 .dot { stroke: var(--fit-2); }
-.report .pl.f3 .dot { stroke: var(--fit-3); } .report .pl.f4 .dot { stroke: var(--fit-4); }
-.report .pl:hover .dot, .report .pl:focus .dot { stroke-width: 4; }
+.report .pl .dot { fill: var(--token); stroke: var(--line); stroke-width: 1; }
+.report .pl .trk { fill: none; stroke: var(--line-2); stroke-width: 3.2; opacity: .55; }
+.report .pl .arc { fill: none; stroke: var(--fit-2); stroke-width: 3.2; stroke-linecap: round; transition: stroke-width .12s; }
+.report .pl.f1 .arc { stroke: var(--fit-1); } .report .pl.f3 .arc { stroke: var(--fit-3); } .report .pl.f4 .arc { stroke: var(--fit-4); }
+.report .pl:hover .arc, .report .pl:focus .arc { stroke-width: 4.6; }
+.report .pl:focus-visible .dot { stroke: var(--accent); stroke-width: 2; }
 .report .pitch text { text-anchor: middle; font-family: var(--font); }
 .report .pl .abbr { font-size: 9px; font-weight: 750; fill: var(--ink); letter-spacing: .02em; }
-.report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); paint-order: stroke; stroke: var(--pitch); stroke-width: 3.5px; stroke-linejoin: round; }
-.report .pl .sc { font-size: 9.5px; fill: var(--ink-2); font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--pitch); stroke-width: 3px; }
+.report .pl .pill { fill: var(--pill); stroke: var(--pill-line); stroke-width: 1; }
+.report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); }
+.report .pl .sc { font-size: 9.5px; font-weight: 600; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.report .pl .cpt circle { fill: var(--warn-line); stroke: var(--pitch); stroke-width: 1.4; }
+.report .pl .cpt text { font-size: 8px; font-weight: 800; fill: #1a1405; }
+.report .cpt-key { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--warn-line); color: #1a1405; font-size: 8.5px; font-weight: 800; }
+.report .movement .nm, .report svg.move .nm { paint-order: stroke; stroke: var(--pitch); stroke-width: 3.5px; stroke-linejoin: round; }
 .report .mk-marquee { fill: var(--ink); stroke: var(--pitch); stroke-width: 1.6; stroke-linejoin: round; }
 .report .mk-future { fill: var(--pitch); stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; }
 .report .mk-start { fill: var(--ink-2); stroke: var(--pitch); stroke-width: 1.6; }
@@ -158,6 +175,9 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 .report .role .key { margin-right: 6px; vertical-align: 1px; }
 .report .role .ab { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .report .line { display: flex; align-items: center; gap: 8px; margin: 1px 0; }
+.report table.roles { min-width: 820px; }
+.report table.best td { padding-top: 7px; padding-bottom: 7px; }
+.report table.best .line { white-space: nowrap; font-size: 13px; }
 
 /* settings (team instructions) */
 .report table.settings td { padding: 10px 10px; }
@@ -226,7 +246,18 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 .report .pos-card .who .nm1 { font-weight: 600; }
 .report .pos-card .who .dim { color: var(--ink-2); }
 .report .pos-card .flag { display: flex; gap: 5px; align-items: center; font-size: 12px; color: var(--warn); margin-top: 7px; }
-.report .pos-card .extra { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+.report .pos-card .also { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--line); }
+.report .pos-card .also .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-right: 2px; }
+.report .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; line-height: 1.5; padding: 0 7px; border-radius: 6px; background: var(--surface-3); color: var(--ink-2); white-space: nowrap; }
+.report .chip b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
+.report .chip i { font-style: normal; color: var(--muted); }
+.report .chip .ico { width: 10px; height: 10px; }
+.report .chip.inj { background: var(--warn-soft); color: var(--warn); }
+.report .chip.inj b { color: var(--warn); }
+.report .chip.loan { background: transparent; border: 1px dashed var(--line-2); color: var(--muted); }
+.report .chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 2px; }
+.report details.more summary { cursor: pointer; }
+.report details.more summary:hover { color: var(--ink-2); }
 
 /* weak areas */
 .report ol.weak { padding-left: 20px; display: grid; gap: 10px; }
@@ -239,14 +270,17 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 .report table.matrix th.ip { box-shadow: inset 0 -2px 0 var(--ip); }
 .report table.matrix th.oop { box-shadow: inset 0 -2px 0 var(--oop); }
 .report table.matrix td:first-child, .report table.matrix th:first-child { text-align: left; white-space: nowrap; padding-right: 12px; min-width: 150px; box-shadow: none; }
-.report table.matrix td.h { background: rgb(var(--heat) / var(--a)); border-radius: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.report table.matrix td.h { background: rgb(var(--heat) / var(--a)); background: color-mix(in oklab, var(--heat-lo), var(--heat-hi) var(--t)); border-radius: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
 .report table.matrix td.h.hi { color: var(--heat-ink-hi); font-weight: 600; }
 .report table.matrix td.h.best { box-shadow: inset 0 0 0 1px var(--ink-2); font-weight: 700; }
 .report table.matrix td.gap { min-width: 10px; padding: 0; }
-.report table.matrix tbody tr:hover td { background-color: transparent; }
+.report table.matrix tbody tr:hover td:not(.h) { background-color: transparent; }
 .report table.matrix tbody tr:hover td.h { filter: brightness(1.12); }
 .report .heatscale { display: inline-flex; align-items: center; gap: 8px; }
-.report .heatscale .bar { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgb(var(--heat) / .05), rgb(var(--heat) / .85)); }
+.report .heatscale .bar { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgb(var(--heat) / .05), rgb(var(--heat) / .85)); background: linear-gradient(in oklab 90deg, var(--heat-lo), var(--heat-hi)); }
+.report .abbr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 3px 16px; margin: 8px 0 4px; font-size: 12px; color: var(--muted); }
+.report .abbr-grid span { display: flex; gap: 7px; align-items: baseline; min-width: 0; }
+.report .abbr-grid b { color: var(--ink-2); font-weight: 650; min-width: 3.2em; }
 
 /* alternatives */
 .report .alt { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
@@ -258,6 +292,15 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 }
 @media (max-width: 640px) {
   .report section.card { padding: 18px 14px; }
+  .report h1 { font-size: 24px; }
+  .report .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report table.settings thead { display: none; }
+  .report table.settings tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; border-bottom: 1px solid var(--line); padding: 6px 0; }
+  .report table.settings td { border: 0; padding: 4px 6px; }
+  .report table.settings td.name { padding-left: 18px; }
+  .report table.settings td.why, .report table.settings td[colspan] { grid-column: 1 / -1; padding-left: 18px; }
+  .report table.settings td.val { text-align: right; }
+  .report table.settings td.val .scale { justify-content: flex-end; }
   .report .pf-row, .report .pf-axis { grid-template-columns: 1fr 44px 38px; }
   .report .pf-row .pf-label { grid-column: 1 / -1; }
   .report .pf-axis > span:first-child { display: none; }
@@ -274,6 +317,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
   .report .pf-row, .report .pf-axis { grid-template-columns: minmax(110px, 1.1fr) 1.6fr 36px 30px; }
   .report section.card#overview { break-before: auto; }
   .report nav.toc, .report .tip { display: none !important; }
+  .report .pl .pill { fill: #ffffff; }
   .report table, .report figure, .report .pos-card, .report .pf-row { break-inside: avoid; }
   .report .tablewrap { overflow: visible; }
   .report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -345,9 +389,26 @@ ol.howto strong { color: var(--ink); }
 code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border-radius: 5px; font-size: 12.5px; overflow-wrap: anywhere; }
 .privacy { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
 .privacy svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
-.toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; margin: -10px 0 4px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.topbar { position: sticky; top: 0; z-index: 20; margin: -10px -20px 4px; padding: 0 20px; background: var(--topbar); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0 8px; }
 .toolbar .spacer { flex: 1; }
+.navrow { display: flex; align-items: center; gap: 12px; }
+.navrow .src-note { flex: none; padding-bottom: 6px; }
+.secnav { flex: 1; min-width: 0; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 0 0 0 -6px; padding: 0 0 6px; }
+.secnav::-webkit-scrollbar { display: none; }
+.secnav a { flex: none; font-size: 13px; color: var(--muted); text-decoration: none; padding: 5px 10px; border-radius: 8px; position: relative; white-space: nowrap; }
+.secnav a:hover { color: var(--ink); background: var(--surface-2); }
+.secnav a.on { color: var(--ink); font-weight: 600; }
+.secnav a.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -6px; height: 2px; border-radius: 2px; background: var(--accent); }
+.secnav a .n { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; font-size: 11.5px; }
+.in-app .report nav.toc { display: none; }
+kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text-align: center; padding: 4px 6px 3px; border-radius: 6px; border: 1px solid var(--line-2); border-bottom-width: 2.5px; background: var(--surface-2); color: var(--ink); vertical-align: 1px; }
+.callout { display: flex; gap: 12px; align-items: center; padding: 12px 14px; margin: 0 0 14px; border-radius: 11px; border: 1px solid var(--line); background: linear-gradient(90deg, var(--accent-soft), transparent 70%); font-size: 14px; color: var(--ink-2); }
+.callout kbd { font-size: 15px; padding: 7px 10px 6px; min-width: 38px; }
+.callout strong { color: var(--ink); }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+.hero-art { width: 210px; height: auto; color: var(--accent); }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .hero-art { display: none; } }
 .src-note { font-size: 12.5px; color: var(--muted); }
 .tb-strength { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
 .tb-strength select { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 8px 10px; cursor: pointer; }
@@ -397,8 +458,15 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   .pk-role { grid-column: 1 / -1; order: 3; }
   .pk-row .seg.mini { grid-column: 1 / -1; order: 4; }
 }
+@media (max-width: 700px) {
+  .topbar { margin: -10px -16px 4px; padding: 0 16px; }
+  .toolbar { gap: 6px; padding: 8px 0 6px; }
+  .toolbar .lbl, .src-note, .tb-strength .tbl { display: none; }
+  .toolbar .btn { padding: 8px 10px; }
+  .tb-strength select { padding: 7px 8px; }
+}
 @media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
-@media print { body { background: #fff; } .appbar, .toolbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
+@media print { body { background: #fff; } .appbar, .topbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
 </style>
 </head>
 <body>
@@ -407,7 +475,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
     <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
       <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
       <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
-    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.5.1 · works offline · only reads your squad, never changes your game</div></div>
+    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.6.0 · works offline · only reads your squad, never changes your game</div></div>
   </div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
     <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -418,16 +486,30 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 <main class="shell">
   <section id="start">
     <div class="hero no-print">
-      <h1>Build an FM27 tactic around your squad</h1>
-      <p>Drop the squad export and get a complete tactic: both shapes and every role, all 27 team instructions with reasons, player instructions,
-        set pieces, depth chart, training and three alternative tactics.</p>
+      <div>
+        <h1>Build an FM27 tactic around your squad</h1>
+        <p>Get a complete tactic from your players: both shapes and every role, all 27 team instructions with reasons, player instructions,
+          set pieces, depth chart, training and three alternative tactics.</p>
+      </div>
+      <svg class="hero-art" viewBox="0 0 210 150" aria-hidden="true">
+        <rect x="1" y="1" width="208" height="148" rx="12" fill="var(--pitch)" stroke="var(--line)"/>
+        <g fill="none" stroke="var(--pitch-line)" stroke-width="1.2"><rect x="10" y="10" width="190" height="130" rx="2"/><path d="M105 10v130"/><circle cx="105" cy="75" r="18"/><rect x="10" y="45" width="26" height="60"/><rect x="174" y="45" width="26" height="60"/></g>
+        <g stroke="var(--oop)" stroke-width="1.4" fill="none" stroke-dasharray="2 3" opacity=".8"><path d="M60 40l28 -6M60 110l28 6M120 52l22 -10M120 98l22 10"/></g>
+        <g fill="var(--token)" stroke-width="2.6">
+          <circle cx="24" cy="75" r="6" stroke="var(--fit-2)"/>
+          <circle cx="52" cy="38" r="6" stroke="var(--fit-3)"/><circle cx="48" cy="62" r="6" stroke="var(--fit-4)"/><circle cx="48" cy="88" r="6" stroke="var(--fit-3)"/><circle cx="52" cy="112" r="6" stroke="var(--fit-2)"/>
+          <circle cx="80" cy="75" r="6" stroke="var(--fit-3)"/><circle cx="112" cy="54" r="6" stroke="var(--fit-4)"/><circle cx="112" cy="96" r="6" stroke="var(--fit-3)"/>
+          <circle cx="150" cy="36" r="6" stroke="var(--fit-3)"/><circle cx="160" cy="75" r="6" stroke="var(--fit-4)"/><circle cx="150" cy="114" r="6" stroke="var(--fit-2)"/>
+        </g>
+      </svg>
     </div>
     <div class="grid2 no-print">
       <div class="panel">
+        <div class="callout"><kbd>F8</kbd><span><strong>Using the FM27 plugin?</strong> Press F8 on your Squad screen in the game and this page opens with your tactic. No file needed.</span></div>
         <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose or drop your FM27 squad export">
           <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 30h-1.5A7.5 7.5 0 0 1 9.6 15a10 10 0 0 1 19.5 2.2A6.5 6.5 0 0 1 28.5 30H28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 34V20m-5 5 5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="drop-title">Drop your squad export here</div>
-          <div class="drop-sub">With the FM27 plugin you don't need this: press <strong>F8</strong> in the game. Otherwise drop a CSV or HTML from FM View Exporter (F9), FM27 Player Export, or any squad export with player attributes.</div>
+          <div class="drop-sub">A CSV or HTML from FM View Exporter (<kbd>F9</kbd>), FM27 Player Export, or any squad export with player attributes.</div>
           <div class="row">
             <button class="btn" id="choose" type="button">Choose file…</button>
             <button class="btn ghost" id="sample" type="button">Try the sample squad</button>
@@ -473,8 +555,8 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         <ol class="howto">
           <li><span>Install the <strong>FM27 Tactic Builder plugin</strong> once with its setup (see the README).</span></li>
           <li><span>In FM27 open <strong>Squad</strong> and switch the view to <strong>FM27TFT</strong>, the plugin's built-in view (or any view with all attributes; the README lists the columns).</span></li>
-          <li><span>Press <strong>F8</strong>. The plugin reads your players and opens this page with your tactic.</span></li>
-          <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (F9) and drop the <code>squad_….csv</code> on the box.</span></li>
+          <li><span>Press <kbd>F8</kbd>. The plugin reads your players and opens this page with your tactic.</span></li>
+          <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (<kbd>F9</kbd>) and drop the <code>squad_….csv</code> on the box.</span></li>
         </ol>
         <div class="privacy">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3.5 4.5v5c0 4 2.8 7.2 6.5 8.5 3.7-1.3 6.5-4.5 6.5-8.5v-5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7 10 2.2 2.2L13.3 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -485,11 +567,12 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   </section>
 
   <section id="result" class="hidden">
-    <div class="toolbar no-print">
+    <div class="topbar no-print">
+    <div class="toolbar">
       <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
-      <button class="btn ghost" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
-      <button class="btn ghost" id="save" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Save report</button>
-      <label class="tb-strength">Team strength
+      <button class="btn ghost" id="print" type="button" title="Print / Save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Print / Save as PDF</span></button>
+      <button class="btn ghost" id="save" type="button" title="Save the report as a file" aria-label="Save report"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Save report</span></button>
+      <label class="tb-strength"><span class="tbl">Team strength</span>
         <select id="strength-quick">
           <option value="2">Title favourites</option>
           <option value="1">Top half</option>
@@ -499,8 +582,9 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         </select>
       </label>
       <span class="spacer"></span>
-      <span class="src-note" id="src-note"></span>
-      <button class="btn ghost" id="again" type="button">Load another file</button>
+      <button class="btn ghost" id="again" type="button" title="Load another file" aria-label="Load another file"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2M10 13V3.5M6.5 7 10 3.5 13.5 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Load another file</span></button>
+    </div>
+    <div class="navrow"><nav class="secnav" id="secnav" aria-label="Report sections"></nav><span class="src-note" id="src-note"></span></div>
     </div>
     <div id="result-note" class="no-print"></div>
     <div id="picker" class="panel picker hidden no-print"></div>
@@ -932,13 +1016,13 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
       const info = cleanText(get(row, "info"));
       const injured = !!injury && !/^(none|no|fit)$/i.test(injury) || /\binj/i.test(info);
       const suspended = /\b(ban|sus)/i.test(info);
-      const uid = cleanText(get(row, "id"));
-      let id = uid || name;
+      const uid2 = cleanText(get(row, "id"));
+      let id = uid2 || name;
       if (seenNames.has(id)) id = `${id} #${index + 1}`;
       seenNames.set(id, true);
       players.push({
         id,
-        uid,
+        uid: uid2,
         name,
         age: parseNumber(get(row, "age")),
         club: cleanText(get(row, "club")),
@@ -4616,7 +4700,9 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   var PAD_BOTTOM = 58;
   var px = (x) => PAD_X + x / 100 * (W - 2 * PAD_X);
   var py = (y) => H - PAD_BOTTOM - y / 100 * (H - PAD_TOP - PAD_BOTTOM);
+  var uid = 0;
   function markings() {
+    const id = `pg${++uid}`;
     const stripes = [];
     const bands = 10;
     const bh = (H - 24) / bands;
@@ -4628,8 +4714,10 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
     const top = 12;
     const bot = H - 12;
     return [
+      `<defs><radialGradient id="${id}" cx="50%" cy="45%" r="65%"><stop offset="0" stop-color="var(--pitch-glow)" /><stop offset="1" stop-color="transparent" stop-opacity="0" /></radialGradient></defs>`,
       `<rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="var(--pitch)" />`,
       ...stripes,
+      `<rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="url(#${id})" />`,
       `<rect x="12" y="${top}" width="${W - 24}" height="${H - 24}" ${l} />`,
       `<line x1="12" y1="${H / 2}" x2="${W - 12}" y2="${H / 2}" ${l} />`,
       `<circle cx="${W / 2}" cy="${H / 2}" r="42" ${l} />`,
@@ -4667,20 +4755,29 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
     if (mark === "start") return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" class="mk-start" />`;
     return "";
   }
+  var RING = 18.5;
+  var ARC = 2 * Math.PI * RING;
+  var textWidth = (t, size) => [...t].reduce((w, c) => w + (/[ilj.,'’\s]/.test(c) ? 0.3 : /[mwMW]/.test(c) ? 0.85 : /[A-Z]/.test(c) ? 0.66 : 0.56), 0) * size;
   function pitchSVG(items, slots, title) {
     const players = items.map((it) => {
       const [x, y] = slots[it.slot];
-      const cx = px(x).toFixed(1);
-      const cy = py(y).toFixed(1);
+      const cx = +px(x).toFixed(1);
+      const cy = +py(y).toFixed(1);
       const s = Math.round(it.score);
+      const fill = Math.max(0, Math.min(100, it.score)) / 100 * ARC;
       const markTitle = it.mark === "marquee" ? " · marquee player" : it.mark === "future" ? " · future star" : it.mark === "start" ? " · must start" : "";
+      const nm = shortName(it.name);
+      const pw = Math.max(34, textWidth(nm, 10.5) + textWidth(String(s), 9.5) + 18);
+      const captain = it.captain ? `<g class="cpt"><circle cx="${(cx - 14).toFixed(1)}" cy="${(cy - 14).toFixed(1)}" r="6.2" /><text x="${(cx - 14).toFixed(1)}" y="${(cy - 11.2).toFixed(1)}">C</text></g>` : "";
       return `<g class="pl ${scoreClass(it.score)}" tabindex="0">
-  <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}</title>
-  <circle cx="${cx}" cy="${cy}" r="22" class="hit" />
-  <circle cx="${cx}" cy="${cy}" r="15.5" class="dot" />${pickMark(it.mark, +cx + 12.5, +cy - 12.5)}
-  <text x="${cx}" y="${(+cy + 3.4).toFixed(1)}" class="abbr">${esc(it.abbr)}</text>
-  <text x="${cx}" y="${(+cy + 29).toFixed(1)}" class="nm">${esc(shortName(it.name))}</text>
-  <text x="${cx}" y="${(+cy + 40.5).toFixed(1)}" class="sc">${s}</text>
+  <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}${it.captain ? " · captain" : ""}</title>
+  <circle cx="${cx}" cy="${cy}" r="24" class="hit" />
+  <circle cx="${cx}" cy="${cy}" r="${RING}" class="trk" />
+  <circle cx="${cx}" cy="${cy}" r="${RING}" class="arc" stroke-dasharray="${fill.toFixed(1)} ${ARC.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})" />
+  <circle cx="${cx}" cy="${cy}" r="15" class="dot" />${captain}${pickMark(it.mark, cx + 14, cy - 14)}
+  <text x="${cx}" y="${(cy + 3.4).toFixed(1)}" class="abbr">${esc(it.abbr)}</text>
+  <rect x="${(cx - pw / 2).toFixed(1)}" y="${(cy + 23).toFixed(1)}" width="${pw.toFixed(1)}" height="15" rx="7.5" class="pill" />
+  <text x="${cx}" y="${(cy + 34).toFixed(1)}" class="nm">${esc(nm)}<tspan class="sc" dx="4">${s}</tspan></text>
 </g>`;
     }).join("\n");
     return `<svg class="pitch" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">${markings()}${players}</svg>`;
@@ -4739,20 +4836,27 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   background: var(--surface); border-radius: 10px; padding: 10px 14px; margin: 12px 0 4px; color: var(--ink-2); font-size: 14px; }
 .report .notice .ico { color: var(--warn); margin-top: 3px; }
 .report .notice strong { color: var(--ink); }
-.report nav.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
+.report nav.toc { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px; margin: 6px -8px 2px; padding: 8px;
+  background: var(--topbar, var(--bg)); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .report nav.toc a { font-size: 12.5px; color: var(--ink-2); text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
 .report nav.toc a:hover { color: var(--ink); border-color: var(--line-2); }
+.report .hint-line { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.report .hint-line .ico { margin-top: 2px; }
+.report .hint-line strong { color: var(--ink-2); }
 
-.report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: 70px; }
+.report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: var(--scroll-offset, 64px); }
 .report .lede { color: var(--ink-2); max-width: 78ch; }
 
 /* stat tiles */
-.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 20px; }
-.report .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px 12px; }
-.report .kpi .k { font-size: 12px; color: var(--muted); }
-.report .kpi .v { font-size: 18px; font-weight: 650; line-height: 1.25; margin-top: 2px; }
+.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 10px; margin: 4px 0 20px; }
+.report .kpi { background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line); border-radius: 11px; padding: 11px 13px 12px; }
+.report .kpi .k { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.report .kpi .k .ki { width: 13px; height: 13px; color: var(--ink-2); flex: none; }
+.report .kpi .k .key { width: 8px; height: 8px; margin: 0 2px; }
+.report .kpi .v { font-size: 17px; font-weight: 650; line-height: 1.25; margin-top: 3px; text-wrap: balance; }
 .report .kpi .meter { height: 4px; border-radius: 2px; background: var(--line); margin-top: 9px; overflow: hidden; }
-.report .kpi .meter i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+.report .kpi .meter i { display: block; height: 100%; border-radius: 2px; background: var(--fit-3); }
+.report .kpi .meter.f1 i { background: var(--fit-1); } .report .kpi .meter.f2 i { background: var(--fit-2); } .report .kpi .meter.f4 i { background: var(--fit-4); }
 
 /* pitches */
 .report .pitches { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 420px)); justify-content: center; gap: 22px 40px; align-items: start; }
@@ -4766,14 +4870,21 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .report .pitches.small svg.pitch { max-width: 300px; }
 .report .pl { outline: none; cursor: default; }
 .report .pl .hit { fill: transparent; }
-.report .pl .dot { fill: var(--token); stroke: var(--line-2); stroke-width: 2.5; transition: stroke-width .12s; }
-.report .pl.f1 .dot { stroke: var(--fit-1); } .report .pl.f2 .dot { stroke: var(--fit-2); }
-.report .pl.f3 .dot { stroke: var(--fit-3); } .report .pl.f4 .dot { stroke: var(--fit-4); }
-.report .pl:hover .dot, .report .pl:focus .dot { stroke-width: 4; }
+.report .pl .dot { fill: var(--token); stroke: var(--line); stroke-width: 1; }
+.report .pl .trk { fill: none; stroke: var(--line-2); stroke-width: 3.2; opacity: .55; }
+.report .pl .arc { fill: none; stroke: var(--fit-2); stroke-width: 3.2; stroke-linecap: round; transition: stroke-width .12s; }
+.report .pl.f1 .arc { stroke: var(--fit-1); } .report .pl.f3 .arc { stroke: var(--fit-3); } .report .pl.f4 .arc { stroke: var(--fit-4); }
+.report .pl:hover .arc, .report .pl:focus .arc { stroke-width: 4.6; }
+.report .pl:focus-visible .dot { stroke: var(--accent); stroke-width: 2; }
 .report .pitch text { text-anchor: middle; font-family: var(--font); }
 .report .pl .abbr { font-size: 9px; font-weight: 750; fill: var(--ink); letter-spacing: .02em; }
-.report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); paint-order: stroke; stroke: var(--pitch); stroke-width: 3.5px; stroke-linejoin: round; }
-.report .pl .sc { font-size: 9.5px; fill: var(--ink-2); font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--pitch); stroke-width: 3px; }
+.report .pl .pill { fill: var(--pill); stroke: var(--pill-line); stroke-width: 1; }
+.report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); }
+.report .pl .sc { font-size: 9.5px; font-weight: 600; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.report .pl .cpt circle { fill: var(--warn-line); stroke: var(--pitch); stroke-width: 1.4; }
+.report .pl .cpt text { font-size: 8px; font-weight: 800; fill: #1a1405; }
+.report .cpt-key { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--warn-line); color: #1a1405; font-size: 8.5px; font-weight: 800; }
+.report .movement .nm, .report svg.move .nm { paint-order: stroke; stroke: var(--pitch); stroke-width: 3.5px; stroke-linejoin: round; }
 .report .mk-marquee { fill: var(--ink); stroke: var(--pitch); stroke-width: 1.6; stroke-linejoin: round; }
 .report .mk-future { fill: var(--pitch); stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; }
 .report .mk-start { fill: var(--ink-2); stroke: var(--pitch); stroke-width: 1.6; }
@@ -4817,6 +4928,9 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .report .role .key { margin-right: 6px; vertical-align: 1px; }
 .report .role .ab { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .report .line { display: flex; align-items: center; gap: 8px; margin: 1px 0; }
+.report table.roles { min-width: 820px; }
+.report table.best td { padding-top: 7px; padding-bottom: 7px; }
+.report table.best .line { white-space: nowrap; font-size: 13px; }
 
 /* settings (team instructions) */
 .report table.settings td { padding: 10px 10px; }
@@ -4885,7 +4999,18 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .report .pos-card .who .nm1 { font-weight: 600; }
 .report .pos-card .who .dim { color: var(--ink-2); }
 .report .pos-card .flag { display: flex; gap: 5px; align-items: center; font-size: 12px; color: var(--warn); margin-top: 7px; }
-.report .pos-card .extra { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+.report .pos-card .also { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--line); }
+.report .pos-card .also .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-right: 2px; }
+.report .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; line-height: 1.5; padding: 0 7px; border-radius: 6px; background: var(--surface-3); color: var(--ink-2); white-space: nowrap; }
+.report .chip b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
+.report .chip i { font-style: normal; color: var(--muted); }
+.report .chip .ico { width: 10px; height: 10px; }
+.report .chip.inj { background: var(--warn-soft); color: var(--warn); }
+.report .chip.inj b { color: var(--warn); }
+.report .chip.loan { background: transparent; border: 1px dashed var(--line-2); color: var(--muted); }
+.report .chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 2px; }
+.report details.more summary { cursor: pointer; }
+.report details.more summary:hover { color: var(--ink-2); }
 
 /* weak areas */
 .report ol.weak { padding-left: 20px; display: grid; gap: 10px; }
@@ -4898,14 +5023,17 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .report table.matrix th.ip { box-shadow: inset 0 -2px 0 var(--ip); }
 .report table.matrix th.oop { box-shadow: inset 0 -2px 0 var(--oop); }
 .report table.matrix td:first-child, .report table.matrix th:first-child { text-align: left; white-space: nowrap; padding-right: 12px; min-width: 150px; box-shadow: none; }
-.report table.matrix td.h { background: rgb(var(--heat) / var(--a)); border-radius: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.report table.matrix td.h { background: rgb(var(--heat) / var(--a)); background: color-mix(in oklab, var(--heat-lo), var(--heat-hi) var(--t)); border-radius: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
 .report table.matrix td.h.hi { color: var(--heat-ink-hi); font-weight: 600; }
 .report table.matrix td.h.best { box-shadow: inset 0 0 0 1px var(--ink-2); font-weight: 700; }
 .report table.matrix td.gap { min-width: 10px; padding: 0; }
-.report table.matrix tbody tr:hover td { background-color: transparent; }
+.report table.matrix tbody tr:hover td:not(.h) { background-color: transparent; }
 .report table.matrix tbody tr:hover td.h { filter: brightness(1.12); }
 .report .heatscale { display: inline-flex; align-items: center; gap: 8px; }
-.report .heatscale .bar { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgb(var(--heat) / .05), rgb(var(--heat) / .85)); }
+.report .heatscale .bar { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgb(var(--heat) / .05), rgb(var(--heat) / .85)); background: linear-gradient(in oklab 90deg, var(--heat-lo), var(--heat-hi)); }
+.report .abbr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 3px 16px; margin: 8px 0 4px; font-size: 12px; color: var(--muted); }
+.report .abbr-grid span { display: flex; gap: 7px; align-items: baseline; min-width: 0; }
+.report .abbr-grid b { color: var(--ink-2); font-weight: 650; min-width: 3.2em; }
 
 /* alternatives */
 .report .alt { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
@@ -4917,6 +5045,15 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 }
 @media (max-width: 640px) {
   .report section.card { padding: 18px 14px; }
+  .report h1 { font-size: 24px; }
+  .report .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report table.settings thead { display: none; }
+  .report table.settings tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; border-bottom: 1px solid var(--line); padding: 6px 0; }
+  .report table.settings td { border: 0; padding: 4px 6px; }
+  .report table.settings td.name { padding-left: 18px; }
+  .report table.settings td.why, .report table.settings td[colspan] { grid-column: 1 / -1; padding-left: 18px; }
+  .report table.settings td.val { text-align: right; }
+  .report table.settings td.val .scale { justify-content: flex-end; }
   .report .pf-row, .report .pf-axis { grid-template-columns: 1fr 44px 38px; }
   .report .pf-row .pf-label { grid-column: 1 / -1; }
   .report .pf-axis > span:first-child { display: none; }
@@ -4933,6 +5070,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   .report .pf-row, .report .pf-axis { grid-template-columns: minmax(110px, 1.1fr) 1.6fr 36px 30px; }
   .report section.card#overview { break-before: auto; }
   .report nav.toc, .report .tip { display: none !important; }
+  .report .pl .pill { fill: #ffffff; }
   .report table, .report figure, .report .pos-card, .report .pf-row { break-inside: avoid; }
   .report .tablewrap { overflow: visible; }
   .report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -4950,10 +5088,11 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   --accent: #068359; --accent-ink: #ffffff; --accent-soft: rgba(6, 131, 89, .10);
   --ip: #2a78d6; --oop: #eb6834;
   --pos: #2a78d6; --neg: #e34948; --mid: #e3e5e1;
-  --fit-1: #37bf89; --fit-2: #068359; --fit-3: #035c3e; --fit-4: #003823;
-  --heat: 6 131 89; --heat-ink-hi: var(--ink);
+  --fit-1: #76d4a9; --fit-2: #21a475; --fit-3: #00734f; --fit-4: #00432d;
+  --heat: 6 131 89; --heat-lo: #eef2ee; --heat-hi: #00734f; --heat-ink-hi: #ffffff;
   --warn: #9a6400; --warn-line: #e3a72f; --warn-soft: rgba(237, 161, 0, .12);
-  --pitch: #e3eee6; --pitch-stripe: #dbe8de; --pitch-line: rgba(18, 60, 34, .26); --token: #fbfcfb;
+  --pitch: #dfece2; --pitch-stripe: #d5e6d9; --pitch-glow: rgba(255, 255, 255, .32); --pitch-line: rgba(18, 60, 34, .28); --token: #fbfcfb;
+  --pill: rgba(251, 252, 251, .9); --pill-line: rgba(18, 60, 34, .14); --topbar: rgba(238, 241, 238, .86);
   --shadow: 0 1px 2px rgba(16, 24, 18, .05), 0 6px 18px rgba(16, 24, 18, .05);
 `;
   var DARK = `
@@ -4964,10 +5103,11 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   --accent: #14ac77; --accent-ink: #03150d; --accent-soft: rgba(20, 172, 119, .13);
   --ip: #3987e5; --oop: #d95926;
   --pos: #3987e5; --neg: #e66767; --mid: #383835;
-  --fit-1: #035c3e; --fit-2: #068359; --fit-3: #14ac77; --fit-4: #66e7ae;
-  --heat: 20 172 119; --heat-ink-hi: #03150d;
+  --fit-1: #205d44; --fit-2: #169065; --fit-3: #25c48c; --fit-4: #8bf4c4;
+  --heat: 20 172 119; --heat-lo: #1d2421; --heat-hi: #8bf4c4; --heat-ink-hi: #03150d;
   --warn: #fab219; --warn-line: #b7820f; --warn-soft: rgba(250, 178, 25, .10);
-  --pitch: #13201a; --pitch-stripe: #15241c; --pitch-line: rgba(226, 240, 230, .17); --token: #0e1411;
+  --pitch: #12201a; --pitch-stripe: #16271e; --pitch-glow: rgba(120, 220, 170, .07); --pitch-line: rgba(226, 240, 230, .2); --token: #0d1310;
+  --pill: rgba(9, 14, 11, .82); --pill-line: rgba(226, 240, 230, .1); --topbar: rgba(13, 15, 14, .84);
   --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .28);
 `;
   var THEME_CSS = `
@@ -5055,17 +5195,30 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
   }
   function fitLegend() {
     return `<div class="legend">
-  <span>Ring and meter = fit for the role (0–100)</span>
+  <span>Arc and meter = fit for the role (0–100): the fuller and brighter, the better</span>
   <span><i class="swatch" style="background:var(--fit-1)"></i>under 55</span>
   <span><i class="swatch" style="background:var(--fit-2)"></i>55–64</span>
   <span><i class="swatch" style="background:var(--fit-3)"></i>65–74</span>
   <span><i class="swatch" style="background:var(--fit-4)"></i>75+</span>
+  <span><span class="cpt-key">C</span>captain</span>
 </div>`;
   }
-  function pitches(system, slots, small = false) {
+  var FIT_WORD = (score) => score >= 75 ? "excellent" : score >= 65 ? "good" : score >= 55 ? "usable" : "weak";
+  var KPI_ICON = {
+    style: '<path d="M3 14V2.5M3 3h8.5l-1.8 2.8L11.5 8.5H3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>',
+    mentality: '<path d="M2.5 11.5a5.5 5.5 0 0 1 11 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="m8 11.5 2.6-3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    press: '<path d="M8 13.5V3m-4 4 4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    build: '<path d="M3 13h10M5 13V9m3 4V6m3 7V3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    transition: '<path d="M2.5 8h9m-3-3.5L12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    fit: '<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/>'
+  };
+  var kpiIcon = (name) => `<svg class="ki" viewBox="0 0 16 16" aria-hidden="true">${KPI_ICON[name]}</svg>`;
+  var kpi = (icon, label, value, extra = "") => `<div class="kpi"><div class="k">${icon}${label}</div><div class="v">${value}</div>${extra}</div>`;
+  function pitches(system, slots, small = false, captain = null) {
     const mark = (p) => p.label || (p.mustStart ? "start" : null);
-    const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score, mark: mark(l.player) }));
-    const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score, mark: mark(l.player) }));
+    const isCaptain = (p) => !!captain && p === captain;
+    const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score, mark: mark(l.player), captain: isCaptain(l.player) }));
+    const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score, mark: mark(l.player), captain: isCaptain(l.player) }));
     const move = hasMovement(system.lanes) ? `<figure><figcaption><span class="key ip"></span>Movement between phases</figcaption>${movementSVG(system.lanes, slots, "How players move between the two shapes")}
 <div class="legend"><span><span class="key ring"></span>out of possession</span><span><span class="key ip"></span>in possession</span></div></figure>` : "";
     return `<div class="pitches${small ? " small" : ""}${move ? " three" : ""}">
@@ -5080,14 +5233,14 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 <section id="overview" class="card">
   <h2><span class="num">1</span>The tactic at a glance</h2>
   <div class="kpis">
-    <div class="kpi"><div class="k">Style to start from</div><div class="v">${esc(ins.style.value || "Any (custom)")}</div></div>
-    <div class="kpi"><div class="k">Mentality</div><div class="v">${esc(ins.mentality.value)}</div></div>
-    <div class="kpi"><div class="k">In possession</div><div class="v">${esc(best.ipName)}</div></div>
-    <div class="kpi"><div class="k">Out of possession</div><div class="v">${esc(best.oopName)}</div></div>
-    <div class="kpi"><div class="k">Pressing</div><div class="v">${esc(ins.values.lineOfEngagement)}</div></div>
-    <div class="kpi"><div class="k">Team fit</div><div class="v">${fmt(best.fit, 1)} <span class="muted small">/ 100</span></div><div class="meter"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div></div>
+    ${kpi(kpiIcon("style"), "Style to start from", esc(ins.style.value || "Any (custom)"))}
+    ${kpi(kpiIcon("mentality"), "Mentality", esc(ins.mentality.value))}
+    ${kpi(phaseKey("IP"), "In possession", esc(best.ipName))}
+    ${kpi(phaseKey("OOP"), "Out of possession", esc(best.oopName))}
+    ${kpi(kpiIcon("press"), "Pressing", esc(ins.values.lineOfEngagement))}
+    ${kpi(kpiIcon("fit"), "Team fit", `${fmt(best.fit, 1)} <span class="muted small">/ 100 · ${FIT_WORD(best.fit)}</span>`, `<div class="meter ${scoreClass(best.fit)}"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div>`)}
   </div>
-  ${pitches(best, ctx.slots)}
+  ${pitches(best, ctx.slots, false, result.captain?.captain?.player)}
   ${fitLegend()}
   ${picksBlock(result)}
 </section>`;
@@ -5095,7 +5248,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
   function picksBlock(result) {
     const summary = result.picks?.summary || [];
     if (!summary.length) {
-      return `<p class="legend">${ICON.info} Want the tactic built around particular players? Use <strong>Choose players</strong> in the app to mark players who must start, a marquee player or future stars.</p>`;
+      return `<p class="hint-line">${ICON.info}<span>Want the tactic built around particular players? Use <strong>Choose players</strong> in the app to mark players who must start, a marquee player or future stars.</span></p>`;
     }
     const slots = result.ctx.slots;
     const rows = summary.map(({ player: p, lane, best, inBestRole }) => {
@@ -5195,7 +5348,7 @@ ${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="
     <li>Switch to <strong>Out of Possession</strong>, choose <strong>${esc(best.oopName)}</strong> and set each player's <strong>OOP spot</strong> and out-of-possession role ${phaseKey("OOP")}.</li>
     <li>FM27 roles have no duties, so there is nothing else to pick per player.</li>
   </ol>
-  <div class="tablewrap"><table>
+  <div class="tablewrap"><table class="roles">
     <thead><tr><th>Player</th><th>IP spot</th><th>In possession role</th><th class="num">Fit</th><th>OOP spot</th><th>Out of possession role</th><th class="num">Fit</th><th>Notes</th></tr></thead>
     <tbody>${roleRows}</tbody>
   </table></div>
@@ -5279,9 +5432,9 @@ ${rows.map(row).join("\n")}</div>`;
   eleven with the Hungarian algorithm (an exact method: no other line-up of your players fits that system better), then picked each player's
   two roles for fit, team balance and the game plan.${runnerUp && gap < 1 ? ` The top systems are close (${fmt(gap, 1)} points apart), so the runners-up would also suit this squad.` : ""}</p>
   <div class="kpis">
-    <div class="kpi"><div class="k">Pressing</div><div class="v">${esc(v.lineOfEngagement)}</div></div>
-    <div class="kpi"><div class="k">Build-up</div><div class="v">${esc(v.buildUpStrategy)}</div></div>
-    <div class="kpi"><div class="k">On winning the ball</div><div class="v">${esc(v.attackingTransition)}</div></div>
+    ${kpi(kpiIcon("press"), "Pressing", esc(v.lineOfEngagement))}
+    ${kpi(kpiIcon("build"), "Build-up", esc(v.buildUpStrategy))}
+    ${kpi(kpiIcon("transition"), "On winning the ball", esc(v.attackingTransition))}
   </div>
   <h3>How the shapes suit the game plan</h3>
   ${noteList(planNotes)}
@@ -5307,6 +5460,7 @@ ${rows.map(row).join("\n")}</div>`;
     if (p.label === "future") return ` <svg class="ico" viewBox="0 0 16 16" aria-label="future star"><path d="${STAR_PATH}" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>`;
     return "";
   }
+  var INJ = '<svg class="ico" viewBox="0 0 16 16" aria-label="injured"><path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   function depth(result) {
     const { depth: dc, ctx } = result;
     const slots = ctx.slots;
@@ -5320,8 +5474,10 @@ ${rows.map(row).join("\n")}</div>`;
     const card = (d) => {
       const others = d.options.filter((o) => o.player !== d.secondChoice?.player).slice(0, 2);
       const extra = [
-        ...others.map((o) => `${esc(o.player.name)} ${fmt(o.value)}${o.injured ? " (injured)" : ""}`),
-        ...d.loanOptions.map((o) => `${esc(o.player.name)} ${fmt(o.value)} (on loan at ${esc(o.player.club || "?")})`)
+        ...others.map(
+          (o) => o.injured ? `<span class="chip inj" title="Injured">${INJ}${esc(o.player.name)} <b>${fmt(o.value)}</b></span>` : `<span class="chip">${esc(o.player.name)} <b>${fmt(o.value)}</b></span>`
+        ),
+        ...d.loanOptions.map((o) => `<span class="chip loan" title="On loan at ${esc(o.player.club || "?")}">${esc(o.player.name)} <b>${fmt(o.value)}</b> <i>loan</i></span>`)
       ];
       const weak2 = weakSet.has(d.lane);
       return `<div class="pos-card${weak2 ? " weak" : ""}">
@@ -5331,7 +5487,7 @@ ${rows.map(row).join("\n")}</div>`;
     <span class="rk">1</span><span class="nm1">${esc(d.starter.name)}${star(d.starter)}</span>${fitChip(d.starterValue)}
     <span class="rk">2</span>${d.secondChoice ? `<span class="dim">${esc(d.secondChoice.player.name)}${star(d.secondChoice.player)}</span>${fitChip(d.secondChoice.value)}` : '<span class="dim">nobody fit</span><span></span>'}
   </div>
-  ${extra.length ? `<div class="extra">Also: ${extra.join(" · ")}</div>` : ""}
+  ${extra.length ? `<div class="also"><span class="lbl">Also</span>${extra.join("")}</div>` : ""}
   ${weak2 ? `<div class="flag">${ICON.warn}Weak spot – see below</div>` : ""}
 </div>`;
     };
@@ -5374,7 +5530,7 @@ ${rows.map(row).join("\n")}</div>`;
 <p class="muted">${esc(a.when)}</p>
 <div class="chips"><span class="tag">Mentality: ${esc(a.instructions.mentality.value)}</span><span class="tag">${esc(a.instructions.values.lineOfEngagement)}</span>
 <span class="tag">${phaseKey("IP")}${esc(a.system.ipName)}</span><span class="tag">${phaseKey("OOP")}${esc(a.system.oopName)}</span><span class="tag">Fit ${fmt(a.system.fit, 1)}</span></div>
-${pitches(a.system, slots, true)}
+${pitches(a.system, slots, true, result.captain?.captain?.player)}
 <h4>Players and roles that change</h4>${roleList2}
 <h4>Settings that change from the main tactic</h4>
 ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th style="padding-left:22px">Setting</th><th>Main</th><th>This tactic</th><th>Why</th></tr></thead><tbody>${diffRows}</tbody></table></div>` : '<p class="small muted">No team instruction changes.</p>'}</div>`;
@@ -5386,12 +5542,13 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th styl
   ${blocks}
 </section>`;
   }
+  var trainingNote = (note) => /^Young enough/.test(note || "") ? `<span class="tag accent" title="${esc(note)}">young · improves fast</span>` : esc(note);
   function training(result) {
     const t = result.training;
     const list = (xs) => `<ul class="notes">${xs.map((x) => `<li><span class="pts">${ICON.check}</span><span><strong>${esc(x.session)}</strong> <span class="muted">– ${esc(x.why)}</span></span></li>`).join("")}</ul>`;
     const ind = t.individual.filter((x) => x.weakest.length).map(
       (x) => `<tr><td><strong>${esc(x.player.name)}</strong>${x.player.age != null ? ` <span class="muted small">${x.player.age}</span>` : ""}</td><td class="muted small">${esc(x.role)}</td>
-<td>${x.weakest.map((w) => `<span class="tag">${esc(w.attr)} <span class="muted">${fmt(w.value)}</span></span>`).join(" ")}</td><td class="small muted">${esc(x.note)}</td></tr>`
+<td>${x.weakest.map((w) => `<span class="tag">${esc(w.attr)} <span class="muted">${fmt(w.value)}</span></span>`).join(" ")}</td><td class="small muted">${trainingNote(x.note)}</td></tr>`
     ).join("");
     return `
 <section id="training" class="card">
@@ -5437,8 +5594,9 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
   }
   function heatCell(score, isBest) {
     if (score == null) return "<td></td>";
+    const t = Math.max(0, Math.min(1, (score - 40) / 45));
     const a = Math.max(0.04, Math.min(0.85, (score - 35) / 55));
-    return `<td class="h${a > 0.72 ? " hi" : ""}${isBest ? " best" : ""}" style="--a:${a.toFixed(2)}" title="${fmt(score)}">${fmt(score)}</td>`;
+    return `<td class="h${t > 0.62 ? " hi" : ""}${isBest ? " best" : ""}" style="--a:${a.toFixed(2)};--t:${(t * 100).toFixed(0)}%" title="${fmt(score)}">${fmt(score)}</td>`;
   }
   function suitability(result) {
     const { ctx, players } = result;
@@ -5477,10 +5635,11 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
         const tag = p.onLoan ? ' <span class="tag">loan</span>' : p.injured ? ' <span class="tag warn">inj</span>' : "";
         return `<tr><td>${esc(p.name)}${tag}</td>${cells[0]}<td class="gap"></td>${cells[1]}</tr>`;
       }).join("");
-      const legend = [...ipRoles, ...oopRoles].map((r) => `<strong>${esc(r.abbr)}</strong> ${esc(r.name)}`).join(" · ");
+      const seen = /* @__PURE__ */ new Set();
+      const legend = [...ipRoles, ...oopRoles].filter((r) => !seen.has(`${r.abbr}|${r.name}`) && seen.add(`${r.abbr}|${r.name}`)).map((r) => `<span><b>${esc(r.abbr)}</b>${esc(r.name)}</span>`).join("");
       return `<h3>${esc(g.title)}</h3>
 <div class="tablewrap"><table class="matrix"><thead><tr><th>Player</th>${head}</tr></thead><tbody>${body}</tbody></table></div>
-<p class="legend small">${legend}</p>`;
+<div class="abbr-grid">${legend}</div>`;
     }).join("\n");
     return `
 <section id="suitability" class="card">
@@ -5489,12 +5648,12 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
   (the same attributes FM27 highlights for that role), adds the attributes the match engine rewards in every role (pace, acceleration,
   anticipation, decisions…), then adjusts for position familiarity and, on the wings, for the stronger foot.</p>
   <h3>Best roles per player</h3>
-  <div class="tablewrap"><table>
+  <div class="tablewrap"><table class="best">
     <thead><tr><th>Player</th><th>Best in possession</th><th>Best out of possession</th><th>FM's best role</th><th>Notes</th></tr></thead>
     <tbody>${bestRows}</tbody>
   </table></div>
   <p class="legend">"FM's best role" is the assistant manager's opinion from your export, for comparison.</p>
-  <div class="legend"><span class="heatscale">35 <span class="bar"></span> 90</span><span>stronger colour = better fit</span>
+  <div class="legend"><span class="heatscale">40 <span class="bar"></span> 85+</span><span>stronger colour = better fit</span>
   <span><span class="key ip"></span>in possession roles</span><span><span class="key oop"></span>out of possession roles</span><span>outlined = player's best role in that phase</span></div>
   ${matrices}
 </section>`;
@@ -5511,7 +5670,8 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
     if (columns.missingRecommended.length) items.push(`Missing columns that would improve the report:${menuList(columns.missingRecommended)}`);
     const loaned = players.filter((p) => p.onLoan);
     if (loaned.length) {
-      items.push(`${loaned.length} player(s) are out on loan, so they were left out of the tactic and the depth chart (they appear in the suitability tables, marked "loan"): ${loaned.map((p) => `${esc(p.name)}${p.club ? ` (${esc(p.club)})` : ""}`).join(", ")}.`);
+      items.push(`<details class="more"><summary>${loaned.length} player${loaned.length === 1 ? " is" : "s are"} out on loan, so they were left out of the tactic and the depth chart (they appear in the suitability tables, marked "loan").</summary>
+<div class="chips">${loaned.map((p) => `<span class="chip loan">${esc(p.name)}${p.club ? ` <i>${esc(p.club)}</i>` : ""}</span>`).join("")}</div></details>`);
     }
     for (const ig of result.picks?.ignored || []) items.push(`Your pick of ${esc(ig.player.name)} was ignored: he is ${esc(ig.reason)}.`);
     const ranged = players.filter((p) => p.uncertainAttrs.length);
@@ -5523,7 +5683,8 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
     const injured = players.filter((p) => p.injured && !p.onLoan);
     if (injured.length) {
       const left = result.ctx.search.excludeInjured;
-      items.push(`${left ? "Left out of the starting XI because injured" : "Injured (still considered for the XI)"}: ${injured.map((p) => `${esc(p.name)}${p.injury ? ` (${esc(p.injury)})` : ""}`).join(", ")}.`);
+      items.push(`${left ? "Left out of the starting XI because injured" : "Injured (still considered for the XI)"}:
+<div class="chips">${injured.map((p) => `<span class="chip inj">${INJ}${esc(p.name)}${p.injury ? ` <i>${esc(p.injury)}</i>` : ""}</span>`).join("")}</div>`);
     }
     items.push(`Team strength used for mentality and pressing: <strong>${esc(result.instructions.strengthLabel)}</strong> (your answer in the app).`);
     items.push('Position familiarity: FM27 only shows it as coloured dots, which no export contains. The tool treats <em>Best Pos</em> as Natural, other positions in the <em>Position</em> column as Accomplished, and neighbouring positions as Competent or Unconvincing (marked "estimated").');
@@ -5534,6 +5695,16 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
   <ul class="muted">${items.map((i) => `<li>${i}</li>`).join("")}</ul>
 </section>`;
   }
+  var SECTIONS = [
+    ["overview", "At a glance"],
+    ["setup", "Enter it in FM27"],
+    ["why", "Why"],
+    ["depth", "Depth"],
+    ["alternatives", "Alternatives"],
+    ["training", "Training"],
+    ["suitability", "Role suitability"],
+    ["data", "Your data"]
+  ];
   function renderReport(result, opts = {}) {
     const when = (opts.generatedAt || /* @__PURE__ */ new Date()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     const club = result.club ? `${esc(result.club)}: ` : "";
@@ -5544,9 +5715,8 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
   <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · team strength: ${esc(result.instructions.strengthLabel)} · made ${esc(when)}</p>
   <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your squad and never
   changes the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
-  <nav class="toc"><a href="#overview">At a glance</a><a href="#setup">Enter it in FM27</a><a href="#why">Why</a><a href="#depth">Depth</a>
-  <a href="#alternatives">Alternatives</a><a href="#training">Training</a><a href="#suitability">Role suitability</a><a href="#data">Your data</a></nav>
 </header>
+<nav class="toc" aria-label="Sections">${SECTIONS.map(([id, label]) => `<a href="#${id}">${label}</a>`).join("")}</nav>
 ${overview(result)}
 ${enterIt(result)}
 ${why(result)}
@@ -5774,9 +5944,37 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
       picks: picks ?? ((club) => saved[clubKey(club)] || {})
     });
   }
+  var spy = null;
+  function buildSectionNav() {
+    const nav = $("secnav");
+    const present = SECTIONS.filter(([id]) => document.getElementById(id));
+    nav.innerHTML = present.map(([id, label], i) => `<a href="#${id}" data-id="${id}"><span class="n">${i + 1}</span>${esc(label)}</a>`).join("");
+    const setOffset = () => document.documentElement.style.setProperty("--scroll-offset", `${$("result").querySelector(".topbar").offsetHeight + 12}px`);
+    setOffset();
+    window.addEventListener("resize", setOffset, { passive: true });
+    spy?.disconnect();
+    if (!("IntersectionObserver" in window)) return;
+    const visible = /* @__PURE__ */ new Map();
+    const mark = () => {
+      const current = present.map(([id]) => id).find((id) => visible.get(id)) || null;
+      for (const a of nav.querySelectorAll("a")) a.classList.toggle("on", a.dataset.id === current);
+      const on = nav.querySelector("a.on");
+      if (on && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = on.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2;
+    };
+    spy = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) visible.set(e.target.id, e.isIntersecting);
+        mark();
+      },
+      { rootMargin: "-140px 0px -55% 0px" }
+    );
+    for (const [id] of present) spy.observe(document.getElementById(id));
+  }
   function showResult(result, note = "") {
     lastResult = result;
     $("report-holder").innerHTML = renderReport(result);
+    $("report-holder").classList.add("in-app");
+    buildSectionNav();
     $("start").classList.add("hidden");
     $("result").classList.remove("hidden");
     $("picker").classList.add("hidden");

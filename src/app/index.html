@@ -73,9 +73,26 @@ ol.howto strong { color: var(--ink); }
 code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border-radius: 5px; font-size: 12.5px; overflow-wrap: anywhere; }
 .privacy { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
 .privacy svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
-.toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; margin: -10px 0 4px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.topbar { position: sticky; top: 0; z-index: 20; margin: -10px -20px 4px; padding: 0 20px; background: var(--topbar); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0 8px; }
 .toolbar .spacer { flex: 1; }
+.navrow { display: flex; align-items: center; gap: 12px; }
+.navrow .src-note { flex: none; padding-bottom: 6px; }
+.secnav { flex: 1; min-width: 0; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 0 0 0 -6px; padding: 0 0 6px; }
+.secnav::-webkit-scrollbar { display: none; }
+.secnav a { flex: none; font-size: 13px; color: var(--muted); text-decoration: none; padding: 5px 10px; border-radius: 8px; position: relative; white-space: nowrap; }
+.secnav a:hover { color: var(--ink); background: var(--surface-2); }
+.secnav a.on { color: var(--ink); font-weight: 600; }
+.secnav a.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -6px; height: 2px; border-radius: 2px; background: var(--accent); }
+.secnav a .n { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; font-size: 11.5px; }
+.in-app .report nav.toc { display: none; }
+kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text-align: center; padding: 4px 6px 3px; border-radius: 6px; border: 1px solid var(--line-2); border-bottom-width: 2.5px; background: var(--surface-2); color: var(--ink); vertical-align: 1px; }
+.callout { display: flex; gap: 12px; align-items: center; padding: 12px 14px; margin: 0 0 14px; border-radius: 11px; border: 1px solid var(--line); background: linear-gradient(90deg, var(--accent-soft), transparent 70%); font-size: 14px; color: var(--ink-2); }
+.callout kbd { font-size: 15px; padding: 7px 10px 6px; min-width: 38px; }
+.callout strong { color: var(--ink); }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+.hero-art { width: 210px; height: auto; color: var(--accent); }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .hero-art { display: none; } }
 .src-note { font-size: 12.5px; color: var(--muted); }
 .tb-strength { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
 .tb-strength select { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 8px 10px; cursor: pointer; }
@@ -125,8 +142,15 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   .pk-role { grid-column: 1 / -1; order: 3; }
   .pk-row .seg.mini { grid-column: 1 / -1; order: 4; }
 }
+@media (max-width: 700px) {
+  .topbar { margin: -10px -16px 4px; padding: 0 16px; }
+  .toolbar { gap: 6px; padding: 8px 0 6px; }
+  .toolbar .lbl, .src-note, .tb-strength .tbl { display: none; }
+  .toolbar .btn { padding: 8px 10px; }
+  .tb-strength select { padding: 7px 8px; }
+}
 @media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
-@media print { body { background: #fff; } .appbar, .toolbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
+@media print { body { background: #fff; } .appbar, .topbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
 </style>
 </head>
 <body>
@@ -146,16 +170,30 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 <main class="shell">
   <section id="start">
     <div class="hero no-print">
-      <h1>Build an FM27 tactic around your squad</h1>
-      <p>Drop the squad export and get a complete tactic: both shapes and every role, all 27 team instructions with reasons, player instructions,
-        set pieces, depth chart, training and three alternative tactics.</p>
+      <div>
+        <h1>Build an FM27 tactic around your squad</h1>
+        <p>Get a complete tactic from your players: both shapes and every role, all 27 team instructions with reasons, player instructions,
+          set pieces, depth chart, training and three alternative tactics.</p>
+      </div>
+      <svg class="hero-art" viewBox="0 0 210 150" aria-hidden="true">
+        <rect x="1" y="1" width="208" height="148" rx="12" fill="var(--pitch)" stroke="var(--line)"/>
+        <g fill="none" stroke="var(--pitch-line)" stroke-width="1.2"><rect x="10" y="10" width="190" height="130" rx="2"/><path d="M105 10v130"/><circle cx="105" cy="75" r="18"/><rect x="10" y="45" width="26" height="60"/><rect x="174" y="45" width="26" height="60"/></g>
+        <g stroke="var(--oop)" stroke-width="1.4" fill="none" stroke-dasharray="2 3" opacity=".8"><path d="M60 40l28 -6M60 110l28 6M120 52l22 -10M120 98l22 10"/></g>
+        <g fill="var(--token)" stroke-width="2.6">
+          <circle cx="24" cy="75" r="6" stroke="var(--fit-2)"/>
+          <circle cx="52" cy="38" r="6" stroke="var(--fit-3)"/><circle cx="48" cy="62" r="6" stroke="var(--fit-4)"/><circle cx="48" cy="88" r="6" stroke="var(--fit-3)"/><circle cx="52" cy="112" r="6" stroke="var(--fit-2)"/>
+          <circle cx="80" cy="75" r="6" stroke="var(--fit-3)"/><circle cx="112" cy="54" r="6" stroke="var(--fit-4)"/><circle cx="112" cy="96" r="6" stroke="var(--fit-3)"/>
+          <circle cx="150" cy="36" r="6" stroke="var(--fit-3)"/><circle cx="160" cy="75" r="6" stroke="var(--fit-4)"/><circle cx="150" cy="114" r="6" stroke="var(--fit-2)"/>
+        </g>
+      </svg>
     </div>
     <div class="grid2 no-print">
       <div class="panel">
+        <div class="callout"><kbd>F8</kbd><span><strong>Using the FM27 plugin?</strong> Press F8 on your Squad screen in the game and this page opens with your tactic. No file needed.</span></div>
         <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose or drop your FM27 squad export">
           <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 30h-1.5A7.5 7.5 0 0 1 9.6 15a10 10 0 0 1 19.5 2.2A6.5 6.5 0 0 1 28.5 30H28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 34V20m-5 5 5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="drop-title">Drop your squad export here</div>
-          <div class="drop-sub">With the FM27 plugin you don't need this: press <strong>F8</strong> in the game. Otherwise drop a CSV or HTML from FM View Exporter (F9), FM27 Player Export, or any squad export with player attributes.</div>
+          <div class="drop-sub">A CSV or HTML from FM View Exporter (<kbd>F9</kbd>), FM27 Player Export, or any squad export with player attributes.</div>
           <div class="row">
             <button class="btn" id="choose" type="button">Choose file…</button>
             <button class="btn ghost" id="sample" type="button">Try the sample squad</button>
@@ -201,8 +239,8 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         <ol class="howto">
           <li><span>Install the <strong>FM27 Tactic Builder plugin</strong> once with its setup (see the README).</span></li>
           <li><span>In FM27 open <strong>Squad</strong> and switch the view to <strong>FM27TFT</strong>, the plugin's built-in view (or any view with all attributes; the README lists the columns).</span></li>
-          <li><span>Press <strong>F8</strong>. The plugin reads your players and opens this page with your tactic.</span></li>
-          <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (F9) and drop the <code>squad_….csv</code> on the box.</span></li>
+          <li><span>Press <kbd>F8</kbd>. The plugin reads your players and opens this page with your tactic.</span></li>
+          <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (<kbd>F9</kbd>) and drop the <code>squad_….csv</code> on the box.</span></li>
         </ol>
         <div class="privacy">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3.5 4.5v5c0 4 2.8 7.2 6.5 8.5 3.7-1.3 6.5-4.5 6.5-8.5v-5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7 10 2.2 2.2L13.3 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -213,11 +251,12 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   </section>
 
   <section id="result" class="hidden">
-    <div class="toolbar no-print">
+    <div class="topbar no-print">
+    <div class="toolbar">
       <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
-      <button class="btn ghost" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
-      <button class="btn ghost" id="save" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Save report</button>
-      <label class="tb-strength">Team strength
+      <button class="btn ghost" id="print" type="button" title="Print / Save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Print / Save as PDF</span></button>
+      <button class="btn ghost" id="save" type="button" title="Save the report as a file" aria-label="Save report"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Save report</span></button>
+      <label class="tb-strength"><span class="tbl">Team strength</span>
         <select id="strength-quick">
           <option value="2">Title favourites</option>
           <option value="1">Top half</option>
@@ -227,8 +266,9 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         </select>
       </label>
       <span class="spacer"></span>
-      <span class="src-note" id="src-note"></span>
-      <button class="btn ghost" id="again" type="button">Load another file</button>
+      <button class="btn ghost" id="again" type="button" title="Load another file" aria-label="Load another file"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2M10 13V3.5M6.5 7 10 3.5 13.5 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Load another file</span></button>
+    </div>
+    <div class="navrow"><nav class="secnav" id="secnav" aria-label="Report sections"></nav><span class="src-note" id="src-note"></span></div>
     </div>
     <div id="result-note" class="no-print"></div>
     <div id="picker" class="panel picker hidden no-print"></div>

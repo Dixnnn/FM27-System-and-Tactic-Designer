@@ -3,7 +3,7 @@
 import { pitchSVG, movementSVG, hasMovement } from './pitch.js';
 import { REPORT_CSS } from './report-css.js';
 import { THEME_CSS } from './theme.js';
-import { esc, fmt, shortName, fitChip, phaseKey, pickTags, ICON } from './util.js';
+import { esc, fmt, shortName, fitChip, phaseKey, pickTags, ICON, scoreClass as scoreClassOf } from './util.js';
 import { slotRoleScore } from '../engine/roles.js';
 
 const GROUPS = [
@@ -64,18 +64,33 @@ function laneNotes(lane) {
 
 function fitLegend() {
   return `<div class="legend">
-  <span>Ring and meter = fit for the role (0–100)</span>
+  <span>Arc and meter = fit for the role (0–100): the fuller and brighter, the better</span>
   <span><i class="swatch" style="background:var(--fit-1)"></i>under 55</span>
   <span><i class="swatch" style="background:var(--fit-2)"></i>55–64</span>
   <span><i class="swatch" style="background:var(--fit-3)"></i>65–74</span>
   <span><i class="swatch" style="background:var(--fit-4)"></i>75+</span>
+  <span><span class="cpt-key">C</span>captain</span>
 </div>`;
 }
 
-function pitches(system, slots, small = false) {
+const FIT_WORD = (score) => (score >= 75 ? 'excellent' : score >= 65 ? 'good' : score >= 55 ? 'usable' : 'weak');
+
+const KPI_ICON = {
+  style: '<path d="M3 14V2.5M3 3h8.5l-1.8 2.8L11.5 8.5H3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>',
+  mentality: '<path d="M2.5 11.5a5.5 5.5 0 0 1 11 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="m8 11.5 2.6-3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  press: '<path d="M8 13.5V3m-4 4 4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  build: '<path d="M3 13h10M5 13V9m3 4V6m3 7V3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  transition: '<path d="M2.5 8h9m-3-3.5L12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  fit: '<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/>',
+};
+const kpiIcon = (name) => `<svg class="ki" viewBox="0 0 16 16" aria-hidden="true">${KPI_ICON[name]}</svg>`;
+const kpi = (icon, label, value, extra = '') => `<div class="kpi"><div class="k">${icon}${label}</div><div class="v">${value}</div>${extra}</div>`;
+
+function pitches(system, slots, small = false, captain = null) {
   const mark = (p) => p.label || (p.mustStart ? 'start' : null);
-  const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score, mark: mark(l.player) }));
-  const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score, mark: mark(l.player) }));
+  const isCaptain = (p) => !!captain && p === captain;
+  const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score, mark: mark(l.player), captain: isCaptain(l.player) }));
+  const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score, mark: mark(l.player), captain: isCaptain(l.player) }));
   const move = hasMovement(system.lanes)
     ? `<figure><figcaption><span class="key ip"></span>Movement between phases</figcaption>${movementSVG(system.lanes, slots, 'How players move between the two shapes')}
 <div class="legend"><span><span class="key ring"></span>out of possession</span><span><span class="key ip"></span>in possession</span></div></figure>`
@@ -95,14 +110,14 @@ function overview(result) {
 <section id="overview" class="card">
   <h2><span class="num">1</span>The tactic at a glance</h2>
   <div class="kpis">
-    <div class="kpi"><div class="k">Style to start from</div><div class="v">${esc(ins.style.value || 'Any (custom)')}</div></div>
-    <div class="kpi"><div class="k">Mentality</div><div class="v">${esc(ins.mentality.value)}</div></div>
-    <div class="kpi"><div class="k">In possession</div><div class="v">${esc(best.ipName)}</div></div>
-    <div class="kpi"><div class="k">Out of possession</div><div class="v">${esc(best.oopName)}</div></div>
-    <div class="kpi"><div class="k">Pressing</div><div class="v">${esc(ins.values.lineOfEngagement)}</div></div>
-    <div class="kpi"><div class="k">Team fit</div><div class="v">${fmt(best.fit, 1)} <span class="muted small">/ 100</span></div><div class="meter"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div></div>
+    ${kpi(kpiIcon('style'), 'Style to start from', esc(ins.style.value || 'Any (custom)'))}
+    ${kpi(kpiIcon('mentality'), 'Mentality', esc(ins.mentality.value))}
+    ${kpi(phaseKey('IP'), 'In possession', esc(best.ipName))}
+    ${kpi(phaseKey('OOP'), 'Out of possession', esc(best.oopName))}
+    ${kpi(kpiIcon('press'), 'Pressing', esc(ins.values.lineOfEngagement))}
+    ${kpi(kpiIcon('fit'), 'Team fit', `${fmt(best.fit, 1)} <span class="muted small">/ 100 · ${FIT_WORD(best.fit)}</span>`, `<div class="meter ${scoreClassOf(best.fit)}"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div>`)}
   </div>
-  ${pitches(best, ctx.slots)}
+  ${pitches(best, ctx.slots, false, result.captain?.captain?.player)}
   ${fitLegend()}
   ${picksBlock(result)}
 </section>`;
@@ -111,7 +126,7 @@ function overview(result) {
 function picksBlock(result) {
   const summary = result.picks?.summary || [];
   if (!summary.length) {
-    return `<p class="legend">${ICON.info} Want the tactic built around particular players? Use <strong>Choose players</strong> in the app to mark players who must start, a marquee player or future stars.</p>`;
+    return `<p class="hint-line">${ICON.info}<span>Want the tactic built around particular players? Use <strong>Choose players</strong> in the app to mark players who must start, a marquee player or future stars.</span></p>`;
   }
   const slots = result.ctx.slots;
   const rows = summary
@@ -235,7 +250,7 @@ function enterIt(result) {
     <li>Switch to <strong>Out of Possession</strong>, choose <strong>${esc(best.oopName)}</strong> and set each player's <strong>OOP spot</strong> and out-of-possession role ${phaseKey('OOP')}.</li>
     <li>FM27 roles have no duties, so there is nothing else to pick per player.</li>
   </ol>
-  <div class="tablewrap"><table>
+  <div class="tablewrap"><table class="roles">
     <thead><tr><th>Player</th><th>IP spot</th><th>In possession role</th><th class="num">Fit</th><th>OOP spot</th><th>Out of possession role</th><th class="num">Fit</th><th>Notes</th></tr></thead>
     <tbody>${roleRows}</tbody>
   </table></div>
@@ -329,9 +344,9 @@ function why(result) {
   eleven with the Hungarian algorithm (an exact method: no other line-up of your players fits that system better), then picked each player's
   two roles for fit, team balance and the game plan.${runnerUp && gap < 1 ? ` The top systems are close (${fmt(gap, 1)} points apart), so the runners-up would also suit this squad.` : ''}</p>
   <div class="kpis">
-    <div class="kpi"><div class="k">Pressing</div><div class="v">${esc(v.lineOfEngagement)}</div></div>
-    <div class="kpi"><div class="k">Build-up</div><div class="v">${esc(v.buildUpStrategy)}</div></div>
-    <div class="kpi"><div class="k">On winning the ball</div><div class="v">${esc(v.attackingTransition)}</div></div>
+    ${kpi(kpiIcon('press'), 'Pressing', esc(v.lineOfEngagement))}
+    ${kpi(kpiIcon('build'), 'Build-up', esc(v.buildUpStrategy))}
+    ${kpi(kpiIcon('transition'), 'On winning the ball', esc(v.attackingTransition))}
   </div>
   <h3>How the shapes suit the game plan</h3>
   ${noteList(planNotes)}
@@ -361,6 +376,8 @@ function star(p) {
   return '';
 }
 
+const INJ = '<svg class="ico" viewBox="0 0 16 16" aria-label="injured"><path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+
 function depth(result) {
   const { depth: dc, ctx } = result;
   const slots = ctx.slots;
@@ -374,8 +391,12 @@ function depth(result) {
   const card = (d) => {
     const others = d.options.filter((o) => o.player !== d.secondChoice?.player).slice(0, 2);
     const extra = [
-      ...others.map((o) => `${esc(o.player.name)} ${fmt(o.value)}${o.injured ? ' (injured)' : ''}`),
-      ...d.loanOptions.map((o) => `${esc(o.player.name)} ${fmt(o.value)} (on loan at ${esc(o.player.club || '?')})`),
+      ...others.map((o) =>
+        o.injured
+          ? `<span class="chip inj" title="Injured">${INJ}${esc(o.player.name)} <b>${fmt(o.value)}</b></span>`
+          : `<span class="chip">${esc(o.player.name)} <b>${fmt(o.value)}</b></span>`,
+      ),
+      ...d.loanOptions.map((o) => `<span class="chip loan" title="On loan at ${esc(o.player.club || '?')}">${esc(o.player.name)} <b>${fmt(o.value)}</b> <i>loan</i></span>`),
     ];
     const weak = weakSet.has(d.lane);
     return `<div class="pos-card${weak ? ' weak' : ''}">
@@ -385,7 +406,7 @@ function depth(result) {
     <span class="rk">1</span><span class="nm1">${esc(d.starter.name)}${star(d.starter)}</span>${fitChip(d.starterValue)}
     <span class="rk">2</span>${d.secondChoice ? `<span class="dim">${esc(d.secondChoice.player.name)}${star(d.secondChoice.player)}</span>${fitChip(d.secondChoice.value)}` : '<span class="dim">nobody fit</span><span></span>'}
   </div>
-  ${extra.length ? `<div class="extra">Also: ${extra.join(' · ')}</div>` : ''}
+  ${extra.length ? `<div class="also"><span class="lbl">Also</span>${extra.join('')}</div>` : ''}
   ${weak ? `<div class="flag">${ICON.warn}Weak spot – see below</div>` : ''}
 </div>`;
   };
@@ -442,7 +463,7 @@ function alternatives(result) {
 <p class="muted">${esc(a.when)}</p>
 <div class="chips"><span class="tag">Mentality: ${esc(a.instructions.mentality.value)}</span><span class="tag">${esc(a.instructions.values.lineOfEngagement)}</span>
 <span class="tag">${phaseKey('IP')}${esc(a.system.ipName)}</span><span class="tag">${phaseKey('OOP')}${esc(a.system.oopName)}</span><span class="tag">Fit ${fmt(a.system.fit, 1)}</span></div>
-${pitches(a.system, slots, true)}
+${pitches(a.system, slots, true, result.captain?.captain?.player)}
 <h4>Players and roles that change</h4>${roleList}
 <h4>Settings that change from the main tactic</h4>
 ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th style="padding-left:22px">Setting</th><th>Main</th><th>This tactic</th><th>Why</th></tr></thead><tbody>${diffRows}</tbody></table></div>` : '<p class="small muted">No team instruction changes.</p>'}</div>`;
@@ -458,6 +479,9 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th styl
 
 // ---------------------------------------------------------------- 6. training
 
+/** "Young enough to improve quickly" says the same for most of a young XI: a small tag reads quicker than the sentence. */
+const trainingNote = (note) => (/^Young enough/.test(note || '') ? `<span class="tag accent" title="${esc(note)}">young · improves fast</span>` : esc(note));
+
 function training(result) {
   const t = result.training;
   const list = (xs) => `<ul class="notes">${xs.map((x) => `<li><span class="pts">${ICON.check}</span><span><strong>${esc(x.session)}</strong> <span class="muted">– ${esc(x.why)}</span></span></li>`).join('')}</ul>`;
@@ -465,7 +489,7 @@ function training(result) {
     .filter((x) => x.weakest.length)
     .map(
       (x) => `<tr><td><strong>${esc(x.player.name)}</strong>${x.player.age != null ? ` <span class="muted small">${x.player.age}</span>` : ''}</td><td class="muted small">${esc(x.role)}</td>
-<td>${x.weakest.map((w) => `<span class="tag">${esc(w.attr)} <span class="muted">${fmt(w.value)}</span></span>`).join(' ')}</td><td class="small muted">${esc(x.note)}</td></tr>`,
+<td>${x.weakest.map((w) => `<span class="tag">${esc(w.attr)} <span class="muted">${fmt(w.value)}</span></span>`).join(' ')}</td><td class="small muted">${trainingNote(x.note)}</td></tr>`,
     )
     .join('');
   return `
@@ -517,11 +541,12 @@ function groupScore(ctx, player, r, positions) {
   return best;
 }
 
-/** Heatmap cell: one hue, opacity follows the score (35 → faint, 90 → strong). */
+/** Heatmap cell: one hue, from the surface (40 or less) to the brightest teal (85+), mixed in OKLab. */
 function heatCell(score, isBest) {
   if (score == null) return '<td></td>';
-  const a = Math.max(0.04, Math.min(0.85, (score - 35) / 55));
-  return `<td class="h${a > 0.72 ? ' hi' : ''}${isBest ? ' best' : ''}" style="--a:${a.toFixed(2)}" title="${fmt(score)}">${fmt(score)}</td>`;
+  const t = Math.max(0, Math.min(1, (score - 40) / 45));
+  const a = Math.max(0.04, Math.min(0.85, (score - 35) / 55)); // fallback for browsers without color-mix
+  return `<td class="h${t > 0.62 ? ' hi' : ''}${isBest ? ' best' : ''}" style="--a:${a.toFixed(2)};--t:${(t * 100).toFixed(0)}%" title="${fmt(score)}">${fmt(score)}</td>`;
 }
 
 function suitability(result) {
@@ -574,10 +599,14 @@ function suitability(result) {
         return `<tr><td>${esc(p.name)}${tag}</td>${cells[0]}<td class="gap"></td>${cells[1]}</tr>`;
       })
       .join('');
-    const legend = [...ipRoles, ...oopRoles].map((r) => `<strong>${esc(r.abbr)}</strong> ${esc(r.name)}`).join(' · ');
+    const seen = new Set();
+    const legend = [...ipRoles, ...oopRoles]
+      .filter((r) => !seen.has(`${r.abbr}|${r.name}`) && seen.add(`${r.abbr}|${r.name}`))
+      .map((r) => `<span><b>${esc(r.abbr)}</b>${esc(r.name)}</span>`)
+      .join('');
     return `<h3>${esc(g.title)}</h3>
 <div class="tablewrap"><table class="matrix"><thead><tr><th>Player</th>${head}</tr></thead><tbody>${body}</tbody></table></div>
-<p class="legend small">${legend}</p>`;
+<div class="abbr-grid">${legend}</div>`;
   }).join('\n');
 
   return `
@@ -587,12 +616,12 @@ function suitability(result) {
   (the same attributes FM27 highlights for that role), adds the attributes the match engine rewards in every role (pace, acceleration,
   anticipation, decisions…), then adjusts for position familiarity and, on the wings, for the stronger foot.</p>
   <h3>Best roles per player</h3>
-  <div class="tablewrap"><table>
+  <div class="tablewrap"><table class="best">
     <thead><tr><th>Player</th><th>Best in possession</th><th>Best out of possession</th><th>FM's best role</th><th>Notes</th></tr></thead>
     <tbody>${bestRows}</tbody>
   </table></div>
   <p class="legend">"FM's best role" is the assistant manager's opinion from your export, for comparison.</p>
-  <div class="legend"><span class="heatscale">35 <span class="bar"></span> 90</span><span>stronger colour = better fit</span>
+  <div class="legend"><span class="heatscale">40 <span class="bar"></span> 85+</span><span>stronger colour = better fit</span>
   <span><span class="key ip"></span>in possession roles</span><span><span class="key oop"></span>out of possession roles</span><span>outlined = player's best role in that phase</span></div>
   ${matrices}
 </section>`;
@@ -613,7 +642,8 @@ function dataNotes(result) {
   if (columns.missingRecommended.length) items.push(`Missing columns that would improve the report:${menuList(columns.missingRecommended)}`);
   const loaned = players.filter((p) => p.onLoan);
   if (loaned.length) {
-    items.push(`${loaned.length} player(s) are out on loan, so they were left out of the tactic and the depth chart (they appear in the suitability tables, marked "loan"): ${loaned.map((p) => `${esc(p.name)}${p.club ? ` (${esc(p.club)})` : ''}`).join(', ')}.`);
+    items.push(`<details class="more"><summary>${loaned.length} player${loaned.length === 1 ? ' is' : 's are'} out on loan, so they were left out of the tactic and the depth chart (they appear in the suitability tables, marked "loan").</summary>
+<div class="chips">${loaned.map((p) => `<span class="chip loan">${esc(p.name)}${p.club ? ` <i>${esc(p.club)}</i>` : ''}</span>`).join('')}</div></details>`);
   }
   for (const ig of result.picks?.ignored || []) items.push(`Your pick of ${esc(ig.player.name)} was ignored: he is ${esc(ig.reason)}.`);
   const ranged = players.filter((p) => p.uncertainAttrs.length);
@@ -625,7 +655,8 @@ function dataNotes(result) {
   const injured = players.filter((p) => p.injured && !p.onLoan);
   if (injured.length) {
     const left = result.ctx.search.excludeInjured;
-    items.push(`${left ? 'Left out of the starting XI because injured' : 'Injured (still considered for the XI)'}: ${injured.map((p) => `${esc(p.name)}${p.injury ? ` (${esc(p.injury)})` : ''}`).join(', ')}.`);
+    items.push(`${left ? 'Left out of the starting XI because injured' : 'Injured (still considered for the XI)'}:
+<div class="chips">${injured.map((p) => `<span class="chip inj">${INJ}${esc(p.name)}${p.injury ? ` <i>${esc(p.injury)}</i>` : ''}</span>`).join('')}</div>`);
   }
   items.push(`Team strength used for mentality and pressing: <strong>${esc(result.instructions.strengthLabel)}</strong> (your answer in the app).`);
   items.push('Position familiarity: FM27 only shows it as coloured dots, which no export contains. The tool treats <em>Best Pos</em> as Natural, other positions in the <em>Position</em> column as Accomplished, and neighbouring positions as Competent or Unconvincing (marked "estimated").');
@@ -636,6 +667,12 @@ function dataNotes(result) {
   <ul class="muted">${items.map((i) => `<li>${i}</li>`).join('')}</ul>
 </section>`;
 }
+
+/** Report sections in order: id and short label (also used by the app's section bar). */
+export const SECTIONS = [
+  ['overview', 'At a glance'], ['setup', 'Enter it in FM27'], ['why', 'Why'], ['depth', 'Depth'],
+  ['alternatives', 'Alternatives'], ['training', 'Training'], ['suitability', 'Role suitability'], ['data', 'Your data'],
+];
 
 /**
  * @param {object} result  from analyse()
@@ -651,9 +688,8 @@ export function renderReport(result, opts = {}) {
   <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · team strength: ${esc(result.instructions.strengthLabel)} · made ${esc(when)}</p>
   <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your squad and never
   changes the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
-  <nav class="toc"><a href="#overview">At a glance</a><a href="#setup">Enter it in FM27</a><a href="#why">Why</a><a href="#depth">Depth</a>
-  <a href="#alternatives">Alternatives</a><a href="#training">Training</a><a href="#suitability">Role suitability</a><a href="#data">Your data</a></nav>
 </header>
+<nav class="toc" aria-label="Sections">${SECTIONS.map(([id, label]) => `<a href="#${id}">${label}</a>`).join('')}</nav>
 ${overview(result)}
 ${enterIt(result)}
 ${why(result)}

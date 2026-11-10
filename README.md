@@ -225,7 +225,7 @@ npm run report -- samples/squad_20261108_201500.csv out/report.html
 # The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
 dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
 dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
-plugin/packaging/package.sh 0.5.1                         # plugin zip, full package (downloads BepInEx), setup.exe
+plugin/packaging/package.sh 0.6.0                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
 
 GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the
