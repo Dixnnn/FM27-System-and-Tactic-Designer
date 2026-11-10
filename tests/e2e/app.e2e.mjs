@@ -35,7 +35,7 @@ for (const file of SAMPLE_FILES) {
 }
 
 // Team strength changes the mentality (and is remembered)
-await page.selectOption('#opt-strength', '-2');
+await page.click('label:has(input[name="strength"][value="-2"])');
 await page.click('#sample');
 await page.waitForSelector('#result:not(.hidden) .report');
 const under = await page.textContent('#overview .kpis');
@@ -44,8 +44,16 @@ assert.match(await page.textContent('.report .meta'), /underdogs/);
 console.log('ok  sample button + team strength (underdogs)');
 await page.click('#again');
 await page.reload();
-assert.equal(await page.inputValue('#opt-strength'), '-2', 'strength answer remembered');
-await page.selectOption('#opt-strength', '0');
+assert.equal(await page.$eval('input[name="strength"]:checked', (e) => e.value), '-2', 'strength answer remembered');
+await page.click('label:has(input[name="strength"][value="0"])');
+// Dark by default; the toggle switches to light and is remembered
+assert.equal(await page.evaluate(() => document.documentElement.dataset.theme || 'dark'), 'dark');
+await page.click('#theme-toggle');
+assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
+await page.reload();
+assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light', 'theme remembered');
+await page.click('#theme-toggle');
+console.log('ok  theme toggle (dark default, light remembered)');
 await page.click('#sample');
 await page.waitForSelector('#result:not(.hidden) .report');
 

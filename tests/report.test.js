@@ -13,7 +13,8 @@ for (const file of SAMPLE_FILES) {
     const overview = html.slice(html.indexOf('id="overview"'), html.indexOf('id="setup"'));
     assert.equal((overview.match(/<svg class="pitch"/g) || []).length, 2, 'two pitch diagrams for the main tactic');
     assert.equal((overview.match(/class="pl /g) || []).length, 22, '11 players on each pitch');
-    for (const h of ['Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Step 6']) assert.ok(html.includes(h), h);
+    const steps = ['Style and mentality', 'Formations, players and roles', 'Team Instructions › In Possession', 'Team Instructions › Out of Possession', 'Player instructions', 'Set pieces and captain'];
+    steps.forEach((h, i) => assert.ok(html.includes(`<span class="step">${i + 1}</span>${h}`), h));
   });
 }
 
@@ -34,5 +35,8 @@ test('saved report is a complete HTML document with its styles', () => {
   const doc = standaloneReport(analyse(sample('squad_20261108_201500.csv'), 'squad.csv', docs));
   assert.match(doc, /^<!doctype html>/);
   assert.ok(doc.includes('<style>'));
+  assert.match(doc, /<html lang="en" data-theme="dark">/, 'dark by default');
+  assert.ok(doc.includes('@media print { :root:root {'), 'prints in the light theme');
+  assert.match(standaloneReport(analyse(sample('squad_20261108_201500.csv'), 'squad.csv', docs), { theme: 'light' }), /data-theme="light"/);
   assert.ok(!/<script/i.test(doc), 'no scripts in the saved report');
 });

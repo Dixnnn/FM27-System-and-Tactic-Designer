@@ -5,125 +5,439 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'">
 <title>FM27 Tactic Builder</title>
+<script>try { if (localStorage.getItem('fm27-tactic-builder.theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}</script>
 <style>
-  :root {
-    --ink: #17202a; --muted: #5b6672; --line: #d9dee3; --soft: #f4f6f8; --bg: #eef1f4; --card: #fff;
-    --accent: #1f6f50; --accent-ink: #fff; --accent-soft: #e5f2ec; --danger: #9b2c1f; --danger-soft: #fdecea;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
-  .shell { max-width: 1120px; margin: 0 auto; padding: 20px 16px 40px; }
-  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-  .top h1 { font-size: 24px; margin: 0; }
-  .top .ver { color: var(--muted); font-size: 12.5px; }
-  .card { background: var(--card); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04); padding: 20px; margin-bottom: 14px; }
-  .drop { border: 2px dashed #9fb3a8; border-radius: 12px; padding: 34px 18px; text-align: center; background: #fbfdfc; transition: background .15s, border-color .15s; }
-  .drop.over { background: var(--accent-soft); border-color: var(--accent); }
-  .drop h2 { margin: 0 0 6px; font-size: 21px; }
-  .drop p { margin: 4px 0 16px; color: var(--muted); }
-  .btn { display: inline-block; font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
-  .btn.secondary { background: #fff; color: var(--accent); }
-  .btn.small { padding: 5px 11px; font-size: 13.5px; }
-  .btn:focus-visible { outline: 3px solid #8cc7ab; outline-offset: 2px; }
-  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .strength { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 2px 0; }
-  .strength select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
-  details { margin-top: 10px; }
-  summary { cursor: pointer; font-weight: 600; }
-  .opts label { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
-  .muted { color: var(--muted); }
-  .small { font-size: 13px; }
-  .status { margin: 10px 0 0; min-height: 1.5em; }
-  .error { background: var(--danger-soft); color: var(--danger); border-radius: 8px; padding: 12px 14px; }
-  .error ul { margin: 6px 0 0; }
-  .toolbar { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: rgba(238,241,244,.94); backdrop-filter: blur(4px); padding: 8px 0; margin-bottom: 8px; }
-  .toolbar .spacer { flex: 1; }
-  #report-holder { background: #fff; border-radius: 12px; padding: 8px 0; }
-  .help ol { padding-left: 20px; }
-  .help li { margin: 4px 0; }
-  code { background: var(--soft); padding: 0 4px; border-radius: 4px; }
-  .hidden { display: none !important; }
-  @media print {
-    body { background: #fff; }
-    .shell { padding: 0; max-width: none; }
-    .no-print, .toolbar { display: none !important; }
-    #report-holder { border-radius: 0; padding: 0; }
-  }
+
+:root { 
+  color-scheme: dark;
+  --bg: #0d0f0e; --surface: #161917; --surface-2: #1c201e; --surface-3: #242926;
+  --line: #2a2f2c; --line-2: #3a403c;
+  --ink: #eef0ec; --ink-2: #b9bfb9; --muted: #868d87;
+  --accent: #14ac77; --accent-ink: #03150d; --accent-soft: rgba(20, 172, 119, .13);
+  --ip: #3987e5; --oop: #d95926;
+  --pos: #3987e5; --neg: #e66767; --mid: #383835;
+  --fit-1: #035c3e; --fit-2: #068359; --fit-3: #14ac77; --fit-4: #66e7ae;
+  --heat: 20 172 119; --heat-ink-hi: #03150d;
+  --warn: #fab219; --warn-line: #b7820f; --warn-soft: rgba(250, 178, 25, .10);
+  --pitch: #13201a; --pitch-stripe: #15241c; --pitch-line: rgba(226, 240, 230, .17); --token: #0e1411;
+  --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .28);
+ }
+:root[data-theme="light"] { 
+  color-scheme: light;
+  --bg: #eef1ee; --surface: #fbfcfb; --surface-2: #f1f4f1; --surface-3: #e7ebe7;
+  --line: #dfe3de; --line-2: #c5cbc4;
+  --ink: #121513; --ink-2: #49514b; --muted: #747c76;
+  --accent: #068359; --accent-ink: #ffffff; --accent-soft: rgba(6, 131, 89, .10);
+  --ip: #2a78d6; --oop: #eb6834;
+  --pos: #2a78d6; --neg: #e34948; --mid: #e3e5e1;
+  --fit-1: #37bf89; --fit-2: #068359; --fit-3: #035c3e; --fit-4: #003823;
+  --heat: 6 131 89; --heat-ink-hi: var(--ink);
+  --warn: #9a6400; --warn-line: #e3a72f; --warn-soft: rgba(237, 161, 0, .12);
+  --pitch: #e3eee6; --pitch-stripe: #dbe8de; --pitch-line: rgba(18, 60, 34, .26); --token: #fbfcfb;
+  --shadow: 0 1px 2px rgba(16, 24, 18, .05), 0 6px 18px rgba(16, 24, 18, .05);
+ }
+@media print { :root:root { 
+  color-scheme: light;
+  --bg: #eef1ee; --surface: #fbfcfb; --surface-2: #f1f4f1; --surface-3: #e7ebe7;
+  --line: #dfe3de; --line-2: #c5cbc4;
+  --ink: #121513; --ink-2: #49514b; --muted: #747c76;
+  --accent: #068359; --accent-ink: #ffffff; --accent-soft: rgba(6, 131, 89, .10);
+  --ip: #2a78d6; --oop: #eb6834;
+  --pos: #2a78d6; --neg: #e34948; --mid: #e3e5e1;
+  --fit-1: #37bf89; --fit-2: #068359; --fit-3: #035c3e; --fit-4: #003823;
+  --heat: 6 131 89; --heat-ink-hi: var(--ink);
+  --warn: #9a6400; --warn-line: #e3a72f; --warn-soft: rgba(237, 161, 0, .12);
+  --pitch: #e3eee6; --pitch-stripe: #dbe8de; --pitch-line: rgba(18, 60, 34, .26); --token: #fbfcfb;
+  --shadow: 0 1px 2px rgba(16, 24, 18, .05), 0 6px 18px rgba(16, 24, 18, .05);
+ } }
+:root {
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius: 12px;
+}
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--accent-soft); }
+
+
+.report { max-width: 1180px; margin: 0 auto; padding: 4px 0 56px; color: var(--ink); font: 15px/1.55 var(--font); }
+.report * { box-sizing: border-box; }
+.report h1 { font-size: 30px; line-height: 1.15; margin: 2px 0 6px; letter-spacing: -.01em; font-weight: 700; }
+.report h2 { font-size: 20px; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; letter-spacing: -.005em; }
+.report h2 .num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 700; }
+.report h3 { font-size: 15.5px; margin: 26px 0 10px; display: flex; align-items: center; gap: 8px; }
+.report h3 .step { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px; background: var(--surface-3); color: var(--ink-2); font-size: 12px; font-weight: 700; }
+.report h4 { font-size: 12px; margin: 18px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 650; }
+.report p { margin: 6px 0; }
+.report a { color: var(--accent); }
+.report .eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: 11.5px; font-weight: 700; color: var(--accent); }
+.report .meta { color: var(--muted); font-size: 13px; margin: 0; }
+.report .muted { color: var(--muted); }
+.report .small { font-size: 12.5px; }
+.report .ico { width: 14px; height: 14px; vertical-align: -2px; flex: none; }
+
+.report header.top { padding: 18px 2px 8px; }
+.report .notice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-left: 3px solid var(--warn-line);
+  background: var(--surface); border-radius: 10px; padding: 10px 14px; margin: 12px 0 4px; color: var(--ink-2); font-size: 14px; }
+.report .notice .ico { color: var(--warn); margin-top: 3px; }
+.report .notice strong { color: var(--ink); }
+.report nav.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
+.report nav.toc a { font-size: 12.5px; color: var(--ink-2); text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.report nav.toc a:hover { color: var(--ink); border-color: var(--line-2); }
+
+.report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: 70px; }
+.report .lede { color: var(--ink-2); max-width: 78ch; }
+
+/* stat tiles */
+.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 20px; }
+.report .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px 12px; }
+.report .kpi .k { font-size: 12px; color: var(--muted); }
+.report .kpi .v { font-size: 18px; font-weight: 650; line-height: 1.25; margin-top: 2px; }
+.report .kpi .meter { height: 4px; border-radius: 2px; background: var(--line); margin-top: 9px; overflow: hidden; }
+.report .kpi .meter i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+
+/* pitches */
+.report .pitches { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 420px)); justify-content: center; gap: 22px 40px; align-items: start; }
+.report .pitches.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.report .pitches.small { grid-template-columns: repeat(auto-fit, minmax(210px, 320px)); gap: 14px 28px; }
+.report .pitches.small.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report figure { margin: 0; }
+.report figcaption { font-weight: 650; font-size: 14px; margin: 0 0 8px; display: flex; align-items: center; gap: 7px; }
+.report figcaption span.sub { font-weight: 400; color: var(--muted); }
+.report svg.pitch { width: 100%; max-width: 420px; height: auto; display: block; }
+.report .pitches.small svg.pitch { max-width: 300px; }
+.report .pl { outline: none; cursor: default; }
+.report .pl .hit { fill: transparent; }
+.report .pl .dot { fill: var(--token); stroke: var(--line-2); stroke-width: 2.5; transition: stroke-width .12s; }
+.report .pl.f1 .dot { stroke: var(--fit-1); } .report .pl.f2 .dot { stroke: var(--fit-2); }
+.report .pl.f3 .dot { stroke: var(--fit-3); } .report .pl.f4 .dot { stroke: var(--fit-4); }
+.report .pl:hover .dot, .report .pl:focus .dot { stroke-width: 4; }
+.report .pitch text { text-anchor: middle; font-family: var(--font); }
+.report .pl .abbr { font-size: 9px; font-weight: 750; fill: var(--ink); letter-spacing: .02em; }
+.report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); paint-order: stroke; stroke: var(--pitch); stroke-width: 3.5px; stroke-linejoin: round; }
+.report .pl .sc { font-size: 9.5px; fill: var(--ink-2); font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--pitch); stroke-width: 3px; }
+.report .mvg { outline: none; }
+.report .mv { stroke: var(--ink-2); stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
+.report .oopdot { fill: var(--pitch); stroke: var(--oop); stroke-width: 2.5; }
+.report .ipdot { fill: var(--ip); stroke: var(--pitch); stroke-width: 2; }
+.report .mvg:hover .mv, .report .mvg:focus .mv { opacity: 1; stroke-width: 2; }
+
+/* keys and legends */
+.report .key { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; vertical-align: 0; }
+.report .key.ip { background: var(--ip); }
+.report .key.oop { background: var(--oop); }
+.report .key.ring { background: transparent; box-shadow: inset 0 0 0 2px var(--oop); }
+.report .legend { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin-top: 10px; }
+.report .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.report .legend .swatch { width: 26px; height: 4px; border-radius: 2px; display: inline-block; }
+
+/* fit chip: number + thin meter (one hue; brighter = better) */
+.report .fit { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.report .fit .n { font-weight: 650; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+.report .fit .m { width: 34px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; display: inline-block; }
+.report .fit .m i { display: block; height: 100%; border-radius: 2px; background: var(--fit-2); }
+.report .fit.f1 .m i { background: var(--fit-1); } .report .fit.f3 .m i { background: var(--fit-3); } .report .fit.f4 .m i { background: var(--fit-4); }
+.report .fit.f1 .n { color: var(--ink-2); }
+
+/* tables */
+.report .tablewrap { overflow-x: auto; }
+.report table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 6px 0 2px; }
+.report th, .report td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.report th { font-size: 11.5px; font-weight: 650; color: var(--muted); border-bottom-color: var(--line-2); white-space: nowrap; }
+.report tbody tr:hover td { background: var(--surface-2); }
+.report td.num, .report th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.report td .sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.report .role { display: inline; }
+.report .role .key { margin-right: 6px; vertical-align: 1px; }
+.report .role .ab { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.report .line { display: flex; align-items: center; gap: 8px; margin: 1px 0; }
+
+/* settings (team instructions) */
+.report table.settings td { padding: 10px 10px; }
+.report table.settings td.name { width: 24%; font-weight: 600; }
+.report table.settings td.val { width: 22%; }
+.report table.settings td.why { color: var(--ink-2); font-size: 13.2px; }
+.report table.settings tr.changed td.name::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin: 0 8px 2px -14px; vertical-align: middle; }
+.report table.settings td.name { padding-left: 22px; }
+.report table.settings tr.changed .v { font-weight: 650; color: var(--ink); }
+.report table.settings tr.unchanged .v { color: var(--muted); }
+.report table.settings tr.unchanged td.name { color: var(--ink-2); font-weight: 500; }
+.report table.settings tr.unchanged td.why { color: var(--muted); }
+.report .scale { display: flex; gap: 3px; margin-top: 6px; }
+.report .scale i { width: 15px; height: 4px; border-radius: 2px; background: var(--line-2); }
+.report .scale i.on { background: var(--accent); }
+.report tr.unchanged .scale i.on { background: var(--muted); }
+.report .deflabel { font-size: 11.5px; color: var(--muted); margin-left: 6px; }
+
+/* tags and notes */
+.report .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); margin: 1px 2px 1px 0; white-space: nowrap; }
+.report .tag.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.report .tag.accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.report ul.notes { list-style: none; padding: 0; margin: 6px 0; display: grid; gap: 6px; }
+.report ul.notes li { display: flex; gap: 10px; align-items: baseline; }
+.report ul.notes .pts { flex: none; width: 46px; text-align: right; font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--muted); }
+.report ul.notes li.plus .pts::before { content: "+"; }
+.report ol.steps { padding-left: 20px; margin: 6px 0 12px; color: var(--ink-2); }
+.report ol.steps li { margin: 4px 0; }
+.report ol.steps strong { color: var(--ink); }
+
+/* squad profile: diverging bars around the team level */
+.report .profile { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 6px 34px; }
+.report .pf-group h4 { margin-top: 14px; }
+.report .pf-row { position: relative; display: grid; grid-template-columns: minmax(150px, 1.25fr) 2fr 44px 38px; gap: 10px; align-items: center; padding: 4px 6px; border-radius: 6px; outline: none; }
+.report .pf-row:hover, .report .pf-row:focus { background: var(--surface-2); }
+.report .pf-label { font-size: 13px; color: var(--ink-2); line-height: 1.3; }
+.report .pf-chart { position: relative; height: 18px; }
+.report .pf-chart .grid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.report .pf-chart .zero { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 1px; background: var(--line-2); }
+.report .pf-chart .bar { position: absolute; top: 4px; height: 10px; }
+.report .pf-chart .bar.pos { left: 50%; background: var(--pos); border-radius: 0 4px 4px 0; }
+.report .pf-chart .bar.neg { right: 50%; background: var(--neg); border-radius: 4px 0 0 4px; }
+.report .pf-delta { font-size: 12.5px; font-weight: 650; font-variant-numeric: tabular-nums; text-align: right; color: var(--ink); }
+.report .pf-avg { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.report .pf-axis { display: grid; grid-template-columns: minmax(150px, 1.25fr) 2fr 44px 38px; gap: 10px; padding: 0 6px; font-size: 11px; color: var(--muted); }
+.report .pf-axis .ticks { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.report .tip { display: none; position: absolute; z-index: 5; left: 40%; top: calc(100% + 2px); min-width: 240px; max-width: 360px; background: var(--surface-3);
+  border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; color: var(--ink-2); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.report .tip strong { color: var(--ink); font-size: 14px; }
+.report .pf-row:hover .tip, .report .pf-row:focus .tip { display: block; }
+
+/* depth board */
+.report .board { display: grid; gap: 14px; }
+.report .board .line-label { text-align: center; font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 650; margin-bottom: 6px; }
+.report .board .cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.report .board .cards .pos-card { flex: 0 1 262px; min-width: 210px; }
+.report .pos-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 11px; }
+.report .pos-card.weak { border-left: 3px solid var(--warn-line); }
+.report .pos-card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.report .pos-card .hd strong { font-size: 14px; }
+.report .pos-card .hd .roles { font-size: 11.5px; color: var(--muted); display: inline-flex; gap: 8px; align-items: center; }
+.report .pos-card .roles span { display: inline-flex; align-items: center; gap: 4px; }
+.report .pos-card .roles .key { width: 7px; height: 7px; }
+.report .pos-card .who { display: grid; grid-template-columns: 16px 1fr auto; gap: 4px 6px; align-items: center; font-size: 13px; }
+.report .pos-card .who .rk { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.report .pos-card .who .nm1 { font-weight: 600; }
+.report .pos-card .who .dim { color: var(--ink-2); }
+.report .pos-card .flag { display: flex; gap: 5px; align-items: center; font-size: 12px; color: var(--warn); margin-top: 7px; }
+.report .pos-card .extra { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+
+/* weak areas */
+.report ol.weak { padding-left: 20px; display: grid; gap: 10px; }
+.report ol.weak .look { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+
+/* heatmap (role suitability): one hue, more = stronger; 2px surface gaps between cells */
+.report table.matrix { border-collapse: separate; border-spacing: 2px; font-size: 12.5px; width: auto; }
+.report table.matrix th, .report table.matrix td { border: 0; padding: 5px 4px; text-align: center; min-width: 38px; }
+.report table.matrix th { padding-bottom: 6px; font-size: 11.5px; color: var(--ink-2); }
+.report table.matrix th.ip { box-shadow: inset 0 -2px 0 var(--ip); }
+.report table.matrix th.oop { box-shadow: inset 0 -2px 0 var(--oop); }
+.report table.matrix td:first-child, .report table.matrix th:first-child { text-align: left; white-space: nowrap; padding-right: 12px; min-width: 150px; box-shadow: none; }
+.report table.matrix td.h { background: rgb(var(--heat) / var(--a)); border-radius: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.report table.matrix td.h.hi { color: var(--heat-ink-hi); font-weight: 600; }
+.report table.matrix td.h.best { box-shadow: inset 0 0 0 1px var(--ink-2); font-weight: 700; }
+.report table.matrix td.gap { min-width: 10px; padding: 0; }
+.report table.matrix tbody tr:hover td { background-color: transparent; }
+.report table.matrix tbody tr:hover td.h { filter: brightness(1.12); }
+.report .heatscale { display: inline-flex; align-items: center; gap: 8px; }
+.report .heatscale .bar { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgb(var(--heat) / .05), rgb(var(--heat) / .85)); }
+
+/* alternatives */
+.report .alt { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
+.report .alt:first-of-type { border-top: 0; padding-top: 0; }
+.report .alt .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+
+@media (max-width: 900px) {
+  .report .pitches.three, .report .pitches.small.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+}
+@media (max-width: 640px) {
+  .report section.card { padding: 18px 14px; }
+  .report .pf-row, .report .pf-axis { grid-template-columns: 1fr 44px 38px; }
+  .report .pf-row .pf-label { grid-column: 1 / -1; }
+  .report .pf-axis > span:first-child { display: none; }
+  .report .profile { grid-template-columns: 1fr; }
+  .report table.settings td.name, .report table.settings td.val { width: auto; }
+}
+@media print {
+  .report { max-width: none; padding: 0; font-size: 11.5px; }
+  .report section.card { box-shadow: none; border: 0; padding: 0; margin: 0 0 10px; break-before: page; background: none; }
+  .report .pitches, .report .pitches.small { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; gap: 12px 24px; }
+  .report .pitches.three, .report .pitches.small.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .report .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .report .profile { grid-template-columns: 1fr 1fr; gap: 4px 20px; }
+  .report .pf-row, .report .pf-axis { grid-template-columns: minmax(110px, 1.1fr) 1.6fr 36px 30px; }
+  .report section.card#overview { break-before: auto; }
+  .report nav.toc, .report .tip { display: none !important; }
+  .report table, .report figure, .report .pos-card, .report .pf-row { break-inside: avoid; }
+  .report .tablewrap { overflow: visible; }
+  .report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .report svg.pitch { max-width: 300px; margin: 0 auto; }
+  .report tbody tr:hover td { background: none; }
+}
+
+* { box-sizing: border-box; }
+.hidden { display: none !important; }
+.appbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand svg { width: 30px; height: 30px; flex: none; }
+.brand .name { font-weight: 700; font-size: 15.5px; letter-spacing: -.005em; }
+.brand .sub { font-size: 12px; color: var(--muted); }
+.icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); cursor: pointer; }
+.icon-btn:hover { color: var(--ink); border-color: var(--line-2); }
+.icon-btn svg { width: 18px; height: 18px; }
+:root:not([data-theme="light"]) .icon-btn .sun { display: block; } :root:not([data-theme="light"]) .icon-btn .moon { display: none; }
+:root[data-theme="light"] .icon-btn .sun { display: none; } :root[data-theme="light"] .icon-btn .moon { display: block; }
+.shell { max-width: 1180px; margin: 0 auto; padding: 26px 20px 48px; }
+.hero h1 { font-size: 28px; line-height: 1.2; margin: 6px 0 8px; letter-spacing: -.015em; }
+.hero p { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.drop { border: 1.5px dashed var(--line-2); border-radius: 12px; padding: 34px 18px 30px; text-align: center; background: var(--surface-2); transition: border-color .15s, background .15s; cursor: pointer; outline: none; }
+.drop:hover, .drop:focus-visible { border-color: var(--accent); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop svg { width: 38px; height: 38px; color: var(--accent); }
+.drop-title { font-size: 19px; font-weight: 650; margin: 8px 0 4px; }
+.drop-sub { color: var(--muted); font-size: 13.5px; margin: 0 auto 18px; max-width: 52ch; }
+.row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 14px; font-weight: 600; border-radius: 9px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-2); }
+.btn.ghost:hover { border-color: var(--ink-2); filter: none; }
+.btn.small { padding: 6px 11px; font-size: 13px; }
+.btn svg { width: 16px; height: 16px; }
+.btn:focus-visible, .icon-btn:focus-visible, .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field { margin-top: 20px; }
+.field .label { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; }
+.seg label { flex: 1 1 auto; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; text-align: center; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.seg span:hover { color: var(--ink); background: var(--surface-3); }
+.seg input:checked + span { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--line-2), 0 1px 3px rgba(0,0,0,.15); }
+.hint { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+.status { margin-top: 14px; min-height: 0; }
+.working { display: flex; align-items: center; gap: 12px; color: var(--ink-2); font-size: 14px; }
+.working .track { flex: 1; max-width: 220px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; position: relative; }
+.working .track i { position: absolute; inset: 0 auto 0 0; width: 35%; border-radius: 2px; background: var(--accent); animation: slide 1.1s ease-in-out infinite; }
+@keyframes slide { 0% { left: -35%; } 100% { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .working .track i { animation: none; width: 100%; opacity: .5; } }
+.error { display: flex; gap: 10px; border: 1px solid var(--line); border-left: 3px solid var(--warn-line); background: var(--warn-soft); color: var(--ink); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.error svg { width: 16px; height: 16px; color: var(--warn); flex: none; margin-top: 3px; }
+.error ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); }
+details.opts { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+details.opts summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--ink-2); }
+details.opts summary:hover { color: var(--ink); }
+details.opts p { color: var(--muted); font-size: 13px; }
+.check { display: flex; gap: 9px; align-items: center; margin: 10px 0 2px; font-size: 14px; color: var(--ink-2); }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.help h2 { font-size: 16px; margin: 0 0 12px; }
+ol.howto { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; counter-reset: s; }
+ol.howto li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 14px; color: var(--ink-2); counter-increment: s; }
+ol.howto li::before { content: counter(s); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 12.5px; }
+ol.howto strong { color: var(--ink); }
+code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border-radius: 5px; font-size: 12.5px; overflow-wrap: anywhere; }
+.privacy { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+.privacy svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
+.toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; margin: -10px 0 4px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.toolbar .spacer { flex: 1; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
+@media print { body { background: #fff; } .appbar, .toolbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
 </style>
 </head>
 <body>
-<div class="shell">
-  <div class="top no-print">
-    <h1>FM27 Tactic Builder</h1>
-    <span class="ver">Version 0.2.0 · works offline · only reads your file, never your game</span>
+<header class="appbar no-print">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+      <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
+    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.3.0 · works offline · reads your export, never your game</div></div>
   </div>
+  <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
+    <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 12.6A7 7 0 0 1 7.4 3.5a7 7 0 1 0 9.1 9.1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+  </button>
+</header>
 
-  <div id="start" class="no-print">
-    <div class="card">
-      <div id="drop" class="drop" tabindex="0">
-        <h2>Drop your FM27 squad export here</h2>
-        <p>A CSV or HTML file from FM View Exporter (press F9 on your squad screen), FM27 Player Export, or any squad export with player attributes.</p>
-        <div class="row">
-          <button class="btn" id="choose">Choose file…</button>
-          <button class="btn secondary" id="sample">Try the sample squad</button>
-        </div>
-        <input type="file" id="file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
-      </div>
-      <div class="strength">
-        <label for="opt-strength"><strong>How strong is your team in its league?</strong></label>
-        <select id="opt-strength">
-          <option value="2">Title favourites</option>
-          <option value="1">Top half</option>
-          <option value="0" selected>Mid-table</option>
-          <option value="-1">Lower half</option>
-          <option value="-2">Underdogs / relegation fight</option>
-        </select>
-        <span class="small muted">Sets the mentality and how high to press.</span>
-      </div>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
-
-      <details class="opts">
-        <summary>Options</summary>
-        <label><input type="checkbox" id="opt-injured" checked> Leave injured players out of the starting XI</label>
-      </details>
-
-      <details class="opts">
-        <summary>Advanced: role and tuning files</summary>
-        <p class="small muted">The roles (and their key attributes) and the engine's numbers live in two JSON files. After an FM27 patch you can
-          edit them and load your copy here; it's remembered in this browser.</p>
-        <div class="row" style="justify-content:flex-start">
-          <button class="btn secondary small" id="dl-roles">Download roles.json</button>
-          <button class="btn secondary small" id="dl-tuning">Download tuning.json</button>
-          <button class="btn secondary small" id="load-json">Load my own roles.json / tuning.json…</button>
-          <button class="btn secondary small" id="reset-json">Use built-in files</button>
-          <input type="file" id="json-file" accept=".json,application/json" class="hidden">
-        </div>
-        <p id="json-status" class="small muted"></p>
-      </details>
+<main class="shell">
+  <section id="start">
+    <div class="hero no-print">
+      <h1>Build an FM27 tactic around your squad</h1>
+      <p>Drop the squad export and get a complete tactic: both shapes and every role, all 27 team instructions with reasons, player instructions,
+        set pieces, depth chart, training and three alternative tactics.</p>
     </div>
+    <div class="grid2 no-print">
+      <div class="panel">
+        <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose or drop your FM27 squad export">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 30h-1.5A7.5 7.5 0 0 1 9.6 15a10 10 0 0 1 19.5 2.2A6.5 6.5 0 0 1 28.5 30H28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 34V20m-5 5 5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="drop-title">Drop your squad export here</div>
+          <div class="drop-sub">CSV or HTML from FM View Exporter (F9 on your squad screen), FM27 Player Export, or any squad export with player attributes.</div>
+          <div class="row">
+            <button class="btn" id="choose" type="button">Choose file…</button>
+            <button class="btn ghost" id="sample" type="button">Try the sample squad</button>
+          </div>
+          <input type="file" id="file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
+        </div>
 
-    <div class="card help">
-      <h2 style="margin-top:0;font-size:18px">How to get the export from FM27</h2>
-      <ol>
-        <li>Install <strong>FM View Exporter</strong> once (free; see the README). It adds an <strong>F9</strong> export to FM27.</li>
-        <li>In FM27 open <strong>Squad</strong> and pick a view that shows all attributes (the README lists the columns, or import the ready-made view).</li>
-        <li>Press <strong>F9</strong> and wait until it stops scrolling. The file appears in <code>Documents\Sports Interactive\FM View Exporter</code>.</li>
-        <li>Drag that <code>squad_….csv</code> (or <code>.html</code>) onto the box above.</li>
-      </ol>
-      <p class="small muted">Nothing is uploaded anywhere: the file is read inside this page, on your PC.</p>
+        <div class="field">
+          <div class="label" id="strength-label">How strong is your team in its league?</div>
+          <div class="seg" role="radiogroup" aria-labelledby="strength-label">
+            <label><input type="radio" name="strength" value="2"><span>Title favourites</span></label>
+            <label><input type="radio" name="strength" value="1"><span>Top half</span></label>
+            <label><input type="radio" name="strength" value="0" checked><span>Mid-table</span></label>
+            <label><input type="radio" name="strength" value="-1"><span>Lower half</span></label>
+            <label><input type="radio" name="strength" value="-2"><span>Underdogs</span></label>
+          </div>
+          <div class="hint">Sets the mentality and how high to press. Remembered on this computer.</div>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+
+        <details class="opts">
+          <summary>Options</summary>
+          <label class="check"><input type="checkbox" id="opt-injured" checked> Leave injured players out of the starting XI</label>
+        </details>
+        <details class="opts">
+          <summary>Advanced: role and tuning files</summary>
+          <p>The roles (with their key attributes) and the engine's numbers live in two JSON files. After an FM27 patch you can edit them
+            and load your copy here; it's remembered in this browser.</p>
+          <div class="btnrow">
+            <button class="btn ghost small" id="dl-roles" type="button">Download roles.json</button>
+            <button class="btn ghost small" id="dl-tuning" type="button">Download tuning.json</button>
+            <button class="btn ghost small" id="load-json" type="button">Load my own…</button>
+            <button class="btn ghost small" id="reset-json" type="button">Use built-in files</button>
+            <input type="file" id="json-file" accept=".json,application/json" class="hidden">
+          </div>
+          <p id="json-status"></p>
+        </details>
+      </div>
+
+      <aside class="panel help">
+        <h2>Getting the export from FM27</h2>
+        <ol class="howto">
+          <li><span>Install <strong>FM View Exporter</strong> once (free; see the README). It adds an <strong>F9</strong> export to FM27.</span></li>
+          <li><span>In FM27 open <strong>Squad</strong> and pick a view that shows all attributes (the README lists the columns).</span></li>
+          <li><span>Press <strong>F9</strong> and wait until it stops scrolling. The file is saved in <code>Documents\Sports Interactive\FM View Exporter</code>.</span></li>
+          <li><span>Drop that <code>squad_….csv</code> (or <code>.html</code>) on the box.</span></li>
+        </ol>
+        <div class="privacy">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3.5 4.5v5c0 4 2.8 7.2 6.5 8.5 3.7-1.3 6.5-4.5 6.5-8.5v-5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7 10 2.2 2.2L13.3 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Nothing is uploaded: the file is read inside this page, on your PC, and the page is blocked from using the internet.</span>
+        </div>
+      </aside>
     </div>
-  </div>
+  </section>
 
-  <div id="result" class="hidden">
+  <section id="result" class="hidden">
     <div class="toolbar no-print">
-      <button class="btn" id="print">Print / Save as PDF</button>
-      <button class="btn secondary" id="save">Save report as HTML</button>
+      <button class="btn" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
+      <button class="btn ghost" id="save" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Save report</button>
       <span class="spacer"></span>
-      <button class="btn secondary" id="again">Load another file</button>
+      <button class="btn ghost" id="again" type="button">Load another file</button>
     </div>
     <div id="report-holder"></div>
-  </div>
-</div>
+  </section>
+</main>
 <script>
 (() => {
   // src/input/csv.js
@@ -283,11 +597,11 @@
     id: "fm-view-exporter",
     label: "FM View Exporter (F9 plugin)",
     detect({ headers, filename }) {
-      let score2 = 0;
-      if (/^(?:[\w.-]+-)?(squad|player-database|shortlist)(_\d{8}_\d{6})?\.(csv|html?)$/i.test(baseName(filename))) score2 += 0.5;
-      if (headers.includes("Unique ID")) score2 += 0.3;
-      if (headers.includes("Player") || headers.includes("Name")) score2 += 0.1;
-      return score2;
+      let score = 0;
+      if (/^(?:[\w.-]+-)?(squad|player-database|shortlist)(_\d{8}_\d{6})?\.(csv|html?)$/i.test(baseName(filename))) score += 0.5;
+      if (headers.includes("Unique ID")) score += 0.3;
+      if (headers.includes("Player") || headers.includes("Name")) score += 0.1;
+      return score;
     },
     aliases: {}
   };
@@ -295,11 +609,11 @@
     id: "fm27-player-export",
     label: "FM27 Player Export (vinteset plugin)",
     detect({ filename, delimiter, decimalComma }) {
-      let score2 = 0;
-      if (/player_export_\d{8}/i.test(baseName(filename))) score2 += 0.6;
-      if (delimiter === ";") score2 += 0.2;
-      if (decimalComma) score2 += 0.1;
-      return score2;
+      let score = 0;
+      if (/player_export_\d{8}/i.test(baseName(filename))) score += 0.6;
+      if (delimiter === ";") score += 0.2;
+      if (decimalComma) score += 0.1;
+      return score;
     },
     aliases: {}
   };
@@ -737,20 +1051,20 @@
     if (!known) return { v: null, lo: null, hi: null, missingShare: 1 };
     return { v: sum / known, lo: lo / known, hi: hi / known, missingShare: total ? 1 - known / total : 0 };
   }
-  function roleWeights(role, tuning) {
+  function roleWeights(role2, tuning) {
     const { keyWeight, preferredWeight } = tuning.roleScore;
     const w = /* @__PURE__ */ new Map();
-    for (const a of role.key) w.set(a, keyWeight);
-    for (const a of role.preferred) if (!w.has(a)) w.set(a, preferredWeight);
+    for (const a of role2.key) w.set(a, keyWeight);
+    for (const a of role2.preferred) if (!w.has(a)) w.set(a, preferredWeight);
     return [...w.entries()];
   }
-  var isGoalkeeperRole = (role) => role.positions.includes("GK");
-  function baseRoleScore(player, role, tuning) {
+  var isGoalkeeperRole = (role2) => role2.positions.includes("GK");
+  function baseRoleScore(player, role2, tuning) {
     const cache = player._base ||= {};
-    if (cache[role.id]) return cache[role.id];
+    if (cache[role2.id]) return cache[role2.id];
     const rs = tuning.roleScore;
-    const roleAvg = weightedAttributes(player, role._w ||= roleWeights(role, tuning));
-    const gk = isGoalkeeperRole(role);
+    const roleAvg = weightedAttributes(player, role2._w ||= roleWeights(role2, tuning));
+    const gk = isGoalkeeperRole(role2);
     const generalWeights = Object.entries(gk ? rs.goalkeeperGeneralWeights : rs.generalWeights);
     const general = weightedAttributes(player, generalWeights);
     const gBlend = gk ? rs.goalkeeperGeneralBlend : rs.generalBlend;
@@ -760,7 +1074,7 @@
     } else {
       const g = general.v == null ? roleAvg : general;
       const blend = (x, y) => (1 - gBlend) * x + gBlend * y;
-      const hb = heightBonus(player, role, tuning);
+      const hb = heightBonus(player, role2, tuning);
       result = {
         v: blend(roleAvg.v, g.v) + hb,
         lo: blend(roleAvg.lo, g.lo) + hb,
@@ -769,12 +1083,12 @@
         heightBonus: hb
       };
     }
-    cache[role.id] = result;
+    cache[role2.id] = result;
     return result;
   }
-  function heightBonus(player, role, tuning) {
+  function heightBonus(player, role2, tuning) {
     const h = tuning.roleScore.height;
-    if (!player.heightCm || !h.appliesWhenKeyIncludes.every((a) => role.keySet.has(a))) return 0;
+    if (!player.heightCm || !h.appliesWhenKeyIncludes.every((a) => role2.keySet.has(a))) return 0;
     const pts = (player.heightCm - h.pivotCm) * h.pointsPerCm;
     return Math.max(-h.maxPoints, Math.min(h.maxPoints, pts));
   }
@@ -783,34 +1097,34 @@
     if (/R$/.test(slotCode)) return "R";
     return "C";
   }
-  function footFactor(player, role, slotCode, tuning) {
-    const rule = tuning.foot.rules[role.foot || "either"];
+  function footFactor(player, role2, slotCode, tuning) {
+    const rule = tuning.foot.rules[role2.foot || "either"];
     const side = slotSide(slotCode);
     if (!rule || side === "C" || rule.span === 0) return 1;
     const sameFoot = side === "L" ? player.leftFoot : player.rightFoot;
     const otherFoot = side === "L" ? player.rightFoot : player.leftFoot;
-    const wanted = role.foot.startsWith("inverted") ? otherFoot : sameFoot;
+    const wanted = role2.foot.startsWith("inverted") ? otherFoot : sameFoot;
     if (wanted == null) return 1;
     return rule.base + rule.span * wanted;
   }
-  function roleFitsSlot(role, slotCode, slotsDoc, formationSlots) {
+  function roleFitsSlot(role2, slotCode, slotsDoc, formationSlots) {
     const pos = slotsDoc[slotCode][2];
-    if (!role.positions.includes(pos)) return false;
-    if (role.slotRule === "wideCentreBackInBackThree") {
+    if (!role2.positions.includes(pos)) return false;
+    if (role2.slotRule === "wideCentreBackInBackThree") {
       return (slotCode === "DCL" || slotCode === "DCR") && formationSlots.includes("DC");
     }
-    if (role.slotRule === "sideCentralMidfield") return slotCode === "MCL" || slotCode === "MCR";
+    if (role2.slotRule === "sideCentralMidfield") return slotCode === "MCL" || slotCode === "MCR";
     return true;
   }
-  function slotRoleScore(player, role, slotCode, ctx) {
-    const key = `${role.id}@${slotCode}`;
+  function slotRoleScore(player, role2, slotCode, ctx) {
+    const key = `${role2.id}@${slotCode}`;
     const cache = player._slot ||= {};
     if (cache[key]) return cache[key];
     const pos = ctx.slots[slotCode][2];
     const fam = familiarity(player, pos, ctx.adjacency);
     const famFactor = ctx.tuning.familiarity.levels[fam];
-    const ff = footFactor(player, role, slotCode, ctx.tuning);
-    const base = baseRoleScore(player, role, ctx.tuning);
+    const ff = footFactor(player, role2, slotCode, ctx.tuning);
+    const base = baseRoleScore(player, role2, ctx.tuning);
     const k = famFactor * ff;
     const result = {
       score: base.v * k,
@@ -825,12 +1139,12 @@
     cache[key] = result;
     return result;
   }
-  function bestRoleScore(player, role, ctx) {
+  function bestRoleScore(player, role2, ctx) {
     let best = null;
-    for (const pos of role.positions) {
+    for (const pos of role2.positions) {
       const slot = ctx.slotForPosition[pos];
       if (!slot) continue;
-      const s = slotRoleScore(player, role, slot, ctx);
+      const s = slotRoleScore(player, role2, slot, ctx);
       if (!best || s.score > best.score) best = { ...s, position: pos };
     }
     return best;
@@ -1020,27 +1334,27 @@
     const oopFam = familiarity(player, ctx.slots[lane.oop][2], ctx.adjacency);
     return ctx.allowedFam.has(ipFam) && ctx.allowedFam.has(oopFam);
   }
-  function roleReference(ctx, role) {
+  function roleReference(ctx, role2) {
     const cache = ctx._roleRef ||= {};
-    if (role.id in cache) return cache[role.id];
-    const natural = ctx.players.filter((p) => role.positions.some((pos) => p.positions.has(pos)));
-    const gkRole = role.positions.includes("GK");
+    if (role2.id in cache) return cache[role2.id];
+    const natural = ctx.players.filter((p) => role2.positions.some((pos) => p.positions.has(pos)));
+    const gkRole = role2.positions.includes("GK");
     const pool = natural.length >= 2 ? natural : ctx.players.filter((p) => p.isGoalkeeper === gkRole);
-    const values = pool.map((p) => baseRoleScore(p, role, ctx.tuning).v);
-    cache[role.id] = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
-    return cache[role.id];
+    const values = pool.map((p) => baseRoleScore(p, role2, ctx.tuning).v);
+    cache[role2.id] = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+    return cache[role2.id];
   }
-  function choiceScore(ctx, player, role, slot) {
-    const s = slotRoleScore(player, role, slot, ctx);
-    const spec = s.base - roleReference(ctx, role);
+  function choiceScore(ctx, player, role2, slot) {
+    const s = slotRoleScore(player, role2, slot, ctx);
+    const spec = s.base - roleReference(ctx, role2);
     return s.score + ctx.tuning.roleScore.specialisationWeight * spec;
   }
   function bestOf(ctx, player, roles, slot, byChoice = false) {
     let best = null;
-    for (const role of roles) {
-      const s = slotRoleScore(player, role, slot, ctx);
-      const v = byChoice ? choiceScore(ctx, player, role, slot) : s.score;
-      if (!best || v > best.v) best = { role, s, v };
+    for (const role2 of roles) {
+      const s = slotRoleScore(player, role2, slot, ctx);
+      const v = byChoice ? choiceScore(ctx, player, role2, slot) : s.score;
+      if (!best || v > best.v) best = { role: role2, s, v };
     }
     return best;
   }
@@ -1091,13 +1405,13 @@
         for (const [key, list] of [["ipRole", lane.ipRoles], ["oopRole", lane.oopRoles]]) {
           const current = roles[i][key];
           let bestRole = current;
-          for (const role of list) {
-            if (role === current) continue;
-            roles[i][key] = role;
+          for (const role2 of list) {
+            if (role2 === current) continue;
+            roles[i][key] = role2;
             const t = objective(ctx, lanes, xi, roles).total;
             if (t > best + 1e-9) {
               best = t;
-              bestRole = role;
+              bestRole = role2;
               improved = true;
             }
           }
@@ -1411,8 +1725,8 @@
     for (const [style, signs] of Object.entries(STYLE_SIGNS)) {
       const keys = Object.keys(signs);
       const hits = keys.filter((k) => signs[k].includes(values[k]));
-      const score2 = hits.length / keys.length;
-      if (!best || score2 > best.score) best = { style, score: score2, hits, total: keys.length };
+      const score = hits.length / keys.length;
+      if (!best || score > best.score) best = { style, score, hits, total: keys.length };
     }
     return best;
   }
@@ -1695,8 +2009,8 @@
       const add = (phase, name, value, reason) => items.push({ phase, name, value, reason });
       const ipPos = ctx.slots[lane.ip][2];
       const side = ctx.slots[lane.ip][0] < 30 ? "L" : ctx.slots[lane.ip][0] > 70 ? "R" : "C";
-      const role = lane.ipRole;
-      const attackingMid = /^(M|AM) /.test(ipPos) || ipPos === "ST (C)" || ["Box-To-Box Midfielder", "Box-To-Box Playmaker"].includes(role.name);
+      const role2 = lane.ipRole;
+      const attackingMid = /^(M|AM) /.test(ipPos) || ipPos === "ST (C)" || ["Box-To-Box Midfielder", "Box-To-Box Playmaker"].includes(role2.name);
       const ls = val(p, "Long Shots");
       if (ls != null && attackingMid && ls >= level + 3 && ls >= 13) add("IP", "Shooting", "Shoot More Often", `Long Shots ${ls}, well above the team level.`);
       else if (ls != null && attackingMid && ls <= level - 3 && hasTrait(p, /long range shots|shoots from distance/i)) {
@@ -1705,29 +2019,29 @@
       if (side !== "C" && /^(D|WB|M|AM) /.test(ipPos)) {
         const sameFoot = side === "L" ? p.leftFoot : p.rightFoot;
         const otherFoot = side === "L" ? p.rightFoot : p.leftFoot;
-        if (role.tagSet.has("inside") && otherFoot != null && otherFoot >= 0.7 && (val(p, "Dribbling") ?? 0) >= level) {
+        if (role2.tagSet.has("inside") && otherFoot != null && otherFoot >= 0.7 && (val(p, "Dribbling") ?? 0) >= level) {
           add("IP", "Dribbling Direction", "Cut Inside With Ball", `Plays on the ${side === "L" ? "left" : "right"} with a strong ${side === "L" ? "right" : "left"} foot.`);
-        } else if (role.tagSet.has("width") && /^(M|AM) /.test(ipPos) && sameFoot != null && sameFoot >= 0.7 && (val(p, "Crossing") ?? 0) >= level) {
+        } else if (role2.tagSet.has("width") && /^(M|AM) /.test(ipPos) && sameFoot != null && sameFoot >= 0.7 && (val(p, "Crossing") ?? 0) >= level) {
           add("IP", "Dribbling Direction", "Run Wide With Ball", `Natural ${side === "L" ? "left" : "right"}-footer who crosses well (Crossing ${val(p, "Crossing")}).`);
         }
       }
       const dribble = avg(p, ["Dribbling", "Flair"]);
       if (dribble != null && /^(M|AM|ST) /.test(ipPos)) {
         if (dribble >= level + 3) add("IP", "Dribbling Frequency", "Dribble More", `Dribbling ${val(p, "Dribbling")}, Flair ${val(p, "Flair")}.`);
-        else if (dribble <= level - 3 && (role.tagSet.has("width") || role.tagSet.has("inside"))) add("IP", "Dribbling Frequency", "Dribble Less", `Dribbling ${val(p, "Dribbling")} is a weakness: move the ball on.`);
+        else if (dribble <= level - 3 && (role2.tagSet.has("width") || role2.tagSet.has("inside"))) add("IP", "Dribbling Frequency", "Dribble Less", `Dribbling ${val(p, "Dribbling")} is a weakness: move the ball on.`);
       }
       const vis = val(p, "Vision");
       const pas = val(p, "Passing");
-      if (vis != null && pas != null && vis >= level + 3 && pas >= level + 2 && (role.tagSet.has("creator") || role.tagSet.has("distributor"))) {
+      if (vis != null && pas != null && vis >= level + 3 && pas >= level + 2 && (role2.tagSet.has("creator") || role2.tagSet.has("distributor"))) {
         add("IP", "Passing Risk", "Take More Risks", `Vision ${vis}, Passing ${pas}: let him try the killer ball.`);
-      } else if (pas != null && pas <= level - 2.5 && (role.tagSet.has("creator") || role.tagSet.has("distributor") || ipPos === "D (C)")) {
+      } else if (pas != null && pas <= level - 2.5 && (role2.tagSet.has("creator") || role2.tagSet.has("distributor") || ipPos === "D (C)")) {
         add("IP", "Passing Risk", "Take Fewer Risks", `Passing ${pas} is low for his role: keep it simple.`);
       }
       if (ipPos === "ST (C)") {
         const hold = avg(p, ["Strength", "Balance", "First Touch"]);
-        if (hold != null && hold >= level + 2 && !role.tagSet.has("runner")) add("IP", "Hold Up Ball", "Yes", `Strength ${val(p, "Strength")}, Balance ${val(p, "Balance")}, First Touch ${val(p, "First Touch")}: he can hold the ball up for runners.`);
+        if (hold != null && hold >= level + 2 && !role2.tagSet.has("runner")) add("IP", "Hold Up Ball", "Yes", `Strength ${val(p, "Strength")}, Balance ${val(p, "Balance")}, First Touch ${val(p, "First Touch")}: he can hold the ball up for runners.`);
       }
-      if (role.tagSet.has("crosser") && side !== "C") {
+      if (role2.tagSet.has("crosser") && side !== "C") {
         const quick = avg(p, ["Pace", "Acceleration", "Dribbling"]);
         const cross = val(p, "Crossing");
         if (quick != null && cross != null && quick >= level + 2 && cross >= level) add("IP", "Cross From", "Byline", "Quick enough to get to the byline before crossing.");
@@ -1735,7 +2049,7 @@
       }
       if (["DM", "M (C)"].includes(ipPos)) {
         const otb = val(p, "Off the Ball");
-        if (otb != null && otb >= level + 3 && (val(p, "Stamina") ?? 0) >= level && !role.tagSet.has("holder")) add("IP", "Forward Runs", "More Often", `Off the Ball ${otb}: arrives in the box well.`);
+        if (otb != null && otb >= level + 3 && (val(p, "Stamina") ?? 0) >= level && !role2.tagSet.has("holder")) add("IP", "Forward Runs", "More Often", `Off the Ball ${otb}: arrives in the box well.`);
       }
       const pressing = avg(p, ["Work Rate", "Stamina", "Aggression"]);
       if (pressing != null && pressing >= level + 2.5 && instructions.values.lineOfEngagement !== "Low Block" && !lane.oopRole.tagSet.has("outlet")) {
@@ -3925,7 +4239,8 @@
     _about: [
       "FM27 tactic settings in the order the Tactics screens show them. Used to list every setting in the report.",
       "Names and options follow FM27 as closely as public sources allow (in-game checks of 7 Nov 2026 and decoded FM27 tactic files).",
-      "If a label differs slightly in your game, pick the option with the same meaning. 'verified': false marks names not yet confirmed in an English FM27."
+      "If a label differs slightly in your game, pick the option with the same meaning. 'verified': false marks names not yet confirmed in an English FM27.",
+      "'scale': true marks options that run from one extreme to the other (shown as a step indicator in the report)."
     ],
     mentalities: ["Very Defensive", "Defensive", "Cautious", "Balanced", "Positive", "Attacking", "Very Attacking"],
     styles: [
@@ -3942,34 +4257,34 @@
       "Clean Sheet"
     ],
     inPossession: [
-      { section: "Overview", id: "passingDirectness", name: "Passing Directness", options: ["Much Shorter", "Shorter", "Standard", "More Direct", "Much More Direct"], default: "Standard" },
-      { section: "Overview", id: "tempo", name: "Tempo", options: ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], default: "Standard" },
-      { section: "Overview", id: "attackingWidth", name: "Attacking Width", options: ["Much Narrower", "Narrower", "Standard", "Wider", "Much Wider"], default: "Standard" },
-      { section: "Overview", id: "attackingTransition", name: "Attacking Transition", options: ["Hold Shape", "Standard", "Counter-Attack"], default: "Standard" },
-      { section: "Overview", id: "creativeFreedom", name: "Creative Freedom", options: ["More Disciplined", "Balanced", "More Expressive"], default: "Balanced" },
-      { section: "Overview", id: "timeWasting", name: "Time Wasting", options: ["Less Often", "Standard", "More Often"], default: "Standard" },
+      { section: "Overview", id: "passingDirectness", name: "Passing Directness", options: ["Much Shorter", "Shorter", "Standard", "More Direct", "Much More Direct"], scale: true, default: "Standard" },
+      { section: "Overview", id: "tempo", name: "Tempo", options: ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], scale: true, default: "Standard" },
+      { section: "Overview", id: "attackingWidth", name: "Attacking Width", options: ["Much Narrower", "Narrower", "Standard", "Wider", "Much Wider"], scale: true, default: "Standard" },
+      { section: "Overview", id: "attackingTransition", name: "Attacking Transition", options: ["Hold Shape", "Standard", "Counter-Attack"], scale: true, default: "Standard" },
+      { section: "Overview", id: "creativeFreedom", name: "Creative Freedom", options: ["More Disciplined", "Balanced", "More Expressive"], scale: true, default: "Balanced" },
+      { section: "Overview", id: "timeWasting", name: "Time Wasting", options: ["Less Often", "Standard", "More Often"], scale: true, default: "Standard" },
       { section: "Overview", id: "playForSetPieces", name: "Play for Set Pieces", options: ["Keep Ball in Play", "Play for Set Pieces"], default: "Keep Ball in Play" },
-      { section: "Final Third", id: "patience", name: "Patience", options: ["Hit Early Crosses", "Standard", "Work Ball Into Box"], default: "Standard" },
-      { section: "Final Third", id: "shotsFromDistance", name: "Shots from Distance", options: ["Discourage", "Balanced", "Encourage"], default: "Balanced" },
+      { section: "Final Third", id: "patience", name: "Patience", options: ["Hit Early Crosses", "Standard", "Work Ball Into Box"], scale: true, default: "Standard" },
+      { section: "Final Third", id: "shotsFromDistance", name: "Shots from Distance", options: ["Discourage", "Balanced", "Encourage"], scale: true, default: "Balanced" },
       { section: "Final Third", id: "crossingStyle", name: "Crossing Style", options: ["Balanced", "Floated Crosses", "Whipped Crosses", "Low Crosses"], default: "Balanced" },
-      { section: "Final Third", id: "dribbling", name: "Dribbling", options: ["Discourage", "Balanced", "Encourage"], default: "Balanced", note: "Also shown on the Progression page; it is the same setting." },
+      { section: "Final Third", id: "dribbling", name: "Dribbling", options: ["Discourage", "Balanced", "Encourage"], scale: true, default: "Balanced", note: "Also shown on the Progression page; it is the same setting." },
       { section: "Progression", id: "supportingRuns", name: "Supporting Runs", options: ["Balanced", "Left", "Right", "Both Flanks"], default: "Balanced", verified: false },
       { section: "Progression", id: "progressThrough", name: "Progress Through", options: ["Balanced", "Left", "Middle", "Right", "Both Flanks"], default: "Balanced" },
-      { section: "Progression", id: "passReception", name: "Pass Reception", options: ["Pass To Feet", "Balanced", "Pass Into Space"], default: "Balanced" },
-      { section: "Build-Up", id: "buildUpStrategy", name: "Build-Up Strategy", options: ["Play Through Press", "Balanced", "Bypass Press"], default: "Balanced" },
-      { section: "Build-Up", id: "goalKicks", name: "Goal Kicks", options: ["Short", "Mixed", "Long"], default: "Mixed" },
-      { section: "Build-Up", id: "gkDistributionSpeed", name: "Goalkeeper Distribution Speed", options: ["Slow Pace Down", "Balanced", "Distribute Quickly"], default: "Balanced" },
+      { section: "Progression", id: "passReception", name: "Pass Reception", options: ["Pass To Feet", "Balanced", "Pass Into Space"], scale: true, default: "Balanced" },
+      { section: "Build-Up", id: "buildUpStrategy", name: "Build-Up Strategy", options: ["Play Through Press", "Balanced", "Bypass Press"], scale: true, default: "Balanced" },
+      { section: "Build-Up", id: "goalKicks", name: "Goal Kicks", options: ["Short", "Mixed", "Long"], scale: true, default: "Mixed" },
+      { section: "Build-Up", id: "gkDistributionSpeed", name: "Goalkeeper Distribution Speed", options: ["Slow Pace Down", "Balanced", "Distribute Quickly"], scale: true, default: "Balanced" },
       { section: "Build-Up", id: "gkDistribution", name: "Goalkeeper Distribution", options: ["Balanced", "Centre-Backs", "Full-Backs", "Flanks", "Playmaker", "Target Forward", "Over Opposition Defence"], default: "Balanced" }
     ],
     outOfPossession: [
-      { section: "Out of Possession", id: "lineOfEngagement", name: "Line of Engagement", options: ["High Press", "Mid Block", "Low Block"], default: "Mid Block" },
-      { section: "Out of Possession", id: "defensiveLine", name: "Defensive Line", options: ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], default: "Standard" },
-      { section: "Out of Possession", id: "defensiveLineBehaviour", name: "Defensive Line Behaviour", options: ["Step Up More", "Balanced", "Drop Off More"], default: "Balanced" },
-      { section: "Out of Possession", id: "triggerPress", name: "Trigger Press", options: ["Much Less Often", "Less Often", "Standard", "More Often", "Much More Often"], default: "Standard" },
-      { section: "Out of Possession", id: "defensiveTransition", name: "Defensive Transition", options: ["Counter-Press", "Standard", "Regroup"], default: "Standard" },
-      { section: "Out of Possession", id: "tackling", name: "Tackling", options: ["Get Stuck In", "Standard", "Stay On Feet"], default: "Standard" },
+      { section: "Out of Possession", id: "lineOfEngagement", name: "Line of Engagement", options: ["Low Block", "Mid Block", "High Press"], scale: true, default: "Mid Block" },
+      { section: "Out of Possession", id: "defensiveLine", name: "Defensive Line", options: ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], scale: true, default: "Standard" },
+      { section: "Out of Possession", id: "defensiveLineBehaviour", name: "Defensive Line Behaviour", options: ["Step Up More", "Balanced", "Drop Off More"], scale: true, default: "Balanced" },
+      { section: "Out of Possession", id: "triggerPress", name: "Trigger Press", options: ["Much Less Often", "Less Often", "Standard", "More Often", "Much More Often"], scale: true, default: "Standard" },
+      { section: "Out of Possession", id: "defensiveTransition", name: "Defensive Transition", options: ["Counter-Press", "Standard", "Regroup"], scale: true, default: "Standard" },
+      { section: "Out of Possession", id: "tackling", name: "Tackling", options: ["Get Stuck In", "Standard", "Stay On Feet"], scale: true, default: "Standard" },
       { section: "Out of Possession", id: "pressingTrap", name: "Pressing Trap", options: ["Trap Inside", "Balanced", "Trap Outside"], default: "Balanced" },
-      { section: "Out of Possession", id: "crossEngagement", name: "Cross Engagement", options: ["Stop Crosses", "Balanced", "Invite Crosses"], default: "Balanced" },
+      { section: "Out of Possession", id: "crossEngagement", name: "Cross Engagement", options: ["Stop Crosses", "Balanced", "Invite Crosses"], scale: true, default: "Balanced" },
       { section: "Out of Possession", id: "preventShortGkDistribution", name: "Prevent Short GK Distribution", options: ["No", "Yes"], default: "No" }
     ],
     playerInstructions: {
@@ -3991,141 +4306,380 @@
   function esc(s) {
     return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
-  function scoreClass(score2) {
-    if (score2 == null) return "s-none";
-    if (score2 >= 75) return "s-top";
-    if (score2 >= 65) return "s-good";
-    if (score2 >= 55) return "s-ok";
-    return "s-low";
+  function scoreClass(score) {
+    if (score == null) return "f0";
+    const s = Math.round(score);
+    if (s >= 75) return "f4";
+    if (s >= 65) return "f3";
+    if (s >= 55) return "f2";
+    return "f1";
   }
   function shortName(name) {
     const parts = String(name).trim().split(/\s+/);
     return parts.length > 1 ? parts[parts.length - 1] : parts[0];
   }
   var fmt = (n, d = 0) => n == null || Number.isNaN(n) ? "–" : Number(n).toFixed(d);
+  function fitChip(score, extra = "") {
+    if (score == null) return '<span class="fit f0">–</span>';
+    const w = Math.max(2, Math.min(100, score));
+    return `<span class="fit ${scoreClass(score)}${extra}" title="Fit ${fmt(score)} / 100"><span class="n">${fmt(score)}</span><span class="m" aria-hidden="true"><i style="width:${w.toFixed(0)}%"></i></span></span>`;
+  }
+  var phaseKey = (phase) => `<span class="key ${phase === "IP" ? "ip" : "oop"}" aria-hidden="true"></span>`;
+  var ICON = {
+    warn: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v3.6M8 11.6v.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    check: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    info: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 7.2v4M8 4.8v.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  };
 
   // src/report/pitch.js
   var W = 340;
   var H = 500;
-  var PAD_X = 26;
-  var PAD_TOP = 30;
+  var PAD_X = 28;
+  var PAD_TOP = 32;
   var PAD_BOTTOM = 58;
   var px = (x) => PAD_X + x / 100 * (W - 2 * PAD_X);
   var py = (y) => H - PAD_BOTTOM - y / 100 * (H - PAD_TOP - PAD_BOTTOM);
   function markings() {
-    const l = 'fill="none" stroke="var(--pitch-line)" stroke-width="2"';
+    const stripes = [];
+    const bands = 10;
+    const bh = (H - 24) / bands;
+    for (let i = 0; i < bands; i++) {
+      if (i % 2) stripes.push(`<rect x="12" y="${(12 + i * bh).toFixed(1)}" width="${W - 24}" height="${bh.toFixed(1)}" fill="var(--pitch-stripe)" />`);
+    }
+    const l = 'fill="none" stroke="var(--pitch-line)" stroke-width="1.25"';
+    const dot = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="1.8" fill="var(--pitch-line)" />`;
+    const top = 12;
+    const bot = H - 12;
     return [
-      `<rect x="4" y="4" width="${W - 8}" height="${H - 8}" rx="6" fill="var(--pitch)" />`,
-      `<rect x="12" y="12" width="${W - 24}" height="${H - 24}" ${l} />`,
+      `<rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="var(--pitch)" />`,
+      ...stripes,
+      `<rect x="12" y="${top}" width="${W - 24}" height="${H - 24}" ${l} />`,
       `<line x1="12" y1="${H / 2}" x2="${W - 12}" y2="${H / 2}" ${l} />`,
-      `<circle cx="${W / 2}" cy="${H / 2}" r="44" ${l} />`,
-      `<rect x="${W / 2 - 80}" y="12" width="160" height="62" ${l} />`,
-      `<rect x="${W / 2 - 80}" y="${H - 74}" width="160" height="62" ${l} />`,
-      `<rect x="${W / 2 - 34}" y="12" width="68" height="22" ${l} />`,
-      `<rect x="${W / 2 - 34}" y="${H - 34}" width="68" height="22" ${l} />`
+      `<circle cx="${W / 2}" cy="${H / 2}" r="42" ${l} />`,
+      dot(W / 2, H / 2),
+      // boxes, six-yard boxes, spots, arcs
+      `<rect x="${W / 2 - 80}" y="${top}" width="160" height="60" ${l} />`,
+      `<rect x="${W / 2 - 34}" y="${top}" width="68" height="20" ${l} />`,
+      dot(W / 2, top + 42),
+      `<path d="M ${W / 2 - 30} ${top + 60} A 34 34 0 0 0 ${W / 2 + 30} ${top + 60}" ${l} />`,
+      `<rect x="${W / 2 - 80}" y="${bot - 60}" width="160" height="60" ${l} />`,
+      `<rect x="${W / 2 - 34}" y="${bot - 20}" width="68" height="20" ${l} />`,
+      dot(W / 2, bot - 42),
+      `<path d="M ${W / 2 - 30} ${bot - 60} A 34 34 0 0 1 ${W / 2 + 30} ${bot - 60}" ${l} />`,
+      `<rect x="${W / 2 - 18}" y="${top - 5}" width="36" height="5" ${l} />`,
+      `<rect x="${W / 2 - 18}" y="${bot}" width="36" height="5" ${l} />`,
+      // corner arcs
+      `<path d="M 12 ${top + 7} A 7 7 0 0 0 19 ${top}" ${l} />`,
+      `<path d="M ${W - 19} ${top} A 7 7 0 0 0 ${W - 12} ${top + 7}" ${l} />`,
+      `<path d="M 12 ${bot - 7} A 7 7 0 0 1 19 ${bot}" ${l} />`,
+      `<path d="M ${W - 19} ${bot} A 7 7 0 0 1 ${W - 12} ${bot - 7}" ${l} />`
     ].join("");
   }
   function pitchSVG(items, slots, title) {
     const players = items.map((it) => {
       const [x, y] = slots[it.slot];
-      const cx = px(x);
-      const cy = py(y);
-      const cls = scoreClass(Math.round(it.score));
-      return `<g class="pl ${cls}">
-  <title>${esc(it.name)}: ${esc(it.roleName)} (${Math.round(it.score)})</title>
-  <circle cx="${cx}" cy="${cy}" r="17" class="dot" />
-  <text x="${cx}" y="${cy + 3.5}" class="abbr">${esc(it.abbr)}</text>
-  <text x="${cx}" y="${cy + 30}" class="nm">${esc(shortName(it.name))}</text>
-  <text x="${cx}" y="${cy + 41}" class="sc">${Math.round(it.score)}</text>
+      const cx = px(x).toFixed(1);
+      const cy = py(y).toFixed(1);
+      const s = Math.round(it.score);
+      return `<g class="pl ${scoreClass(it.score)}" tabindex="0">
+  <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}</title>
+  <circle cx="${cx}" cy="${cy}" r="22" class="hit" />
+  <circle cx="${cx}" cy="${cy}" r="15.5" class="dot" />
+  <text x="${cx}" y="${(+cy + 3.4).toFixed(1)}" class="abbr">${esc(it.abbr)}</text>
+  <text x="${cx}" y="${(+cy + 29).toFixed(1)}" class="nm">${esc(shortName(it.name))}</text>
+  <text x="${cx}" y="${(+cy + 40.5).toFixed(1)}" class="sc">${s}</text>
 </g>`;
     }).join("\n");
     return `<svg class="pitch" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">${markings()}${players}</svg>`;
   }
+  function movementSVG(lanes, slots, title) {
+    const marks = lanes.map((l) => {
+      const [x1, y1] = slots[l.oop];
+      const [x2, y2] = slots[l.ip];
+      const a = [px(x1), py(y1)];
+      const b = [px(x2), py(y2)];
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const len = Math.hypot(dx, dy);
+      let path = "";
+      if (len > 14) {
+        const ux = dx / len;
+        const uy = dy / len;
+        const s = [a[0] + ux * 8, a[1] + uy * 8];
+        const e = [b[0] - ux * 9, b[1] - uy * 9];
+        const h1 = [e[0] - ux * 6 - uy * 3.5, e[1] - uy * 6 + ux * 3.5];
+        const h2 = [e[0] - ux * 6 + uy * 3.5, e[1] - uy * 6 - ux * 3.5];
+        path = `<line x1="${s[0].toFixed(1)}" y1="${s[1].toFixed(1)}" x2="${e[0].toFixed(1)}" y2="${e[1].toFixed(1)}" class="mv" />
+  <path d="M ${h1[0].toFixed(1)} ${h1[1].toFixed(1)} L ${e[0].toFixed(1)} ${e[1].toFixed(1)} L ${h2[0].toFixed(1)} ${h2[1].toFixed(1)}" class="mv" />`;
+      }
+      return `<g class="mvg" tabindex="0"><title>${esc(l.player.name)}: ${esc(slots[l.oop][3])} out of possession → ${esc(slots[l.ip][3])} in possession</title>
+  ${path}
+  <circle cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="6" class="oopdot" />
+  <circle cx="${b[0].toFixed(1)}" cy="${b[1].toFixed(1)}" r="6" class="ipdot" />
+  <text x="${b[0].toFixed(1)}" y="${(b[1] + 19).toFixed(1)}" class="nm">${esc(shortName(l.player.name))}</text>
+</g>`;
+    }).join("\n");
+    return `<svg class="pitch move" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">${markings()}${marks}</svg>`;
+  }
+  var hasMovement = (lanes) => lanes.some((l) => l.ip !== l.oop);
 
   // src/report/report-css.js
   var REPORT_CSS = `
-.report {
-  --ink: #17202a; --muted: #5b6672; --line: #d9dee3; --soft: #f4f6f8; --card: #ffffff;
-  --accent: #1f6f50; --accent-soft: #e5f2ec; --warn: #8a5a00; --warn-soft: #fff4dc;
-  --pitch: #2f7d4f; --pitch-line: rgba(255,255,255,.75);
-  --s-top: #1b7a43; --s-good: #5d9b3a; --s-ok: #c08a12; --s-low: #b4473a; --s-none: #9aa3ab;
-  color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  max-width: 1120px; margin: 0 auto; padding: 8px 16px 48px; background: var(--card);
-}
+.report { max-width: 1180px; margin: 0 auto; padding: 4px 0 56px; color: var(--ink); font: 15px/1.55 var(--font); }
 .report * { box-sizing: border-box; }
-.report h1 { font-size: 28px; line-height: 1.2; margin: 4px 0 6px; }
-.report h2 { font-size: 21px; margin: 36px 0 10px; padding-top: 10px; border-top: 2px solid var(--ink); }
-.report h3 { font-size: 16px; margin: 22px 0 8px; }
+.report h1 { font-size: 30px; line-height: 1.15; margin: 2px 0 6px; letter-spacing: -.01em; font-weight: 700; }
+.report h2 { font-size: 20px; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; letter-spacing: -.005em; }
+.report h2 .num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 700; }
+.report h3 { font-size: 15.5px; margin: 26px 0 10px; display: flex; align-items: center; gap: 8px; }
+.report h3 .step { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px; background: var(--surface-3); color: var(--ink-2); font-size: 12px; font-weight: 700; }
+.report h4 { font-size: 12px; margin: 18px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 650; }
 .report p { margin: 6px 0; }
-.report .eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 700; color: var(--accent); }
-.report .meta { color: var(--muted); font-size: 13px; }
-.report .notice { border: 1px solid #e6c46a; background: var(--warn-soft); color: #4d3600; border-radius: 8px; padding: 10px 14px; margin: 14px 0; }
-.report .notice strong { color: #4d3600; }
-.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 12px 0 16px; }
-.report .kpi { background: var(--soft); border-radius: 8px; padding: 10px 12px; }
-.report .kpi .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-.report .kpi .v { font-size: 19px; font-weight: 700; }
-.report .pitches { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
-.report figure { margin: 0; }
-.report figcaption { font-weight: 700; margin: 0 0 6px; }
-.report figcaption span { font-weight: 400; color: var(--muted); }
-.report svg.pitch { width: 100%; max-width: 420px; height: auto; display: block; }
-.report .pl .dot { fill: #fff; stroke: var(--s-none); stroke-width: 3; }
-.report .pl.s-top .dot { stroke: var(--s-top); } .report .pl.s-good .dot { stroke: var(--s-good); }
-.report .pl.s-ok .dot { stroke: var(--s-ok); } .report .pl.s-low .dot { stroke: var(--s-low); }
-.report .pl text { text-anchor: middle; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
-.report .pl .abbr { font-size: 10px; font-weight: 800; fill: #17202a; }
-.report .pl .nm { font-size: 11.5px; font-weight: 700; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.45); stroke-width: 3px; }
-.report .pl .sc { font-size: 10px; fill: #e9f5ee; }
-.report table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0 4px; }
-.report th, .report td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
-.report th { background: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
-.report td.num, .report th.num { text-align: right; font-variant-numeric: tabular-nums; }
-.report .tablewrap { overflow-x: auto; }
-.report .score { display: inline-block; min-width: 34px; padding: 1px 6px; border-radius: 10px; text-align: center; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
-.report .score.s-top { background: var(--s-top); } .report .score.s-good { background: var(--s-good); }
-.report .score.s-ok { background: var(--s-ok); } .report .score.s-low { background: var(--s-low); } .report .score.s-none { background: var(--s-none); }
-.report table.matrix td, .report table.matrix th { padding: 4px 5px; text-align: center; }
-.report table.matrix td:first-child, .report table.matrix th:first-child { text-align: left; white-space: nowrap; }
-.report table.matrix .score { min-width: 30px; font-size: 12px; }
-.report table.matrix .best { outline: 2px solid var(--ink); outline-offset: 1px; }
-.report .phase-ip { color: #0f5e8c; } .report .phase-oop { color: #8c2f4b; }
-.report .tag { display: inline-block; font-size: 11.5px; padding: 0 6px; border-radius: 9px; background: var(--soft); color: var(--muted); margin: 1px 2px 1px 0; }
-.report .tag.warn { background: var(--warn-soft); color: var(--warn); }
-.report ul.notes { padding-left: 20px; margin: 6px 0; }
-.report ul.notes li.plus::marker { content: "+  "; color: var(--s-top); font-weight: 700; }
-.report ul.notes li.minus::marker { content: "–  "; color: var(--s-low); font-weight: 700; }
-.report ol.steps li { margin: 4px 0; }
-.report .legend { font-size: 12.5px; color: var(--muted); }
+.report a { color: var(--accent); }
+.report .eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: 11.5px; font-weight: 700; color: var(--accent); }
+.report .meta { color: var(--muted); font-size: 13px; margin: 0; }
 .report .muted { color: var(--muted); }
 .report .small { font-size: 12.5px; }
-.report h4 { font-size: 14px; margin: 16px 0 4px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-.report nav.toc { font-size: 13px; color: var(--muted); margin: 4px 0 8px; }
-.report nav.toc a { color: var(--accent); text-decoration: none; }
-.report table.settings td { vertical-align: top; }
-.report table.settings td:first-child { width: 22%; }
-.report table.settings td.setting { width: 20%; white-space: nowrap; }
-.report table.settings tr.unchanged td { color: var(--muted); }
-.report table.settings tr.unchanged td strong { color: var(--muted); font-weight: 600; }
-.report table.settings tr.changed td.setting strong { color: var(--accent); }
-.report td.why { font-size: 13px; }
-.report .pitches.small { grid-template-columns: repeat(auto-fit, minmax(220px, 300px)); }
+.report .ico { width: 14px; height: 14px; vertical-align: -2px; flex: none; }
+
+.report header.top { padding: 18px 2px 8px; }
+.report .notice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-left: 3px solid var(--warn-line);
+  background: var(--surface); border-radius: 10px; padding: 10px 14px; margin: 12px 0 4px; color: var(--ink-2); font-size: 14px; }
+.report .notice .ico { color: var(--warn); margin-top: 3px; }
+.report .notice strong { color: var(--ink); }
+.report nav.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
+.report nav.toc a { font-size: 12.5px; color: var(--ink-2); text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.report nav.toc a:hover { color: var(--ink); border-color: var(--line-2); }
+
+.report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: 70px; }
+.report .lede { color: var(--ink-2); max-width: 78ch; }
+
+/* stat tiles */
+.report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 20px; }
+.report .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px 12px; }
+.report .kpi .k { font-size: 12px; color: var(--muted); }
+.report .kpi .v { font-size: 18px; font-weight: 650; line-height: 1.25; margin-top: 2px; }
+.report .kpi .meter { height: 4px; border-radius: 2px; background: var(--line); margin-top: 9px; overflow: hidden; }
+.report .kpi .meter i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+
+/* pitches */
+.report .pitches { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 420px)); justify-content: center; gap: 22px 40px; align-items: start; }
+.report .pitches.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.report .pitches.small { grid-template-columns: repeat(auto-fit, minmax(210px, 320px)); gap: 14px 28px; }
+.report .pitches.small.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report figure { margin: 0; }
+.report figcaption { font-weight: 650; font-size: 14px; margin: 0 0 8px; display: flex; align-items: center; gap: 7px; }
+.report figcaption span.sub { font-weight: 400; color: var(--muted); }
+.report svg.pitch { width: 100%; max-width: 420px; height: auto; display: block; }
 .report .pitches.small svg.pitch { max-width: 300px; }
-.report td.delta.up { color: var(--s-top); font-weight: 700; }
-.report td.delta.down { color: var(--s-low); font-weight: 700; }
-.report tr.muted td { color: var(--muted); }
-.report .next { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; margin-top: 18px; }
-@media print {
-  .report { max-width: none; padding: 0; font-size: 12px; }
-  .report h2 { break-before: page; border-top: none; margin-top: 0; }
-  .report section.keep-with-prev h2 { break-before: auto; }
-  .report table, .report figure { break-inside: avoid; }
-  .report .tablewrap { overflow: visible; }
-  .report .score { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .report svg.pitch { max-width: 300px; }
-  .report nav.toc { display: none; }
-  .report table.settings td.setting { white-space: normal; }
+.report .pl { outline: none; cursor: default; }
+.report .pl .hit { fill: transparent; }
+.report .pl .dot { fill: var(--token); stroke: var(--line-2); stroke-width: 2.5; transition: stroke-width .12s; }
+.report .pl.f1 .dot { stroke: var(--fit-1); } .report .pl.f2 .dot { stroke: var(--fit-2); }
+.report .pl.f3 .dot { stroke: var(--fit-3); } .report .pl.f4 .dot { stroke: var(--fit-4); }
+.report .pl:hover .dot, .report .pl:focus .dot { stroke-width: 4; }
+.report .pitch text { text-anchor: middle; font-family: var(--font); }
+.report .pl .abbr { font-size: 9px; font-weight: 750; fill: var(--ink); letter-spacing: .02em; }
+.report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); paint-order: stroke; stroke: var(--pitch); stroke-width: 3.5px; stroke-linejoin: round; }
+.report .pl .sc { font-size: 9.5px; fill: var(--ink-2); font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--pitch); stroke-width: 3px; }
+.report .mvg { outline: none; }
+.report .mv { stroke: var(--ink-2); stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
+.report .oopdot { fill: var(--pitch); stroke: var(--oop); stroke-width: 2.5; }
+.report .ipdot { fill: var(--ip); stroke: var(--pitch); stroke-width: 2; }
+.report .mvg:hover .mv, .report .mvg:focus .mv { opacity: 1; stroke-width: 2; }
+
+/* keys and legends */
+.report .key { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; vertical-align: 0; }
+.report .key.ip { background: var(--ip); }
+.report .key.oop { background: var(--oop); }
+.report .key.ring { background: transparent; box-shadow: inset 0 0 0 2px var(--oop); }
+.report .legend { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin-top: 10px; }
+.report .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.report .legend .swatch { width: 26px; height: 4px; border-radius: 2px; display: inline-block; }
+
+/* fit chip: number + thin meter (one hue; brighter = better) */
+.report .fit { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.report .fit .n { font-weight: 650; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+.report .fit .m { width: 34px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; display: inline-block; }
+.report .fit .m i { display: block; height: 100%; border-radius: 2px; background: var(--fit-2); }
+.report .fit.f1 .m i { background: var(--fit-1); } .report .fit.f3 .m i { background: var(--fit-3); } .report .fit.f4 .m i { background: var(--fit-4); }
+.report .fit.f1 .n { color: var(--ink-2); }
+
+/* tables */
+.report .tablewrap { overflow-x: auto; }
+.report table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 6px 0 2px; }
+.report th, .report td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.report th { font-size: 11.5px; font-weight: 650; color: var(--muted); border-bottom-color: var(--line-2); white-space: nowrap; }
+.report tbody tr:hover td { background: var(--surface-2); }
+.report td.num, .report th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.report td .sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.report .role { display: inline; }
+.report .role .key { margin-right: 6px; vertical-align: 1px; }
+.report .role .ab { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.report .line { display: flex; align-items: center; gap: 8px; margin: 1px 0; }
+
+/* settings (team instructions) */
+.report table.settings td { padding: 10px 10px; }
+.report table.settings td.name { width: 24%; font-weight: 600; }
+.report table.settings td.val { width: 22%; }
+.report table.settings td.why { color: var(--ink-2); font-size: 13.2px; }
+.report table.settings tr.changed td.name::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin: 0 8px 2px -14px; vertical-align: middle; }
+.report table.settings td.name { padding-left: 22px; }
+.report table.settings tr.changed .v { font-weight: 650; color: var(--ink); }
+.report table.settings tr.unchanged .v { color: var(--muted); }
+.report table.settings tr.unchanged td.name { color: var(--ink-2); font-weight: 500; }
+.report table.settings tr.unchanged td.why { color: var(--muted); }
+.report .scale { display: flex; gap: 3px; margin-top: 6px; }
+.report .scale i { width: 15px; height: 4px; border-radius: 2px; background: var(--line-2); }
+.report .scale i.on { background: var(--accent); }
+.report tr.unchanged .scale i.on { background: var(--muted); }
+.report .deflabel { font-size: 11.5px; color: var(--muted); margin-left: 6px; }
+
+/* tags and notes */
+.report .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); margin: 1px 2px 1px 0; white-space: nowrap; }
+.report .tag.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.report .tag.accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.report ul.notes { list-style: none; padding: 0; margin: 6px 0; display: grid; gap: 6px; }
+.report ul.notes li { display: flex; gap: 10px; align-items: baseline; }
+.report ul.notes .pts { flex: none; width: 46px; text-align: right; font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--muted); }
+.report ul.notes li.plus .pts::before { content: "+"; }
+.report ol.steps { padding-left: 20px; margin: 6px 0 12px; color: var(--ink-2); }
+.report ol.steps li { margin: 4px 0; }
+.report ol.steps strong { color: var(--ink); }
+
+/* squad profile: diverging bars around the team level */
+.report .profile { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 6px 34px; }
+.report .pf-group h4 { margin-top: 14px; }
+.report .pf-row { position: relative; display: grid; grid-template-columns: minmax(150px, 1.25fr) 2fr 44px 38px; gap: 10px; align-items: center; padding: 4px 6px; border-radius: 6px; outline: none; }
+.report .pf-row:hover, .report .pf-row:focus { background: var(--surface-2); }
+.report .pf-label { font-size: 13px; color: var(--ink-2); line-height: 1.3; }
+.report .pf-chart { position: relative; height: 18px; }
+.report .pf-chart .grid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.report .pf-chart .zero { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 1px; background: var(--line-2); }
+.report .pf-chart .bar { position: absolute; top: 4px; height: 10px; }
+.report .pf-chart .bar.pos { left: 50%; background: var(--pos); border-radius: 0 4px 4px 0; }
+.report .pf-chart .bar.neg { right: 50%; background: var(--neg); border-radius: 4px 0 0 4px; }
+.report .pf-delta { font-size: 12.5px; font-weight: 650; font-variant-numeric: tabular-nums; text-align: right; color: var(--ink); }
+.report .pf-avg { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.report .pf-axis { display: grid; grid-template-columns: minmax(150px, 1.25fr) 2fr 44px 38px; gap: 10px; padding: 0 6px; font-size: 11px; color: var(--muted); }
+.report .pf-axis .ticks { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.report .tip { display: none; position: absolute; z-index: 5; left: 40%; top: calc(100% + 2px); min-width: 240px; max-width: 360px; background: var(--surface-3);
+  border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; color: var(--ink-2); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.report .tip strong { color: var(--ink); font-size: 14px; }
+.report .pf-row:hover .tip, .report .pf-row:focus .tip { display: block; }
+
+/* depth board */
+.report .board { display: grid; gap: 14px; }
+.report .board .line-label { text-align: center; font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 650; margin-bottom: 6px; }
+.report .board .cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.report .board .cards .pos-card { flex: 0 1 262px; min-width: 210px; }
+.report .pos-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 11px; }
+.report .pos-card.weak { border-left: 3px solid var(--warn-line); }
+.report .pos-card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.report .pos-card .hd strong { font-size: 14px; }
+.report .pos-card .hd .roles { font-size: 11.5px; color: var(--muted); display: inline-flex; gap: 8px; align-items: center; }
+.report .pos-card .roles span { display: inline-flex; align-items: center; gap: 4px; }
+.report .pos-card .roles .key { width: 7px; height: 7px; }
+.report .pos-card .who { display: grid; grid-template-columns: 16px 1fr auto; gap: 4px 6px; align-items: center; font-size: 13px; }
+.report .pos-card .who .rk { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.report .pos-card .who .nm1 { font-weight: 600; }
+.report .pos-card .who .dim { color: var(--ink-2); }
+.report .pos-card .flag { display: flex; gap: 5px; align-items: center; font-size: 12px; color: var(--warn); margin-top: 7px; }
+.report .pos-card .extra { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+
+/* weak areas */
+.report ol.weak { padding-left: 20px; display: grid; gap: 10px; }
+.report ol.weak .look { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+
+/* heatmap (role suitability): one hue, more = stronger; 2px surface gaps between cells */
+.report table.matrix { border-collapse: separate; border-spacing: 2px; font-size: 12.5px; width: auto; }
+.report table.matrix th, .report table.matrix td { border: 0; padding: 5px 4px; text-align: center; min-width: 38px; }
+.report table.matrix th { padding-bottom: 6px; font-size: 11.5px; color: var(--ink-2); }
+.report table.matrix th.ip { box-shadow: inset 0 -2px 0 var(--ip); }
+.report table.matrix th.oop { box-shadow: inset 0 -2px 0 var(--oop); }
+.report table.matrix td:first-child, .report table.matrix th:first-child { text-align: left; white-space: nowrap; padding-right: 12px; min-width: 150px; box-shadow: none; }
+.report table.matrix td.h { background: rgb(var(--heat) / var(--a)); border-radius: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.report table.matrix td.h.hi { color: var(--heat-ink-hi); font-weight: 600; }
+.report table.matrix td.h.best { box-shadow: inset 0 0 0 1px var(--ink-2); font-weight: 700; }
+.report table.matrix td.gap { min-width: 10px; padding: 0; }
+.report table.matrix tbody tr:hover td { background-color: transparent; }
+.report table.matrix tbody tr:hover td.h { filter: brightness(1.12); }
+.report .heatscale { display: inline-flex; align-items: center; gap: 8px; }
+.report .heatscale .bar { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgb(var(--heat) / .05), rgb(var(--heat) / .85)); }
+
+/* alternatives */
+.report .alt { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
+.report .alt:first-of-type { border-top: 0; padding-top: 0; }
+.report .alt .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+
+@media (max-width: 900px) {
+  .report .pitches.three, .report .pitches.small.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 }
+@media (max-width: 640px) {
+  .report section.card { padding: 18px 14px; }
+  .report .pf-row, .report .pf-axis { grid-template-columns: 1fr 44px 38px; }
+  .report .pf-row .pf-label { grid-column: 1 / -1; }
+  .report .pf-axis > span:first-child { display: none; }
+  .report .profile { grid-template-columns: 1fr; }
+  .report table.settings td.name, .report table.settings td.val { width: auto; }
+}
+@media print {
+  .report { max-width: none; padding: 0; font-size: 11.5px; }
+  .report section.card { box-shadow: none; border: 0; padding: 0; margin: 0 0 10px; break-before: page; background: none; }
+  .report .pitches, .report .pitches.small { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; gap: 12px 24px; }
+  .report .pitches.three, .report .pitches.small.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .report .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .report .profile { grid-template-columns: 1fr 1fr; gap: 4px 20px; }
+  .report .pf-row, .report .pf-axis { grid-template-columns: minmax(110px, 1.1fr) 1.6fr 36px 30px; }
+  .report section.card#overview { break-before: auto; }
+  .report nav.toc, .report .tip { display: none !important; }
+  .report table, .report figure, .report .pos-card, .report .pf-row { break-inside: avoid; }
+  .report .tablewrap { overflow: visible; }
+  .report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .report svg.pitch { max-width: 300px; margin: 0 auto; }
+  .report tbody tr:hover td { background: none; }
+}
+`;
+
+  // src/report/theme.js
+  var LIGHT = `
+  color-scheme: light;
+  --bg: #eef1ee; --surface: #fbfcfb; --surface-2: #f1f4f1; --surface-3: #e7ebe7;
+  --line: #dfe3de; --line-2: #c5cbc4;
+  --ink: #121513; --ink-2: #49514b; --muted: #747c76;
+  --accent: #068359; --accent-ink: #ffffff; --accent-soft: rgba(6, 131, 89, .10);
+  --ip: #2a78d6; --oop: #eb6834;
+  --pos: #2a78d6; --neg: #e34948; --mid: #e3e5e1;
+  --fit-1: #37bf89; --fit-2: #068359; --fit-3: #035c3e; --fit-4: #003823;
+  --heat: 6 131 89; --heat-ink-hi: var(--ink);
+  --warn: #9a6400; --warn-line: #e3a72f; --warn-soft: rgba(237, 161, 0, .12);
+  --pitch: #e3eee6; --pitch-stripe: #dbe8de; --pitch-line: rgba(18, 60, 34, .26); --token: #fbfcfb;
+  --shadow: 0 1px 2px rgba(16, 24, 18, .05), 0 6px 18px rgba(16, 24, 18, .05);
+`;
+  var DARK = `
+  color-scheme: dark;
+  --bg: #0d0f0e; --surface: #161917; --surface-2: #1c201e; --surface-3: #242926;
+  --line: #2a2f2c; --line-2: #3a403c;
+  --ink: #eef0ec; --ink-2: #b9bfb9; --muted: #868d87;
+  --accent: #14ac77; --accent-ink: #03150d; --accent-soft: rgba(20, 172, 119, .13);
+  --ip: #3987e5; --oop: #d95926;
+  --pos: #3987e5; --neg: #e66767; --mid: #383835;
+  --fit-1: #035c3e; --fit-2: #068359; --fit-3: #14ac77; --fit-4: #66e7ae;
+  --heat: 20 172 119; --heat-ink-hi: #03150d;
+  --warn: #fab219; --warn-line: #b7820f; --warn-soft: rgba(250, 178, 25, .10);
+  --pitch: #13201a; --pitch-stripe: #15241c; --pitch-line: rgba(226, 240, 230, .17); --token: #0e1411;
+  --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .28);
+`;
+  var THEME_CSS = `
+:root { ${DARK} }
+:root[data-theme="light"] { ${LIGHT} }
+@media print { :root:root { ${LIGHT} } }
+:root {
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius: 12px;
+}
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--accent-soft); }
 `;
 
   // src/report/render.js
@@ -4139,8 +4693,43 @@
     { title: "Attacking midfielders", positions: ["AM (C)"] },
     { title: "Strikers", positions: ["ST (C)"] }
   ];
-  var score = (v, extra = "") => `<span class="score ${scoreClass(v == null ? v : Math.round(v))}${extra}">${fmt(v)}</span>`;
+  var PROFILE_GROUPS = [
+    ["Physical and work rate", ["pace", "stamina", "workRate", "pressing", "aggression"]],
+    ["On the ball", ["passing", "technique", "composure", "buildUp", "creativity", "dribbling", "crossing", "longShots"]],
+    ["Defending", ["cbPace", "cbAerial", "cbReading", "tackling", "wideDefending", "centralDefending"]],
+    ["Attacking", ["fwdPace", "fwdMovement", "finishing", "aerialAttack"]],
+    ["Goalkeeper", ["gkSweeping", "gkDistribution", "gkAerial"]]
+  ];
+  var SHORT = {
+    pace: "Pace & acceleration",
+    stamina: "Stamina",
+    workRate: "Work rate & teamwork",
+    pressing: "Pressing",
+    aggression: "Aggression & bravery",
+    passing: "Passing & vision",
+    technique: "Technique & first touch",
+    composure: "Composure & decisions",
+    buildUp: "Playing out from the back",
+    creativity: "Midfield creativity",
+    dribbling: "Dribbling & flair",
+    crossing: "Crossing",
+    longShots: "Long shots",
+    cbPace: "Centre-backs: pace",
+    cbAerial: "Centre-backs: in the air",
+    cbReading: "Centre-backs: reading the game",
+    tackling: "Tackling & marking",
+    wideDefending: "Wide defending",
+    centralDefending: "Central defending",
+    fwdPace: "Front line: pace",
+    fwdMovement: "Front line: movement",
+    finishing: "Finishing",
+    aerialAttack: "Strikers: in the air",
+    gkSweeping: "Keeper: sweeping",
+    gkDistribution: "Keeper: distribution",
+    gkAerial: "Keeper: in the air"
+  };
   var slotLabel = (slots, code) => slots[code][3];
+  var signed = (n, d = 1) => `${n >= 0 ? "+" : "−"}${fmt(Math.abs(n), d)}`;
   function bySlotOrder(slots, key) {
     return (a, b) => {
       const [ax, ay] = slots[a[key]];
@@ -4148,6 +4737,7 @@
       return ay - by || ax - bx;
     };
   }
+  var role = (phase, r) => `<span class="role">${phaseKey(phase)}${esc(r.name)} <span class="ab">${esc(r.abbr)}</span></span>`;
   function laneNotes(lane) {
     const notes = [];
     for (const [phase, s, slot] of [["IP", lane.ipScore, lane.ip], ["OOP", lane.oopScore, lane.oop]]) {
@@ -4157,46 +4747,61 @@
       }
       if (s.footFactor < 0.96) notes.push(`<span class="tag warn">${phase}: weaker foot for this side</span>`);
       if (s.hi - s.lo >= 6) notes.push(`<span class="tag warn">${phase}: ±${fmt((s.hi - s.lo) / 2)} (scouting ranges)</span>`);
-      if (s.missingShare > 0.35) notes.push(`<span class="tag warn">${phase}: some key attributes unknown</span>`);
+      if (s.missingShare > 0.35) notes.push(`<span class="tag warn">${phase}: key attributes unknown</span>`);
     }
     if (lane.player.condition != null && lane.player.condition < 85) notes.push(`<span class="tag warn">Condition ${fmt(lane.player.condition)}%</span>`);
     return [...new Set(notes)].join(" ");
   }
+  function fitLegend() {
+    return `<div class="legend">
+  <span>Ring and meter = fit for the role (0–100)</span>
+  <span><i class="swatch" style="background:var(--fit-1)"></i>under 55</span>
+  <span><i class="swatch" style="background:var(--fit-2)"></i>55–64</span>
+  <span><i class="swatch" style="background:var(--fit-3)"></i>65–74</span>
+  <span><i class="swatch" style="background:var(--fit-4)"></i>75+</span>
+</div>`;
+  }
   function pitches(system, slots, small = false) {
     const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score }));
     const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score }));
-    return `<div class="pitches${small ? " small" : ""}">
-    <figure><figcaption class="phase-ip">In possession <span>· ${esc(system.ipName)}</span></figcaption>${pitchSVG(ipItems, slots, "In possession shape")}</figure>
-    <figure><figcaption class="phase-oop">Out of possession <span>· ${esc(system.oopName)}</span></figcaption>${pitchSVG(oopItems, slots, "Out of possession shape")}</figure>
+    const move = hasMovement(system.lanes) ? `<figure><figcaption><span class="key ip"></span>Movement between phases</figcaption>${movementSVG(system.lanes, slots, "How players move between the two shapes")}
+<div class="legend"><span><span class="key ring"></span>out of possession</span><span><span class="key ip"></span>in possession</span></div></figure>` : "";
+    return `<div class="pitches${small ? " small" : ""}${move ? " three" : ""}">
+    <figure><figcaption>${phaseKey("IP")}In possession <span class="sub">· ${esc(system.ipName)}</span></figcaption>${pitchSVG(ipItems, slots, "In possession shape")}</figure>
+    <figure><figcaption>${phaseKey("OOP")}Out of possession <span class="sub">· ${esc(system.oopName)}</span></figcaption>${pitchSVG(oopItems, slots, "Out of possession shape")}</figure>
+    ${move}
   </div>`;
   }
   function overview(result) {
     const { best, instructions: ins, ctx } = result;
     return `
-<section id="overview">
-  <h2>1. The tactic at a glance</h2>
+<section id="overview" class="card">
+  <h2><span class="num">1</span>The tactic at a glance</h2>
   <div class="kpis">
     <div class="kpi"><div class="k">Style to start from</div><div class="v">${esc(ins.style.value || "Any (custom)")}</div></div>
     <div class="kpi"><div class="k">Mentality</div><div class="v">${esc(ins.mentality.value)}</div></div>
     <div class="kpi"><div class="k">In possession</div><div class="v">${esc(best.ipName)}</div></div>
     <div class="kpi"><div class="k">Out of possession</div><div class="v">${esc(best.oopName)}</div></div>
     <div class="kpi"><div class="k">Pressing</div><div class="v">${esc(ins.values.lineOfEngagement)}</div></div>
-    <div class="kpi"><div class="k">Team fit (0–100)</div><div class="v">${fmt(best.fit, 1)}</div></div>
+    <div class="kpi"><div class="k">Team fit</div><div class="v">${fmt(best.fit, 1)} <span class="muted small">/ 100</span></div><div class="meter"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div></div>
   </div>
   ${pitches(best, ctx.slots)}
-  <p class="legend">Each circle shows the role's FM27 abbreviation, the player's surname and his fit score for that role (0–100; ring colour:
-  <span class="score s-top">75+</span> excellent, <span class="score s-good">65+</span> good, <span class="score s-ok">55+</span> usable, <span class="score s-low">&lt;55</span> weak).</p>
+  ${fitLegend()}
 </section>`;
+  }
+  function scale(item) {
+    if (!item.scale) return "";
+    return `<span class="scale" aria-hidden="true">${item.options.map((o) => `<i class="${o === item.value ? "on" : ""}" title="${esc(o)}"></i>`).join("")}</span>`;
   }
   function settingsTable(items) {
     const rows = items.map(
       (i) => `<tr class="${i.changed ? "changed" : "unchanged"}">
-  <td><strong>${esc(i.name)}</strong>${i.verified === false ? ' <span class="tag">check label in-game</span>' : ""}</td>
-  <td class="setting">${i.changed ? `<strong>${esc(i.value)}</strong>` : esc(i.value)}${i.changed ? "" : ' <span class="muted small">(default)</span>'}</td>
+  <td class="name">${esc(i.name)}${i.verified === false ? ' <span class="tag">check label in-game</span>' : ""}</td>
+  <td class="val"><span class="v">${esc(i.value)}</span>${i.changed ? "" : '<span class="deflabel">default</span>'}${scale(i)}</td>
   <td class="why">${esc(i.reason)}${i.note ? ` <span class="muted">${esc(i.note)}</span>` : ""}</td>
 </tr>`
     ).join("\n");
-    return `<div class="tablewrap"><table class="settings"><thead><tr><th>Setting</th><th>Set to</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="tablewrap"><table class="settings"><thead><tr><th style="padding-left:22px">Setting</th><th>Set to</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function swing(side, taker) {
     if (!taker) return "";
@@ -4211,42 +4816,42 @@
     const lanes = best.lanes.slice().sort(bySlotOrder(slots, "ip"));
     const roleRows = lanes.map(
       (l) => `<tr>
-  <td><strong>${esc(l.player.name)}</strong><div class="small muted">${esc(l.player.positionsText || [...l.player.positions].join(", "))}</div></td>
+  <td><strong>${esc(l.player.name)}</strong><div class="sub">${esc(l.player.positionsText || [...l.player.positions].join(", "))}</div></td>
   <td>${esc(slotLabel(slots, l.ip))}</td>
-  <td><span class="phase-ip">${esc(l.ipRole.name)}</span> <span class="muted small">(${esc(l.ipRole.abbr)})</span></td>
-  <td class="num">${score(l.ipScore.score)}</td>
+  <td>${role("IP", l.ipRole)}</td>
+  <td class="num">${fitChip(l.ipScore.score)}</td>
   <td>${esc(slotLabel(slots, l.oop))}</td>
-  <td><span class="phase-oop">${esc(l.oopRole.name)}</span> <span class="muted small">(${esc(l.oopRole.abbr)})</span></td>
-  <td class="num">${score(l.oopScore.score)}</td>
+  <td>${role("OOP", l.oopRole)}</td>
+  <td class="num">${fitChip(l.oopScore.score)}</td>
   <td>${laneNotes(l)}</td>
 </tr>`
     ).join("\n");
     const sections = ["Overview", "Final Third", "Progression", "Build-Up"];
     const ipTables = sections.map((sec) => `<h4>In Possession › ${esc(sec)}</h4>${settingsTable(ins.ip.filter((i) => i.section === sec))}`).join("\n");
     const piRows = result.playerInstructions.filter((x) => x.items.length).sort((a, b) => bySlotOrder(slots, "ip")(a.lane, b.lane)).map(
-      (x) => `<tr><td><strong>${esc(x.player.name)}</strong><div class="small muted">${esc(x.lane.ipRole.name)} / ${esc(x.lane.oopRole.name)}</div></td>
-<td>${x.items.map((i) => `<div><span class="${i.phase === "IP" ? "phase-ip" : "phase-oop"}">${esc(i.phase)}</span> ${esc(i.name)}: <strong>${esc(i.value)}</strong></div>`).join("")}</td>
-<td>${x.items.map((i) => `<div>${esc(i.reason)}</div>`).join("")}</td></tr>`
+      (x) => `<tr><td><strong>${esc(x.player.name)}</strong><div class="sub">${esc(x.lane.ipRole.name)} / ${esc(x.lane.oopRole.name)}</div></td>
+<td>${x.items.map((i) => `<div class="line">${phaseKey(i.phase)}<span>${esc(i.name)}: <strong>${esc(i.value)}</strong></span></div>`).join("")}</td>
+<td class="muted">${x.items.map((i) => `<div>${esc(i.reason)}</div>`).join("")}</td></tr>`
     ).join("\n");
-    const who = (t) => t ? `<strong>${esc(t.name)}</strong>${t.foot ? ` <span class="muted small">(${esc(t.foot)})</span>` : ""}` : "–";
+    const who = (t) => t ? `<strong>${esc(t.name)}</strong>${t.foot ? ` <span class="muted small">${esc(t.foot)}</span>` : ""}` : "–";
     const changedCount = [...ins.ip, ...ins.oop].filter((i) => i.changed).length;
     return `
-<section id="setup">
-  <h2>2. Enter it in FM27</h2>
-  <p>Work through these steps in order; they follow the FM27 tactics screens. ${changedCount} of the ${ins.ip.length + ins.oop.length} team
-  instructions differ from FM's defaults (shown in <strong>bold</strong>); leave the rest as they are.</p>
+<section id="setup" class="card">
+  <h2><span class="num">2</span>Enter it in FM27</h2>
+  <p class="lede">Work through these steps in order; they follow the FM27 tactics screens. <strong>${changedCount}</strong> of the
+  ${ins.ip.length + ins.oop.length} team instructions differ from FM's defaults (marked with a dot); leave the rest as they are.</p>
 
-  <h3>Step 1 · Style and mentality</h3>
+  <h3><span class="step">1</span>Style and mentality</h3>
   <div class="tablewrap"><table class="settings"><tbody>
-    <tr class="changed"><td><strong>Style</strong></td><td class="setting"><strong>${esc(ins.style.value || "Any")}</strong></td><td class="why">${esc(ins.style.reason)}</td></tr>
-    <tr class="changed"><td><strong>Mentality</strong></td><td class="setting"><strong>${esc(ins.mentality.value)}</strong></td><td class="why">${esc(ins.mentality.reason)}</td></tr>
+    <tr class="changed"><td class="name">Style</td><td class="val"><span class="v">${esc(ins.style.value || "Any")}</span></td><td class="why">${esc(ins.style.reason)}</td></tr>
+    <tr class="changed"><td class="name">Mentality</td><td class="val"><span class="v">${esc(ins.mentality.value)}</span>${mentalityScale(ins.mentality.value, ctx)}</td><td class="why">${esc(ins.mentality.reason)}</td></tr>
   </tbody></table></div>
 
-  <h3>Step 2 · Formations, players and roles</h3>
+  <h3><span class="step">2</span>Formations, players and roles</h3>
   <ol class="steps">
-    <li>Switch the pitch to <strong>In Possession</strong> and choose <strong>${esc(best.ipName)}</strong> (or drag players until it matches the left-hand pitch above).</li>
-    <li>Put each player in his <em>IP spot</em> below with his <span class="phase-ip">in-possession role</span>.</li>
-    <li>Switch to <strong>Out of Possession</strong>, choose <strong>${esc(best.oopName)}</strong> and set each player's <em>OOP spot</em> and <span class="phase-oop">out-of-possession role</span>.</li>
+    <li>Switch the pitch to <strong>In Possession</strong> and choose <strong>${esc(best.ipName)}</strong> (or drag players until it matches the in-possession pitch above).</li>
+    <li>Put each player in his <strong>IP spot</strong> below with his in-possession role ${phaseKey("IP")}.</li>
+    <li>Switch to <strong>Out of Possession</strong>, choose <strong>${esc(best.oopName)}</strong> and set each player's <strong>OOP spot</strong> and out-of-possession role ${phaseKey("OOP")}.</li>
     <li>FM27 roles have no duties, so there is nothing else to pick per player.</li>
   </ol>
   <div class="tablewrap"><table>
@@ -4254,163 +4859,219 @@
     <tbody>${roleRows}</tbody>
   </table></div>
 
-  <h3>Step 3 · Team Instructions › In Possession</h3>
+  <h3><span class="step">3</span>Team Instructions › In Possession</h3>
   ${ipTables}
 
-  <h3>Step 4 · Team Instructions › Out of Possession</h3>
+  <h3><span class="step">4</span>Team Instructions › Out of Possession</h3>
   ${settingsTable(ins.oop)}
-  <p class="legend">Setting names follow FM27 as closely as public sources allow. If a label in your game is worded slightly differently,
-  pick the option with the same meaning.</p>
+  <p class="legend">The bars under a setting show where it sits on FM27's scale. Names follow FM27 as closely as public sources allow; if a label
+  in your game is worded slightly differently, pick the option with the same meaning.</p>
 
-  <h3>Step 5 · Player instructions</h3>
+  <h3><span class="step">5</span>Player instructions</h3>
   ${piRows ? `<div class="tablewrap"><table><thead><tr><th>Player</th><th>Instruction</th><th>Why</th></tr></thead><tbody>${piRows}</tbody></table></div>` : "<p>None needed: the roles already cover what these players do.</p>"}
   <p class="legend">Only where a player's attributes or traits clearly call for it. Player instruction names are the least certain labels in
   FM27: if one isn't offered for that role, skip it.</p>
 
-  <h3>Step 6 · Set pieces and captain</h3>
+  <h3><span class="step">6</span>Set pieces and captain</h3>
   <div class="tablewrap"><table class="settings"><tbody>
-    <tr><td><strong>Captain</strong></td><td>${who(captain.captain)}</td><td class="why">${esc(captain.captain?.why || "")}</td></tr>
-    <tr><td><strong>Vice-captain</strong></td><td>${who(captain.vice)}</td><td class="why">${esc(captain.vice?.why || "")}</td></tr>
-    <tr><td><strong>Corners (left)</strong></td><td>${who(sp.cornersLeft)}</td><td class="why">${esc(swing("left", sp.cornersLeft))}</td></tr>
-    <tr><td><strong>Corners (right)</strong></td><td>${who(sp.cornersRight)}</td><td class="why">${esc(swing("right", sp.cornersRight))}</td></tr>
-    <tr><td><strong>Free kicks (shots)</strong></td><td>${who(sp.directFreeKicks)}</td><td class="why">Free Kick Taking, Technique and Long Shots.</td></tr>
-    <tr><td><strong>Free kicks (crosses)</strong></td><td>${who(sp.indirectFreeKicks)}</td><td class="why">Free Kick Taking and Crossing.</td></tr>
-    <tr><td><strong>Penalties (in order)</strong></td><td colspan="2">${sp.penalties.map((p, i) => `${i + 1}. ${esc(p?.name || "")}`).join(" &nbsp; ")}</td></tr>
-    <tr><td><strong>Long throws</strong></td><td colspan="2">${sp.longThrows ? who(sp.longThrows) : "Nobody has a long throw worth using."}</td></tr>
-    <tr><td><strong>Attack the ball</strong></td><td colspan="2">${sp.aerialTargets.slice(0, 3).map((t) => `${esc(t.name)}${t.height ? ` <span class="muted small">(${t.height} cm)</span>` : ""}`).join(", ")}</td></tr>
-    <tr><td><strong>Stay back</strong></td><td colspan="2">${sp.stayBack.map((t) => esc(t?.name || "")).join(", ")} <span class="muted small">(quickest defenders who aren't aerial targets, to stop counter-attacks)</span></td></tr>
+    <tr><td class="name">Captain</td><td class="val">${who(captain.captain)}</td><td class="why">${esc(captain.captain?.why || "")}</td></tr>
+    <tr><td class="name">Vice-captain</td><td class="val">${who(captain.vice)}</td><td class="why">${esc(captain.vice?.why || "")}</td></tr>
+    <tr><td class="name">Corners (left)</td><td class="val">${who(sp.cornersLeft)}</td><td class="why">${esc(swing("left", sp.cornersLeft))}</td></tr>
+    <tr><td class="name">Corners (right)</td><td class="val">${who(sp.cornersRight)}</td><td class="why">${esc(swing("right", sp.cornersRight))}</td></tr>
+    <tr><td class="name">Free kicks (shots)</td><td class="val">${who(sp.directFreeKicks)}</td><td class="why">Free Kick Taking, Technique and Long Shots.</td></tr>
+    <tr><td class="name">Free kicks (crosses)</td><td class="val">${who(sp.indirectFreeKicks)}</td><td class="why">Free Kick Taking and Crossing.</td></tr>
+    <tr><td class="name">Penalties (in order)</td><td colspan="2">${sp.penalties.map((p, i) => `<span class="muted">${i + 1}.</span> ${esc(p?.name || "")}`).join(" &nbsp; ")}</td></tr>
+    <tr><td class="name">Long throws</td><td colspan="2">${sp.longThrows ? who(sp.longThrows) : '<span class="muted">Nobody has a long throw worth using.</span>'}</td></tr>
+    <tr><td class="name">Attack the ball</td><td colspan="2">${sp.aerialTargets.slice(0, 3).map((t) => `${esc(t.name)}${t.height ? ` <span class="muted small">${t.height} cm</span>` : ""}`).join(" &nbsp;·&nbsp; ")}</td></tr>
+    <tr><td class="name">Stay back</td><td colspan="2">${sp.stayBack.map((t) => esc(t?.name || "")).join(" &nbsp;·&nbsp; ")} <span class="muted small">quickest defenders who aren't aerial targets, to stop counter-attacks</span></td></tr>
   </tbody></table></div>
 </section>`;
+  }
+  function mentalityScale(value, ctx) {
+    const list = ctx.instructionsDoc.mentalities;
+    return `<span class="scale" aria-hidden="true">${list.map((m) => `<i class="${m === value ? "on" : ""}" title="${esc(m)}"></i>`).join("")}</span>`;
+  }
+  function profileChart(profile) {
+    const range = 4;
+    const pct = (d) => Math.min(range, Math.abs(d)) / range * 50;
+    const row = (m) => {
+      const bar = m.delta >= 0 ? `<span class="bar pos" style="width:${pct(m.delta).toFixed(1)}%"></span>` : `<span class="bar neg" style="width:${pct(m.delta).toFixed(1)}%"></span>`;
+      return `<div class="pf-row" tabindex="0">
+  <span class="pf-label">${esc(SHORT[m.key] || m.label)}</span>
+  <span class="pf-chart"><span class="grid" style="left:25%"></span><span class="grid" style="left:75%"></span><span class="zero"></span>${bar}</span>
+  <span class="pf-delta">${signed(m.delta)}</span>
+  <span class="pf-avg">${fmt(m.value, 1)}</span>
+  <span class="tip"><strong>${esc(m.label)}</strong><br>${fmt(m.value, 1)} average · ${signed(m.delta)} vs your team level (${fmt(profile.level, 1)})<br>
+  ${esc(m.attrs.join(", "))}<br><span class="muted">${esc(m.players.join(", "))}</span></span>
+</div>`;
+    };
+    const groups = PROFILE_GROUPS.map(([title, keys]) => {
+      const rows = keys.map((k) => profile.metrics[k]).filter((m) => m && m.value != null);
+      if (!rows.length) return "";
+      return `<div class="pf-group"><h4>${esc(title)}</h4>
+<div class="pf-axis"><span></span><span class="ticks"><span>−4</span><span>−2</span><span>level</span><span>+2</span><span>+4</span></span><span style="text-align:right">vs level</span><span style="text-align:right">avg</span></div>
+${rows.map(row).join("\n")}</div>`;
+    }).join("\n");
+    return `<div class="profile">${groups}</div>
+<div class="legend"><span><i class="swatch" style="background:var(--pos)"></i>above your team's level</span><span><i class="swatch" style="background:var(--neg)"></i>below it</span><span>Hover a row for the attributes and players behind it.</span></div>`;
   }
   function why(result) {
     const { search, best, profile, ctx } = result;
     const { ranking, tested } = search;
     const balanceNotes = best.balance.notes.filter((n) => !n.plan);
     const planNotes = best.balance.notes.filter((n) => n.plan);
-    const noteList = (list) => list.length ? `<ul class="notes">${list.map((n) => `<li class="${n.points >= 0 ? "plus" : "minus"}">${esc(n.text)} <span class="muted small">(${n.points > 0 ? "+" : ""}${fmt(n.points, 1)})</span></li>`).join("")}</ul>` : '<p class="muted">Nothing to note.</p>';
+    const noteList = (list) => list.length ? `<ul class="notes">${list.map((n) => `<li class="${n.points >= 0 ? "plus" : "minus"}"><span class="pts">${n.points >= 0 ? "" : "−"}${fmt(Math.abs(n.points), 1)}</span><span>${esc(n.text)}</span></li>`).join("")}</ul>` : '<p class="muted">Nothing to note.</p>';
     const top = ranking.slice(0, ctx.search.topSystems);
     const rows = top.map(
-      (r, i) => `<tr${i === 0 ? ' style="font-weight:700"' : ""}><td>${i + 1}</td><td>${esc(r.ipName)}</td><td>${esc(r.oopName)}</td>
-  <td class="num">${fmt(r.fit, 1)}</td><td class="num">${r.balance.points >= 0 ? "+" : ""}${fmt(r.balance.points, 1)}</td>
+      (r, i) => `<tr${i === 0 ? ' style="font-weight:650"' : ""}><td>${i === 0 ? ICON.check : i + 1}</td><td>${esc(r.ipName)}</td><td>${esc(r.oopName)}</td>
+  <td class="num">${fmt(r.fit, 1)}</td><td class="num">${signed(r.balance.points)}</td>
   <td class="num">${r.complexity >= 0.05 ? "−" : ""}${fmt(r.complexity, 1)}</td><td class="num">${fmt(r.score, 1)}</td></tr>`
     ).join("");
     const runnerUp = top[1];
     const gap = runnerUp ? best.score - runnerUp.score : 0;
-    const metricRows = Object.values(profile.metrics).filter((m) => m.value != null).map((m) => {
-      const cls = m.delta >= 1 ? "up" : m.delta <= -1 ? "down" : "";
-      return `<tr><td>${esc(m.label)}</td><td class="small muted">${esc(m.players.map(shortName).join(", "))}</td><td class="num">${fmt(m.value, 1)}</td><td class="num delta ${cls}">${m.delta >= 0 ? "+" : ""}${fmt(m.delta, 1)}</td></tr>`;
-    }).join("");
+    const v = result.instructions.values;
     return `
-<section id="why">
-  <h2>3. Why this tactic</h2>
-  <p>The tool tested <strong>${tested}</strong> combinations of in-possession and out-of-possession formations. For each one it chose the best
+<section id="why" class="card">
+  <h2><span class="num">3</span>Why this tactic</h2>
+  <p class="lede">The tool tested <strong>${tested}</strong> pairs of in-possession and out-of-possession formations. For each one it chose the best
   eleven with the Hungarian algorithm (an exact method: no other line-up of your players fits that system better), then picked each player's
-  two roles for fit, team balance and the game plan below.</p>
-  ${runnerUp && gap < 1 ? `<p>The top systems are close (${fmt(gap, 1)} points apart), so the runners-up below would also suit this squad.</p>` : ""}
-  <h3>Game plan</h3>
-  <p>Pressing: <strong>${esc(result.instructions.values.lineOfEngagement)}</strong> · Build-up: <strong>${esc(result.instructions.values.buildUpStrategy)}</strong>
-  · On winning the ball: <strong>${esc(result.instructions.values.attackingTransition)}</strong>. The out-of-possession shape and roles were scored on how
-  well they suit this plan:</p>
+  two roles for fit, team balance and the game plan.${runnerUp && gap < 1 ? ` The top systems are close (${fmt(gap, 1)} points apart), so the runners-up would also suit this squad.` : ""}</p>
+  <div class="kpis">
+    <div class="kpi"><div class="k">Pressing</div><div class="v">${esc(v.lineOfEngagement)}</div></div>
+    <div class="kpi"><div class="k">Build-up</div><div class="v">${esc(v.buildUpStrategy)}</div></div>
+    <div class="kpi"><div class="k">On winning the ball</div><div class="v">${esc(v.attackingTransition)}</div></div>
+  </div>
+  <h3>How the shapes suit the game plan</h3>
   ${noteList(planNotes)}
   <h3>Team balance</h3>
   ${noteList(balanceNotes)}
   <h3>Best systems tested</h3>
   <div class="tablewrap"><table>
-    <thead><tr><th>#</th><th>In possession</th><th>Out of possession</th><th class="num">Fit</th><th class="num">Balance + plan</th><th class="num">Complexity</th><th class="num">Total</th></tr></thead>
+    <thead><tr><th></th><th>In possession</th><th>Out of possession</th><th class="num">Fit</th><th class="num">Balance + plan</th><th class="num">Complexity</th><th class="num">Total</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>
   <p class="legend">Fit = average of the eleven players' role scores (half in possession, half out of possession). Complexity = a small
   deduction when players move a long way between the two shapes, because FM27 makes complex tactics harder to learn.</p>
   <h3>Squad profile</h3>
-  <p>Each line is the average of those attributes for the players named, compared with your team's general level of
-  <strong>${fmt(profile.level, 1)}</strong> (the average of all their outfield attributes). Comparing with your own level means the advice suits
-  your league, whatever its standard.</p>
-  <div class="tablewrap"><table class="profile"><thead><tr><th>Area</th><th>Players</th><th class="num">Average</th><th class="num">vs level</th></tr></thead><tbody>${metricRows}</tbody></table></div>
+  <p class="lede">Each bar compares a part of your starting XI with the team's own general level of <strong>${fmt(profile.level, 1)}</strong>
+  (the average of all their outfield attributes). Measuring against your own level means the advice suits your league, whatever its standard.
+  The team instructions in section 2 come from these bars.</p>
+  ${profileChart(profile)}
 </section>`;
   }
   function depth(result) {
     const { depth: dc, ctx } = result;
     const slots = ctx.slots;
-    const rows = dc.lanes.slice().sort((a, b) => bySlotOrder(slots, "ip")(a.lane, b.lane)).map((d) => {
-      const others = d.options.filter((o) => o.player !== d.secondChoice?.player).slice(0, 2).map((o) => `${esc(o.player.name)} ${score(o.value)}${o.injured ? ' <span class="tag warn">injured</span>' : ""}`).join("<br>");
-      const loan = d.loanOptions.map((o) => `${esc(o.player.name)} ${score(o.value)} <span class="muted small">on loan at ${esc(o.player.club || "?")}</span>`).join("<br>");
-      return `<tr><td><strong>${esc(slotLabel(slots, d.lane.ip))}</strong><div class="small muted">${esc(d.lane.ipRole.abbr)} / ${esc(d.lane.oopRole.abbr)}</div></td>
-<td>${esc(d.starter.name)} ${score(d.starterValue)}</td>
-<td>${d.secondChoice ? `${esc(d.secondChoice.player.name)} ${score(d.secondChoice.value)}` : '<span class="tag warn">nobody</span>'}</td>
-<td>${others || "–"}</td><td>${loan || ""}</td></tr>`;
-    }).join("\n");
-    const weak = dc.weakAreas.length ? `<ol>${dc.weakAreas.map(
-      (w) => `<li><strong>${esc(slotLabel(slots, w.lane.ip))} – ${esc(w.lane.ipRole.name)} / ${esc(w.lane.oopRole.name)}:</strong> ${esc(w.reasons.join("; "))}.
-<div class="small">Look for: ${w.lookFor.map((a) => `${esc(a.attr)}${a.starter != null ? ` <span class="muted">(${esc(w.lane.player.name.split(" ").pop())} ${a.starter})</span>` : ""}`).join(", ")}</div></li>`
-    ).join("")}</ol>` : "<p>No weak areas: every position has a good starter and reasonable cover.</p>";
+    const weakSet = new Set(dc.weakAreas.map((w) => w.lane));
+    const lines = [
+      ["Attack", (y) => y >= 62],
+      ["Midfield", (y) => y >= 30 && y < 62],
+      ["Defence", (y) => y > 10 && y < 30],
+      ["Goalkeeper", (y) => y <= 10]
+    ];
+    const card = (d) => {
+      const others = d.options.filter((o) => o.player !== d.secondChoice?.player).slice(0, 2);
+      const extra = [
+        ...others.map((o) => `${esc(o.player.name)} ${fmt(o.value)}${o.injured ? " (injured)" : ""}`),
+        ...d.loanOptions.map((o) => `${esc(o.player.name)} ${fmt(o.value)} (on loan at ${esc(o.player.club || "?")})`)
+      ];
+      const weak2 = weakSet.has(d.lane);
+      return `<div class="pos-card${weak2 ? " weak" : ""}">
+  <div class="hd"><strong>${esc(slotLabel(slots, d.lane.ip))}</strong>
+    <span class="roles"><span>${phaseKey("IP")}${esc(d.lane.ipRole.abbr)}</span><span>${phaseKey("OOP")}${esc(d.lane.oopRole.abbr)}</span></span></div>
+  <div class="who">
+    <span class="rk">1</span><span class="nm1">${esc(d.starter.name)}</span>${fitChip(d.starterValue)}
+    <span class="rk">2</span>${d.secondChoice ? `<span class="dim">${esc(d.secondChoice.player.name)}</span>${fitChip(d.secondChoice.value)}` : '<span class="dim">nobody fit</span><span></span>'}
+  </div>
+  ${extra.length ? `<div class="extra">Also: ${extra.join(" · ")}</div>` : ""}
+  ${weak2 ? `<div class="flag">${ICON.warn}Weak spot – see below</div>` : ""}
+</div>`;
+    };
+    const board = lines.map(([label, test]) => {
+      const ds = dc.lanes.filter((d) => test(slots[d.lane.ip][1])).sort((a, b) => slots[a.lane.ip][0] - slots[b.lane.ip][0]);
+      return ds.length ? `<div><div class="line-label">${label}</div><div class="cards">${ds.map(card).join("")}</div></div>` : "";
+    }).join("");
+    const weak = dc.weakAreas.length ? `<ol class="weak">${dc.weakAreas.map(
+      (w) => `<li><strong>${esc(slotLabel(slots, w.lane.ip))} · ${esc(w.lane.ipRole.name)} / ${esc(w.lane.oopRole.name)}</strong>
+<div class="muted">${esc(w.reasons.join("; "))}.</div>
+<div class="look"><span class="small muted">Look for:</span>${w.lookFor.map((a) => `<span class="tag">${esc(a.attr)}${a.starter != null ? ` <span class="muted">${a.starter}</span>` : ""}</span>`).join("")}</div></li>`
+    ).join("")}</ol>` : `<p>${ICON.check} No weak areas: every position has a good starter and reasonable cover.</p>`;
     return `
-<section id="depth">
-  <h2>4. Depth chart and transfer targets</h2>
-  <p>The second choice in each position is an exact "second XI" for the same system and roles (fit players only), so nobody is listed twice.
+<section id="depth" class="card">
+  <h2><span class="num">4</span>Depth chart and transfer targets</h2>
+  <p class="lede">Second choices form an exact "second XI" for the same system and roles (fit players only), so nobody is listed twice.
   Fit scores use the roles of the main tactic.</p>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Position</th><th>Starter</th><th>Second choice</th><th>Also</th><th>Better than cover, out on loan</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>
+  <div class="board">${board}</div>
   <h3>Weak areas worth strengthening</h3>
   ${weak}
-  <p class="legend">"Look for" lists the key attributes of the two roles, weakest first for your current starter: a signing should beat him on these.</p>
+  <p class="legend">"Look for" lists the key attributes of the two roles, weakest first for your current starter (his value shown): a signing
+  should beat him on these.</p>
 </section>`;
   }
   function alternatives(result) {
     if (!result.alternatives?.length) return "";
     const slots = result.ctx.slots;
     const blocks = result.alternatives.map((a, i) => {
+      const letter = String.fromCharCode(65 + i);
       if (a.similar) {
-        return `<h3>${String.fromCharCode(65 + i)}. ${esc(a.title)}</h3><p>${esc(a.when)} Your main tactic already suits this: keep it${a.diffs.length ? `, with ${a.diffs.map((d) => `${esc(d.name)} → <strong>${esc(d.to)}</strong>`).join(", ")}` : ""}.</p>`;
+        return `<div class="alt"><h3><span class="step">${letter}</span>${esc(a.title)}</h3><p class="muted">${esc(a.when)} Your main tactic already suits this: keep it${a.diffs.length ? `, with ${a.diffs.map((d) => `${esc(d.name)} → <strong>${esc(d.to)}</strong>`).join(", ")}` : ""}.</p></div>`;
       }
       const changedRoles = a.roles.filter((r) => r.changed);
-      const roleList2 = changedRoles.length ? `<ul class="small">${changedRoles.map((r) => `<li><strong>${esc(r.lane.player.name)}</strong>: ${esc(slotLabel(slots, r.lane.ip))} <span class="phase-ip">${esc(r.lane.ipRole.name)}</span> / ${esc(slotLabel(slots, r.lane.oop))} <span class="phase-oop">${esc(r.lane.oopRole.name)}</span>${r.before ? "" : ' <span class="tag">comes in</span>'}</li>`).join("")}</ul>` : '<p class="small">Same players and roles as the main tactic.</p>';
-      const diffRows = a.diffs.map((d) => `<tr><td><strong>${esc(d.name)}</strong></td><td class="muted">${esc(d.from)}</td><td><strong>${esc(d.to)}</strong></td><td class="why">${esc(d.reason)}</td></tr>`).join("");
-      return `<h3>${String.fromCharCode(65 + i)}. ${esc(a.title)}</h3>
-<p>${esc(a.when)} Mentality <strong>${esc(a.instructions.mentality.value)}</strong>, ${esc(a.system.ipName)} in possession, ${esc(a.system.oopName)} out of possession (fit ${fmt(a.system.fit, 1)}).</p>
+      const roleList2 = changedRoles.length ? `<div class="tablewrap"><table><thead><tr><th>Player</th><th>In possession</th><th>Out of possession</th></tr></thead><tbody>${changedRoles.map(
+        (r) => `<tr><td><strong>${esc(r.lane.player.name)}</strong>${r.before ? "" : ' <span class="tag accent">comes in</span>'}</td>
+<td>${esc(slotLabel(slots, r.lane.ip))} · ${role("IP", r.lane.ipRole)}</td><td>${esc(slotLabel(slots, r.lane.oop))} · ${role("OOP", r.lane.oopRole)}</td></tr>`
+      ).join("")}</tbody></table></div>` : '<p class="small muted">Same players and roles as the main tactic.</p>';
+      const diffRows = a.diffs.map((d) => `<tr class="changed"><td class="name">${esc(d.name)}</td><td class="muted">${esc(d.from)}</td><td><span class="v">${esc(d.to)}</span></td><td class="why">${esc(d.reason)}</td></tr>`).join("");
+      return `<div class="alt"><h3><span class="step">${letter}</span>${esc(a.title)}</h3>
+<p class="muted">${esc(a.when)}</p>
+<div class="chips"><span class="tag">Mentality: ${esc(a.instructions.mentality.value)}</span><span class="tag">${esc(a.instructions.values.lineOfEngagement)}</span>
+<span class="tag">${phaseKey("IP")}${esc(a.system.ipName)}</span><span class="tag">${phaseKey("OOP")}${esc(a.system.oopName)}</span><span class="tag">Fit ${fmt(a.system.fit, 1)}</span></div>
 ${pitches(a.system, slots, true)}
 <h4>Players and roles that change</h4>${roleList2}
 <h4>Settings that change from the main tactic</h4>
-${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th>Setting</th><th>Main</th><th>This tactic</th><th>Why</th></tr></thead><tbody>${diffRows}</tbody></table></div>` : '<p class="small">No team instruction changes.</p>'}`;
+${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th style="padding-left:22px">Setting</th><th>Main</th><th>This tactic</th><th>Why</th></tr></thead><tbody>${diffRows}</tbody></table></div>` : '<p class="small muted">No team instruction changes.</p>'}</div>`;
     }).join("\n");
     return `
-<section id="alternatives">
-  <h2>5. Alternative tactics</h2>
-  <p>Save these in FM27's other tactic slots. Each one is built the same way as the main tactic, with a different aim.</p>
+<section id="alternatives" class="card">
+  <h2><span class="num">5</span>Alternative tactics</h2>
+  <p class="lede">Save these in FM27's other tactic slots. Each one is built the same way as the main tactic, with a different aim.</p>
   ${blocks}
 </section>`;
   }
   function training(result) {
     const t = result.training;
-    const team = t.team.map((x) => `<li><strong>${esc(x.session)}</strong> – ${esc(x.why)}</li>`).join("");
-    const prep = t.prep.map((x) => `<li><strong>${esc(x.session)}</strong> – ${esc(x.why)}</li>`).join("");
+    const list = (xs) => `<ul class="notes">${xs.map((x) => `<li><span class="pts">${ICON.check}</span><span><strong>${esc(x.session)}</strong> <span class="muted">– ${esc(x.why)}</span></span></li>`).join("")}</ul>`;
     const ind = t.individual.filter((x) => x.weakest.length).map(
-      (x) => `<tr><td><strong>${esc(x.player.name)}</strong>${x.player.age != null ? ` <span class="muted small">${x.player.age}</span>` : ""}</td><td class="small">${esc(x.role)}</td>
-<td>${x.weakest.map((w) => `${esc(w.attr)} <span class="muted">(${fmt(w.value)})</span>`).join(", ")}</td><td class="small muted">${esc(x.note)}</td></tr>`
+      (x) => `<tr><td><strong>${esc(x.player.name)}</strong>${x.player.age != null ? ` <span class="muted small">${x.player.age}</span>` : ""}</td><td class="muted small">${esc(x.role)}</td>
+<td>${x.weakest.map((w) => `<span class="tag">${esc(w.attr)} <span class="muted">${fmt(w.value)}</span></span>`).join(" ")}</td><td class="small muted">${esc(x.note)}</td></tr>`
     ).join("");
     return `
-<section id="training">
-  <h2>6. Training focus</h2>
+<section id="training" class="card">
+  <h2><span class="num">6</span>Training focus</h2>
   <h3>Tactical Understanding sessions</h3>
-  <p class="small">These teach the tactic, so FM27's Tactical Effectiveness rises faster. Put them in the weekly schedule.</p>
-  <ul>${team}</ul>
+  <p class="lede small">These teach the tactic, so FM27's Tactical Effectiveness rises faster. Put them in the weekly schedule.</p>
+  ${list(t.team)}
   <h3>Match preparation</h3>
-  <ul>${prep}</ul>
-  ${t.physical ? `<p><strong>Physical:</strong> ${esc(t.physical)}</p>` : ""}
+  ${list(t.prep)}
+  ${t.physical ? `<p class="small">${ICON.info} <strong>Physical:</strong> ${esc(t.physical)}</p>` : ""}
   <h3>Individual focus for the starting XI</h3>
-  <p class="small">The weakest key attributes for each player's two roles. FM27 renamed some individual training focuses, so pick the one that trains that attribute.</p>
+  <p class="lede small">The weakest trainable key attributes for each player's two roles. FM27 renamed some individual training focuses, so pick the one that trains that attribute.</p>
   ${ind ? `<div class="tablewrap"><table><thead><tr><th>Player</th><th>Roles</th><th>Work on</th><th></th></tr></thead><tbody>${ind}</tbody></table></div>` : "<p>No clear weak spots in the starters' key attributes.</p>"}
 </section>`;
   }
-  function groupScore(ctx, player, role, positions) {
+  function groupScore(ctx, player, r, positions) {
     let best = null;
-    for (const pos of role.positions) {
+    for (const pos of r.positions) {
       if (!positions.includes(pos)) continue;
-      const s = slotRoleScore(player, role, ctx.slotForPosition[pos], ctx);
+      const s = slotRoleScore(player, r, ctx.slotForPosition[pos], ctx);
       if (!best || s.score > best.score) best = { ...s, position: pos };
     }
     return best;
+  }
+  function heatCell(score, isBest) {
+    if (score == null) return "<td></td>";
+    const a = Math.max(0.04, Math.min(0.85, (score - 35) / 55));
+    return `<td class="h${a > 0.72 ? " hi" : ""}${isBest ? " best" : ""}" style="--a:${a.toFixed(2)}" title="${fmt(score)}">${fmt(score)}</td>`;
   }
   function suitability(result) {
     const { ctx, players } = result;
@@ -4420,15 +5081,15 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th>Sett
     const ordered = players.slice().sort((a, b) => Number(a.onLoan) - Number(b.onLoan));
     const bestRows = ordered.map((p) => {
       const scored = result.suitability.find((s) => s.player === p).scores;
-      const top = (phase) => roles.filter((r) => r.phase === phase && scored[r.id]).map((r) => ({ r, s: scored[r.id] })).sort((a, b) => b.s.score - a.s.score).slice(0, 3).map(({ r, s }) => `${score(s.score)} ${esc(r.name)}`).join("<br>");
+      const top = (phase) => roles.filter((r) => r.phase === phase && scored[r.id]).map((r) => ({ r, s: scored[r.id] })).sort((a, b) => b.s.score - a.s.score).slice(0, 3).map(({ r, s }) => `<div class="line">${fitChip(s.score)} ${esc(r.name)}</div>`).join("");
       const flags = [];
-      if (xiIds.has(p.id)) flags.push('<span class="tag">Starting XI</span>');
-      if (p.onLoan) flags.push(`<span class="tag warn">On loan${p.club ? " at " + esc(p.club) : ""}</span>`);
-      if (p.injured) flags.push(`<span class="tag warn">Injured${p.injury ? ": " + esc(p.injury) : ""}</span>`);
-      if (p.uncertainAttrs.length) flags.push(`<span class="tag warn">${p.uncertainAttrs.length} attributes are scouting ranges</span>`);
+      if (xiIds.has(p.id)) flags.push('<span class="tag accent">Starting XI</span>');
+      if (p.onLoan) flags.push(`<span class="tag">On loan${p.club ? " at " + esc(p.club) : ""}</span>`);
+      if (p.injured) flags.push(`<span class="tag warn">${ICON.warn}Injured${p.injury ? ": " + esc(p.injury) : ""}</span>`);
+      if (p.uncertainAttrs.length) flags.push(`<span class="tag warn">${p.uncertainAttrs.length} scouting ranges</span>`);
       if (p.unknownAttrs.length > 3) flags.push(`<span class="tag warn">${p.unknownAttrs.length} attributes unknown</span>`);
-      const fm = p.fmBestRole ? `${esc(fmRoleName(p.fmBestRole) || p.fmBestRole)} <span class="muted small">(${esc(p.fmBestRole)})</span>` : "–";
-      return `<tr${p.onLoan ? ' class="muted"' : ""}><td><strong>${esc(p.name)}</strong><div class="small muted">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}</div></td>
+      const fm = p.fmBestRole ? `${esc(fmRoleName(p.fmBestRole) || p.fmBestRole)} <span class="muted small">${esc(p.fmBestRole)}</span>` : '<span class="muted">–</span>';
+      return `<tr${p.onLoan ? ' class="muted"' : ""}><td><strong>${esc(p.name)}</strong><div class="sub">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}</div></td>
 <td>${top("IP")}</td><td>${top("OOP")}</td><td>${fm}</td><td>${flags.join(" ")}</td></tr>`;
     }).join("\n");
     const matrices = GROUPS.map((g) => {
@@ -4437,25 +5098,26 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th>Sett
       const oopRoles = groupRoles.filter((r) => r.phase === "OOP");
       const members = ordered.filter((p) => g.positions.some((pos) => p.positions.has(pos)));
       if (!members.length) return `<h3>${esc(g.title)}</h3><p class="muted">Nobody in the squad lists these positions.</p>`;
-      const head = [...ipRoles, ...oopRoles].map((r) => `<th class="${r.phase === "IP" ? "phase-ip" : "phase-oop"}" title="${esc(r.name)}">${esc(r.abbr)}</th>`).join("");
+      const th = (r) => `<th class="${r.phase === "IP" ? "ip" : "oop"}" title="${esc(r.name)}">${esc(r.abbr)}</th>`;
+      const head = `${ipRoles.map(th).join("")}<th class="gap"></th>${oopRoles.map(th).join("")}`;
       const body = members.map((p) => {
         const cells = [ipRoles, oopRoles].map((list) => {
           const vals = list.map((r) => groupScore(ctx, p, r, g.positions));
           const max = Math.max(...vals.map((v) => v ? v.score : -1));
-          return vals.map((v) => `<td>${v ? score(v.score, v.score === max ? " best" : "") : ""}</td>`).join("");
+          return vals.map((v) => heatCell(v?.score, v && v.score === max)).join("");
         });
         const tag = p.onLoan ? ' <span class="tag">loan</span>' : p.injured ? ' <span class="tag warn">inj</span>' : "";
-        return `<tr><td>${esc(p.name)}${tag}</td>${cells.join("")}</tr>`;
+        return `<tr><td>${esc(p.name)}${tag}</td>${cells[0]}<td class="gap"></td>${cells[1]}</tr>`;
       }).join("");
       const legend = [...ipRoles, ...oopRoles].map((r) => `<strong>${esc(r.abbr)}</strong> ${esc(r.name)}`).join(" · ");
       return `<h3>${esc(g.title)}</h3>
 <div class="tablewrap"><table class="matrix"><thead><tr><th>Player</th>${head}</tr></thead><tbody>${body}</tbody></table></div>
-<p class="legend"><span class="phase-ip">Blue = in possession</span>, <span class="phase-oop">red = out of possession</span>. ${legend}</p>`;
+<p class="legend small">${legend}</p>`;
     }).join("\n");
     return `
-<section id="suitability">
-  <h2>7. Role suitability for the whole squad</h2>
-  <p>Every player scored for every FM27 role. A score weighs the role's key attributes three times and its preferred attributes 1.5 times
+<section id="suitability" class="card">
+  <h2><span class="num">7</span>Role suitability for the whole squad</h2>
+  <p class="lede">Every player scored for every FM27 role. A score weighs the role's key attributes three times and its preferred attributes 1.5 times
   (the same attributes FM27 highlights for that role), adds the attributes the match engine rewards in every role (pace, acceleration,
   anticipation, decisions…), then adjusts for position familiarity and, on the wings, for the stronger foot.</p>
   <h3>Best roles per player</h3>
@@ -4464,6 +5126,8 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th>Sett
     <tbody>${bestRows}</tbody>
   </table></div>
   <p class="legend">"FM's best role" is the assistant manager's opinion from your export, for comparison.</p>
+  <div class="legend"><span class="heatscale">35 <span class="bar"></span> 90</span><span>stronger colour = better fit</span>
+  <span><span class="key ip"></span>in possession roles</span><span><span class="key oop"></span>out of possession roles</span><span>outlined = player's best role in that phase</span></div>
   ${matrices}
 </section>`;
   }
@@ -4496,24 +5160,24 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th>Sett
     items.push('Position familiarity: FM27 only shows it as coloured dots, which no export contains. The tool treats <em>Best Pos</em> as Natural, other positions in the <em>Position</em> column as Accomplished, and neighbouring positions as Competent or Unconvincing (marked "estimated").');
     for (const w of result.warnings) items.push(esc(w));
     return `
-<section id="data">
-  <h2>8. About your data</h2>
-  <ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>
+<section id="data" class="card">
+  <h2><span class="num">8</span>About your data</h2>
+  <ul class="muted">${items.map((i) => `<li>${i}</li>`).join("")}</ul>
 </section>`;
   }
   function renderReport(result, opts = {}) {
     const when = (opts.generatedAt || /* @__PURE__ */ new Date()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     const club = result.club ? `${esc(result.club)}: ` : "";
     return `<article class="report">
-<header>
+<header class="top">
   <div class="eyebrow">FM27 Tactic Builder</div>
   <h1>${club}your tactic</h1>
   <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · team strength: ${esc(result.instructions.strengthLabel)} · made ${esc(when)}</p>
+  <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your export file and never
+  touches the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
+  <nav class="toc"><a href="#overview">At a glance</a><a href="#setup">Enter it in FM27</a><a href="#why">Why</a><a href="#depth">Depth</a>
+  <a href="#alternatives">Alternatives</a><a href="#training">Training</a><a href="#suitability">Role suitability</a><a href="#data">Your data</a></nav>
 </header>
-<aside class="notice"><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your export file and never touches the
-game or your save. Enter the settings by hand, in the order shown in section 2.</aside>
-<nav class="toc"><a href="#overview">At a glance</a> · <a href="#setup">Enter it in FM27</a> · <a href="#why">Why</a> · <a href="#depth">Depth</a> ·
-<a href="#alternatives">Alternatives</a> · <a href="#training">Training</a> · <a href="#suitability">Role suitability</a> · <a href="#data">Your data</a></nav>
 ${overview(result)}
 ${enterIt(result)}
 ${why(result)}
@@ -4526,9 +5190,10 @@ ${dataNotes(result)}
   }
   function standaloneReport(result, opts = {}) {
     const title = `${result.club ? result.club + " – " : ""}FM27 tactic`;
+    const theme = opts.theme === "light" ? "light" : "dark";
     return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title><style>body{margin:0;background:#fff}${REPORT_CSS}</style></head>
+<html lang="en" data-theme="${theme}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(title)}</title><style>${THEME_CSS}body{padding:0 16px}${REPORT_CSS}</style></head>
 <body>${renderReport(result, opts)}</body></html>
 `;
   }
@@ -4538,6 +5203,8 @@ ${dataNotes(result)}
 
   // src/app/main.js
   var STORE_KEY = "fm27-tactic-builder.custom-docs";
+  var THEME_KEY = "fm27-tactic-builder.theme";
+  var STRENGTH_KEY = "fm27-tactic-builder.strength";
   var $ = (id) => document.getElementById(id);
   var lastResult = null;
   function store(read, value) {
@@ -4558,8 +5225,23 @@ ${dataNotes(result)}
     };
   }
   function setStatus(html, isError = false) {
-    $("status").innerHTML = isError ? `<div class="error">${html}</div>` : html;
+    $("status").innerHTML = isError ? `<div class="error">${ICON.warn}<div>${html}</div></div>` : html;
   }
+  function remember(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+    }
+  }
+  function recall(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+  var currentTheme = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  var strengthValue = () => Number(document.querySelector('input[name="strength"]:checked')?.value ?? 0);
   function decode(buffer) {
     const bytes = new Uint8Array(buffer);
     if (bytes[0] === 255 && bytes[1] === 254) return new TextDecoder("utf-16le").decode(buffer);
@@ -4578,11 +5260,11 @@ ${dataNotes(result)}
     setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
   }
   function run(text, filename) {
-    setStatus("Working out your tactic… (this takes a few seconds)");
+    setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
     setTimeout(() => {
       let result;
       try {
-        result = analyse(text, filename, currentDocs(), { excludeInjured: $("opt-injured").checked, strength: Number($("opt-strength").value) });
+        result = analyse(text, filename, currentDocs(), { excludeInjured: $("opt-injured").checked, strength: strengthValue() });
       } catch (err) {
         console.error(err);
         setStatus(`<strong>Something went wrong while reading the file.</strong> ${esc(err.message)}. If this keeps happening, see "Common problems" in the README.`, true);
@@ -4623,14 +5305,25 @@ ${dataNotes(result)}
     return String(s || "").replace(/[\\/:*?"<>|]+/g, "").trim();
   }
   function init() {
-    const style = document.createElement("style");
-    style.textContent = REPORT_CSS;
-    document.head.appendChild(style);
+    $("theme-toggle").addEventListener("click", () => {
+      const next = currentTheme() === "dark" ? "light" : "dark";
+      if (next === "light") document.documentElement.dataset.theme = "light";
+      else delete document.documentElement.dataset.theme;
+      remember(THEME_KEY, next);
+    });
     const drop = $("drop");
     const input = $("file");
-    $("choose").addEventListener("click", () => input.click());
+    $("choose").addEventListener("click", (e) => {
+      e.stopPropagation();
+      input.click();
+    });
+    $("sample").addEventListener("click", (e) => e.stopPropagation());
+    drop.addEventListener("click", () => input.click());
     drop.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") input.click();
+      if (e.target === drop && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        input.click();
+      }
     });
     input.addEventListener("change", () => readFile(input.files[0]));
     for (const ev of ["dragenter", "dragover"]) {
@@ -4655,7 +5348,7 @@ ${dataNotes(result)}
       if (!lastResult) return;
       const date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
       const club = safeName(lastResult.club);
-      download(`FM27 tactic${club ? " - " + club : ""} - ${date}.html`, standaloneReport(lastResult), "text/html");
+      download(`FM27 tactic${club ? " - " + club : ""} - ${date}.html`, standaloneReport(lastResult, { theme: currentTheme() }), "text/html");
     });
     $("again").addEventListener("click", () => {
       $("result").classList.add("hidden");
@@ -4695,18 +5388,12 @@ ${dataNotes(result)}
       jsonInput.value = "";
     });
     showJsonStatus();
-    const strength = $("opt-strength");
-    try {
-      const saved = localStorage.getItem("fm27-tactic-builder.strength");
-      if (saved != null && [...strength.options].some((o) => o.value === saved)) strength.value = saved;
-    } catch {
+    const saved = recall(STRENGTH_KEY);
+    const radio = saved != null && document.querySelector(`input[name="strength"][value="${CSS.escape(saved)}"]`);
+    if (radio) radio.checked = true;
+    for (const r of document.querySelectorAll('input[name="strength"]')) {
+      r.addEventListener("change", () => remember(STRENGTH_KEY, r.value));
     }
-    strength.addEventListener("change", () => {
-      try {
-        localStorage.setItem("fm27-tactic-builder.strength", strength.value);
-      } catch {
-      }
-    });
   }
   init();
 })();

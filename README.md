@@ -75,7 +75,10 @@ columns.
 2. Answer **"How strong is your team in its league?"** (title favourites … underdogs). It sets the mentality and how high to
    press, and is remembered for next time.
 3. Drag the `squad_….csv` file onto the box, or click **Choose file…**.
-4. The report appears in a few seconds. Use **Print / Save as PDF** or **Save report as HTML** to keep it.
+4. The report appears in a few seconds. Use **Print / Save as PDF** or **Save report** to keep it.
+
+The page opens in **dark mode**; the sun/moon button (top right) switches to light and is remembered. Printing and PDFs always
+use a light, ink-friendly layout.
 
 Want to see it first? Click **Try the sample squad**. It uses a made-up club.
 
@@ -97,6 +100,16 @@ other tactic slots.
 ---
 
 ## Reading the report
+
+**Colours mean the same thing everywhere:**
+
+- **Fit (teal):** the brighter the teal ring, meter or heatmap cell, the better the player suits the role.
+- **Phases:** a blue dot marks an in-possession role, an orange dot an out-of-possession role.
+- **Squad profile bars:** blue means above your team's own level, red means below it.
+- **Warnings:** amber items carry a warning icon and a label, so colour is never the only signal.
+
+Hover a pitch token, a profile bar or a heatmap cell for the details.
+
 
 - **Fit scores (0–100)** show how well a player suits a role: 75+ excellent, 65+ good, 55+ usable, under 55 weak. They
   compare your own players with each other. They are not FM's star ratings.

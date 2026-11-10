@@ -3,11 +3,12 @@
 import { analyse } from '../analyse.js';
 import { DEFAULT_DOCS } from '../data.js';
 import { renderReport, standaloneReport } from '../report/render.js';
-import { REPORT_CSS } from '../report/report-css.js';
-import { esc } from '../report/util.js';
+import { esc, ICON } from '../report/util.js';
 import sampleCsv from '../../samples/squad_20261108_201500.csv';
 
 const STORE_KEY = 'fm27-tactic-builder.custom-docs';
+const THEME_KEY = 'fm27-tactic-builder.theme';
+const STRENGTH_KEY = 'fm27-tactic-builder.strength';
 const $ = (id) => document.getElementById(id);
 
 let lastResult = null;
@@ -32,8 +33,27 @@ function currentDocs() {
 }
 
 function setStatus(html, isError = false) {
-  $('status').innerHTML = isError ? `<div class="error">${html}</div>` : html;
+  $('status').innerHTML = isError ? `<div class="error">${ICON.warn}<div>${html}</div></div>` : html;
 }
+
+function remember(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* storage unavailable (private window): just don't remember */
+  }
+}
+
+function recall(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+const currentTheme = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+const strengthValue = () => Number(document.querySelector('input[name="strength"]:checked')?.value ?? 0);
 
 /** Decode a file, coping with UTF-16 and old Windows encodings. */
 function decode(buffer) {
@@ -56,11 +76,11 @@ function showError(result) {
 }
 
 function run(text, filename) {
-  setStatus('Working out your tactic… (this takes a few seconds)');
+  setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
   setTimeout(() => {
     let result;
     try {
-      result = analyse(text, filename, currentDocs(), { excludeInjured: $('opt-injured').checked, strength: Number($('opt-strength').value) });
+      result = analyse(text, filename, currentDocs(), { excludeInjured: $('opt-injured').checked, strength: strengthValue() });
     } catch (err) {
       console.error(err);
       setStatus(`<strong>Something went wrong while reading the file.</strong> ${esc(err.message)}. If this keeps happening, see "Common problems" in the README.`, true);
@@ -105,15 +125,26 @@ function safeName(s) {
 }
 
 function init() {
-  const style = document.createElement('style');
-  style.textContent = REPORT_CSS;
-  document.head.appendChild(style);
+  $('theme-toggle').addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    if (next === 'light') document.documentElement.dataset.theme = 'light';
+    else delete document.documentElement.dataset.theme;
+    remember(THEME_KEY, next);
+  });
 
   const drop = $('drop');
   const input = $('file');
-  $('choose').addEventListener('click', () => input.click());
+  $('choose').addEventListener('click', (e) => {
+    e.stopPropagation();
+    input.click();
+  });
+  $('sample').addEventListener('click', (e) => e.stopPropagation());
+  drop.addEventListener('click', () => input.click());
   drop.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') input.click();
+    if (e.target === drop && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      input.click();
+    }
   });
   input.addEventListener('change', () => readFile(input.files[0]));
   for (const ev of ['dragenter', 'dragover']) {
@@ -140,7 +171,7 @@ function init() {
     if (!lastResult) return;
     const date = new Date().toISOString().slice(0, 10);
     const club = safeName(lastResult.club);
-    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult), 'text/html');
+    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult, { theme: currentTheme() }), 'text/html');
   });
   $('again').addEventListener('click', () => {
     $('result').classList.add('hidden');
@@ -184,20 +215,12 @@ function init() {
   showJsonStatus();
 
   // Remember the team-strength answer between visits (only in this browser).
-  const strength = $('opt-strength');
-  try {
-    const saved = localStorage.getItem('fm27-tactic-builder.strength');
-    if (saved != null && [...strength.options].some((o) => o.value === saved)) strength.value = saved;
-  } catch {
-    /* storage unavailable: keep the default */
+  const saved = recall(STRENGTH_KEY);
+  const radio = saved != null && document.querySelector(`input[name="strength"][value="${CSS.escape(saved)}"]`);
+  if (radio) radio.checked = true;
+  for (const r of document.querySelectorAll('input[name="strength"]')) {
+    r.addEventListener('change', () => remember(STRENGTH_KEY, r.value));
   }
-  strength.addEventListener('change', () => {
-    try {
-      localStorage.setItem('fm27-tactic-builder.strength', strength.value);
-    } catch {
-      /* ignore */
-    }
-  });
 }
 
 init();

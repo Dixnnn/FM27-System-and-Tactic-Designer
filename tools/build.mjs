@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
+import { THEME_CSS } from '../src/report/theme.js';
+import { REPORT_CSS } from '../src/report/report-css.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
@@ -25,6 +27,8 @@ const js = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 const template = readFileSync(join(ROOT, 'src/app/index.html'), 'utf8');
 const html = template
   .replace('<!--APP_VERSION-->', () => pkg.version)
+  .replace('/*__THEME_CSS__*/', () => THEME_CSS)
+  .replace('/*__REPORT_CSS__*/', () => REPORT_CSS)
   .replace('<!--APP_SCRIPT-->', () => `<script>\n${js}</script>`);
 
 const out = join(ROOT, 'FM27-Tactic-Builder.html');
