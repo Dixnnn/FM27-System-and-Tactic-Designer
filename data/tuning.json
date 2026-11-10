@@ -179,5 +179,12 @@
     "weakStarterGap": 6,
     "weakStarterAbsolute": 55,
     "thinCoverGap": 12
+  },
+  "picks": {
+    "_about": "Your picks. 'Must start' and marquee players always start (lockBonus guarantees it). Marquee players' fit counts marqueeWeight times when systems and roles are compared; future stars get futureStarBonus points towards a place (enough to win close calls, not to start a much weaker player) and count futureStarWeight times once they start.",
+    "lockBonus": 1000,
+    "marqueeWeight": 2.5,
+    "futureStarWeight": 1.15,
+    "futureStarBonus": 3
   }
 }

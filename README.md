@@ -17,6 +17,8 @@ the tactics screens show it:
 - **Alternatives and training:** three alternative tactics (away against stronger teams, at home against weaker teams, and a
   different shape), plus training sessions and an individual focus for each starter.
 - **Suitability:** every player scored for every FM27 role.
+- **Your players:** optionally, mark players who must start, a **marquee** player to build the tactic around, and **future stars**
+  to develop. The tactic is rebuilt around them.
 
 **What it can't do:** it can't put the tactic into FM27 for you. You copy the settings in by hand; the report lists them in
 order. It only ever *reads* your export file. It never touches the game, your saves or the game's memory, and it works
@@ -81,6 +83,24 @@ The page opens in **dark mode**; the sun/moon button (top right) switches to lig
 use a light, ink-friendly layout.
 
 Want to see it first? Click **Try the sample squad**. It uses a made-up club.
+
+## Build around your players (optional)
+
+After the report appears, click **Choose players** to tell the builder about your players, then **Rebuild tactic**:
+
+| Mark a player as | What the builder does |
+| --- | --- |
+| **Must start** | He is always in the starting XI, in a position he can play. Formations that can't fit him are skipped. Pick up to 11. |
+| **Marquee** | The tactic is built around him. He always starts, and his fit counts 2.5 times when the builder compares formations and roles, so it chooses the shape and role that suit him best. Some team instructions are shaped for him too, for example *Progress Through* down his flank, *Pass Into Space* for a quick striker, or *Goalkeeper Distribution: Playmaker* for a deep playmaker. |
+| **Future star** | A young player with high potential. He wins close calls for a place (but won't start ahead of a much better player), is preferred as cover, and gets a development plan in the Training section. That plan covers the position and roles he grows into, how far he is from starting, which key attributes to train and how to give him minutes. If he doesn't start, an extra alternative tactic, *With your future stars starting*, puts all your future stars in the XI. |
+
+Everything else works the same way: the same game plan, balance rules and team instructions, built around your picks. The
+report's "Built around your picks" section shows each picked player's position and roles. It also says what the picks cost:
+how strong the team would be if the builder chose freely, and who would play instead.
+
+Picks are remembered for that club in this browser, so your next export of the same squad uses them automatically. If a new
+export no longer fits them (say a picked player has left), the tactic is built without them and the report tells you.
+Players out on loan can't be picked.
 
 ## Step 6: put it into FM27
 
@@ -152,6 +172,7 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 | **FM27 won't start, or acts oddly, after installing the plugin** | Delete or rename `winhttp.dll` in the FM27 game folder. The game then starts without mods. |
 | **The HTML file opens as text / in Notepad** | Right-click it › Open with › Microsoft Edge (or Chrome). |
 | **Strange characters in player names** | Re-export with the plugin's default settings (UTF-8). The tool also reads UTF-16 and older Windows encodings. |
+| **"Your picks can't all start"** | Only one goalkeeper and at most 11 players can be marked to start. If no formation fits all of them (for example five strikers), unmark one or two. |
 | **A player out on loan was picked** | Your view needs the *Club* column (or *Playing Time*): see [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md). |
 | **The CON or Fatigue column is empty** | Normal: FM27 shows these as icons, so exports leave them empty. The tool doesn't need them. |
 | **The mentality or pressing feels wrong for my team** | Check your answer to "How strong is your team in its league?". The report's first lines show the answer used. |

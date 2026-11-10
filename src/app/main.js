@@ -4,14 +4,33 @@ import { analyse } from '../analyse.js';
 import { DEFAULT_DOCS } from '../data.js';
 import { renderReport, standaloneReport } from '../report/render.js';
 import { esc, ICON } from '../report/util.js';
+import { renderPicker, pickCount } from './picker.js';
 import sampleCsv from '../../samples/squad_20261108_201500.csv';
 
 const STORE_KEY = 'fm27-tactic-builder.custom-docs';
 const THEME_KEY = 'fm27-tactic-builder.theme';
 const STRENGTH_KEY = 'fm27-tactic-builder.strength';
+const PICKS_KEY = 'fm27-tactic-builder.picks';
 const $ = (id) => document.getElementById(id);
 
 let lastResult = null;
+let lastInput = null;
+
+// Picks are saved per club, so a new export of the same squad keeps them.
+const clubKey = (club) => club || '(no club)';
+function loadPicks() {
+  try {
+    return JSON.parse(localStorage.getItem(PICKS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+function savePicks(club, picks) {
+  const all = loadPicks();
+  if (pickCount(picks)) all[clubKey(club)] = picks;
+  else delete all[clubKey(club)];
+  remember(PICKS_KEY, JSON.stringify(all));
+}
 
 function store(read, value) {
   try {
@@ -75,12 +94,42 @@ function showError(result) {
   setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
 }
 
+function analyseNow(text, filename, picks) {
+  const saved = loadPicks();
+  return analyse(text, filename, currentDocs(), {
+    excludeInjured: $('opt-injured').checked,
+    strength: strengthValue(),
+    picks: picks ?? ((club) => saved[clubKey(club)] || {}),
+  });
+}
+
+function showResult(result, note = '') {
+  lastResult = result;
+  $('report-holder').innerHTML = renderReport(result);
+  $('start').classList.add('hidden');
+  $('result').classList.remove('hidden');
+  $('picker').classList.add('hidden');
+  const n = pickCount(loadPicks()[clubKey(result.club)]);
+  $('picks-badge').textContent = n ? String(n) : '';
+  $('picks-badge').hidden = !n;
+  $('result-note').innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : '';
+  setStatus('');
+  window.scrollTo(0, 0);
+}
+
 function run(text, filename) {
+  lastInput = { text, filename };
   setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
   setTimeout(() => {
     let result;
+    let note = '';
     try {
-      result = analyse(text, filename, currentDocs(), { excludeInjured: $('opt-injured').checked, strength: strengthValue() });
+      result = analyseNow(text, filename);
+      if (!result.ok && result.pickError) {
+        // Saved picks no longer fit (players left, positions changed): build without them and say so.
+        note = `Your saved picks were not used: ${esc(result.error)} Open <strong>Choose players</strong> to change them.`;
+        result = analyseNow(text, filename, {});
+      }
     } catch (err) {
       console.error(err);
       setStatus(`<strong>Something went wrong while reading the file.</strong> ${esc(err.message)}. If this keeps happening, see "Common problems" in the README.`, true);
@@ -90,13 +139,42 @@ function run(text, filename) {
       showError(result);
       return;
     }
-    lastResult = result;
-    $('report-holder').innerHTML = renderReport(result);
-    $('start').classList.add('hidden');
-    $('result').classList.remove('hidden');
-    setStatus('');
-    window.scrollTo(0, 0);
+    showResult(result, note);
   }, 30);
+}
+
+function openPicker() {
+  if (!lastResult) return;
+  const panel = $('picker');
+  const current = loadPicks()[clubKey(lastResult.club)] || {};
+  const ui = renderPicker(panel, lastResult, current, {
+    onApply: (picks) => {
+      const button = panel.querySelector('#pk-apply');
+      button.disabled = true;
+      panel.querySelector('#pk-msg').innerHTML = '<div class="working"><span>Rebuilding the tactic around your picks…</span><span class="track"><i></i></span></div>';
+      setTimeout(() => {
+        let result;
+        try {
+          result = analyseNow(lastInput.text, lastInput.filename, picks);
+        } catch (err) {
+          console.error(err);
+          ui.showError(`Something went wrong: ${err.message}`);
+          button.disabled = false;
+          return;
+        }
+        if (!result.ok) {
+          ui.showError(result.error);
+          button.disabled = false;
+          return;
+        }
+        savePicks(result.club, picks);
+        showResult(result);
+      }, 30);
+    },
+    onClose: () => panel.classList.add('hidden'),
+  });
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({ block: 'start' });
 }
 
 async function readFile(file) {
@@ -167,6 +245,7 @@ function init() {
 
   $('sample').addEventListener('click', () => run(sampleCsv, 'squad_20261108_201500.csv (sample)'));
   $('print').addEventListener('click', () => window.print());
+  $('choose-players').addEventListener('click', openPicker);
   $('save').addEventListener('click', () => {
     if (!lastResult) return;
     const date = new Date().toISOString().slice(0, 10);

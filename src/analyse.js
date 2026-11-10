@@ -11,12 +11,14 @@ import { playerInstructions } from './engine/playerInstructions.js';
 import { depthChart } from './engine/depth.js';
 import { setPiecePlan, captaincy, trainingFocus } from './engine/extras.js';
 import { buildAlternatives } from './engine/alternatives.js';
+import { applyPicks, checkPicks, hasPicks, picksSummary, futureStarPlans } from './engine/picks.js';
 
 /**
  * @param {string} text  contents of the export file
  * @param {string} filename
  * @param {{roles, formations, columns, tuning, instructions}} docs
- * @param {object} [options]  {excludeInjured, strength (-2..2), alternatives (default true)}
+ * @param {object} [options]  {excludeInjured, strength (-2..2), alternatives (default true),
+ *   picks: {playerKey: {start, label}} or a function(club) returning that}
  */
 export function analyse(text, filename, docs, options = {}) {
   const table = readExport(text, filename);
@@ -33,6 +35,10 @@ export function analyse(text, filename, docs, options = {}) {
   }
   const club = commonClub(players);
   for (const p of players) p.onLoan = isOutOnLoan(p, club);
+  const picks = typeof options.picks === 'function' ? options.picks(club) : options.picks;
+  const { ignored } = applyPicks(players, picks || {});
+  const problems = checkPicks(players);
+  if (problems.length) return { ...base, ok: false, pickError: true, club, players, error: `Your picks can't all start: ${problems.join(' ')}` };
   const strength = Math.max(-2, Math.min(2, Number(options.strength) || 0));
   const searchOptions = { excludeInjured: options.excludeInjured };
   if (options.excludeInjured === undefined) delete searchOptions.excludeInjured;
@@ -40,8 +46,13 @@ export function analyse(text, filename, docs, options = {}) {
   // 1. A first look at the best XI tells us what kind of team this is (the game plan) ...
   const ctx = createContext(players, docs, searchOptions);
   ctx.instructionsDoc = docs.instructions;
-  const first = searchSystems(ctx, { polishTop: 0, quick: true });
+  let first = searchSystems(ctx, { polishTop: 0, quick: true });
+  if (!first.best && ctx.locked.size) first = searchSystems(ctx, { polishTop: 0 });
   if (!first.best) {
+    if (ctx.locked.size) {
+      const names = [...ctx.locked].map((p) => `${p.name} (${p.positionsText || [...p.positions].join(', ')})`).join(', ');
+      return { ...base, ok: false, pickError: true, club, players, error: `No formation fits all the players you marked to start: ${names}. Unmark one or two and try again.` };
+    }
     return { ...base, ok: false, error: 'No formation could be filled with the players in this file.' };
   }
   ctx.plan = derivePlan(squadProfile(first.best, ctx), strength, docs.tuning.instructions);
@@ -52,6 +63,23 @@ export function analyse(text, filename, docs, options = {}) {
   const profile = squadProfile(best, ctx);
   const setPieces = setPiecePlan(best, profile, ctx);
   const instructions = decideInstructions(profile, best, ctx, { strength, setPieces });
+  // With picks, also find the tactic the tool would choose freely, to show what the picks cost.
+  let freeChoice = null;
+  if (hasPicks(players)) {
+    const free = createContext(players, docs, { ...searchOptions, ignorePicks: true });
+    free.plan = ctx.plan;
+    const fs = searchSystems(free, { polishTop: 2 });
+    if (fs.best) {
+      const inPicked = new Set(best.lanes.map((l) => l.player));
+      const inFree = new Set(fs.best.lanes.map((l) => l.player));
+      freeChoice = {
+        system: fs.best,
+        fitCost: fs.best.fit - best.fit,
+        benched: [...inFree].filter((p) => !inPicked.has(p)),
+        added: [...inPicked].filter((p) => !inFree.has(p)),
+      };
+    }
+  }
   const result = {
     ...base,
     ok: true,
@@ -68,8 +96,10 @@ export function analyse(text, filename, docs, options = {}) {
     depth: depthChart(best, ctx),
     training: trainingFocus(instructions, profile, best, ctx),
     suitability: suitabilityTable(ctx),
+    freeChoice,
     warnings: [...table.warnings, ...ctx.warnings],
   };
+  result.picks = { summary: picksSummary(result), futureStars: futureStarPlans(result), ignored };
   result.alternatives = options.alternatives === false ? [] : buildAlternatives(result, players, docs, searchOptions);
   return result;
 }

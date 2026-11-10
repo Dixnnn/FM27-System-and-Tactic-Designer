@@ -57,6 +57,14 @@ export const REPORT_CSS = `
 .report .pl .abbr { font-size: 9px; font-weight: 750; fill: var(--ink); letter-spacing: .02em; }
 .report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); paint-order: stroke; stroke: var(--pitch); stroke-width: 3.5px; stroke-linejoin: round; }
 .report .pl .sc { font-size: 9.5px; fill: var(--ink-2); font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--pitch); stroke-width: 3px; }
+.report .mk-marquee { fill: var(--ink); stroke: var(--pitch); stroke-width: 1.6; stroke-linejoin: round; }
+.report .mk-future { fill: var(--pitch); stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; }
+.report .mk-start { fill: var(--ink-2); stroke: var(--pitch); stroke-width: 1.6; }
+.report .tag.pick { color: var(--ink); border-color: var(--line-2); background: var(--surface-3); }
+.report .tag.pick .pin { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-2); display: inline-block; }
+.report .picks-cost { display: flex; gap: 10px; align-items: flex-start; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 14px; color: var(--ink-2); }
+.report .picks-cost .ico { margin-top: 3px; color: var(--accent); }
+.report .picks-cost strong { color: var(--ink); }
 .report .mvg { outline: none; }
 .report .mv { stroke: var(--ink-2); stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
 .report .oopdot { fill: var(--pitch); stroke: var(--oop); stroke-width: 2.5; }

@@ -3,7 +3,7 @@
 import { pitchSVG, movementSVG, hasMovement } from './pitch.js';
 import { REPORT_CSS } from './report-css.js';
 import { THEME_CSS } from './theme.js';
-import { esc, fmt, shortName, fitChip, phaseKey, ICON } from './util.js';
+import { esc, fmt, shortName, fitChip, phaseKey, pickTags, ICON } from './util.js';
 import { slotRoleScore } from '../engine/roles.js';
 
 const GROUPS = [
@@ -73,8 +73,9 @@ function fitLegend() {
 }
 
 function pitches(system, slots, small = false) {
-  const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score }));
-  const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score }));
+  const mark = (p) => p.label || (p.mustStart ? 'start' : null);
+  const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score, mark: mark(l.player) }));
+  const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score, mark: mark(l.player) }));
   const move = hasMovement(system.lanes)
     ? `<figure><figcaption><span class="key ip"></span>Movement between phases</figcaption>${movementSVG(system.lanes, slots, 'How players move between the two shapes')}
 <div class="legend"><span><span class="key ring"></span>out of possession</span><span><span class="key ip"></span>in possession</span></div></figure>`
@@ -103,7 +104,56 @@ function overview(result) {
   </div>
   ${pitches(best, ctx.slots)}
   ${fitLegend()}
+  ${picksBlock(result)}
 </section>`;
+}
+
+function picksBlock(result) {
+  const summary = result.picks?.summary || [];
+  if (!summary.length) {
+    return `<p class="legend">${ICON.info} Want the tactic built around particular players? Use <strong>Choose players</strong> in the app to mark players who must start, a marquee player or future stars.</p>`;
+  }
+  const slots = result.ctx.slots;
+  const rows = summary
+    .map(({ player: p, lane, best, inBestRole }) => {
+      const plays = lane
+        ? `${esc(slotLabel(slots, lane.ip))} · ${role('IP', lane.ipRole)}<br>${esc(slotLabel(slots, lane.oop))} · ${role('OOP', lane.oopRole)}`
+        : '<span class="muted">Not in the starting XI: see his development plan in section 6.</span>';
+      const bestTxt = [best.ip && `${esc(best.ip.role.name)} ${fmt(best.ip.score)}`, best.oop && `${esc(best.oop.role.name)} ${fmt(best.oop.score)}`].filter(Boolean).join('<br>');
+      return `<tr><td><strong>${esc(p.name)}</strong><div class="sub">${esc(p.positionsText)}${p.age != null ? ' · ' + fmt(p.age) : ''}${p.injured ? ' · injured' : ''}</div></td>
+<td>${pickTags(p)}</td><td>${plays}</td><td class="num">${lane ? fitChip(lane.value) : ''}</td>
+<td class="small">${bestTxt}${lane && inBestRole ? `<div class="muted">${ICON.check} playing his best role</div>` : ''}</td></tr>`;
+    })
+    .join('');
+  const fc = result.freeChoice;
+  let cost = '';
+  if (fc) {
+    const names = (ps) => ps.map((p) => esc(p.name)).join(', ');
+    cost =
+      fc.fitCost <= 0.2
+        ? `Fitting your picks costs nothing: left to choose freely, the tool would field an equally strong team (fit ${fmt(fc.system.fit, 1)}).`
+        : `Fitting your picks costs <strong>${fmt(fc.fitCost, 1)}</strong> team-fit points. Left to choose freely, the tool would play <strong>${esc(fc.system.ipName)} / ${esc(fc.system.oopName)}</strong> (fit ${fmt(fc.system.fit, 1)})${fc.benched.length ? ` with ${names(fc.benched)} instead of ${names(fc.added)}` : ''}.`;
+  }
+  const groups = new Map();
+  for (const b of result.instructions.builtAround || []) {
+    const key = `${b.id}|${b.value}`;
+    if (!groups.has(key)) groups.set(key, { ...b, players: new Set() });
+    groups.get(key).players.add(b.player.name.split(/\s+/).pop());
+  }
+  const allItems = [...result.instructions.ip, ...result.instructions.oop];
+  const tweaks = [...groups.values()]
+    .map((g) => `<li><span class="pts">${ICON.check}</span><span><strong>${esc(allItems.find((i) => i.id === g.id)?.name || g.id)}: ${esc(g.value)}</strong> <span class="muted">– for ${esc([...g.players].join(' and '))}</span></span></li>`)
+    .join('');
+  return `<h3>Built around your picks</h3>
+<p class="lede small">Players marked <strong>must start</strong> and <strong>marquee</strong> are always in the XI; a marquee player's fit counts
+2.5 times when systems and roles are compared, so the shape is chosen around him. <strong>Future stars</strong> win close calls for a place and get a
+development plan (section 6).</p>
+<div class="tablewrap"><table><thead><tr><th>Player</th><th>Your pick</th><th>Plays as</th><th class="num">Fit</th><th>His best roles anywhere</th></tr></thead><tbody>${rows}</tbody></table></div>
+${cost ? `<div class="picks-cost">${ICON.info}<span>${cost}</span></div>` : ''}
+${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="notes">${tweaks}</ul>` : ''}
+<div class="legend"><span><svg class="ico" viewBox="0 0 16 16"><path d="M8 1.4l1.9 4.1 4.5.5-3.3 3.1.9 4.4L8 11.3l-3.9 2.2.9-4.4L1.6 6l4.5-.5z" fill="currentColor"/></svg>marquee</span>
+<span><svg class="ico" viewBox="0 0 16 16"><path d="M8 1.4l1.9 4.1 4.5.5-3.3 3.1.9 4.4L8 11.3l-3.9 2.2.9-4.4L1.6 6l4.5-.5z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>future star</span>
+<span><span class="key" style="background:var(--ink-2)"></span>must start</span><span>(markers on the pitches)</span></div>`;
 }
 
 // ---------------------------------------------------------------- 2. enter it in FM27
@@ -142,7 +192,7 @@ function enterIt(result) {
   const roleRows = lanes
     .map(
       (l) => `<tr>
-  <td><strong>${esc(l.player.name)}</strong><div class="sub">${esc(l.player.positionsText || [...l.player.positions].join(', '))}</div></td>
+  <td><strong>${esc(l.player.name)}</strong> ${pickTags(l.player)}<div class="sub">${esc(l.player.positionsText || [...l.player.positions].join(', '))}</div></td>
   <td>${esc(slotLabel(slots, l.ip))}</td>
   <td>${role('IP', l.ipRole)}</td>
   <td class="num">${fitChip(l.ipScore.score)}</td>
@@ -261,10 +311,11 @@ function why(result) {
       ? `<ul class="notes">${list.map((n) => `<li class="${n.points >= 0 ? 'plus' : 'minus'}"><span class="pts">${n.points >= 0 ? '' : '−'}${fmt(Math.abs(n.points), 1)}</span><span>${esc(n.text)}</span></li>`).join('')}</ul>`
       : '<p class="muted">Nothing to note.</p>';
   const top = ranking.slice(0, ctx.search.topSystems);
+  const withPicks = top.some((r) => r.picks > 0.05);
   const rows = top
     .map(
       (r, i) => `<tr${i === 0 ? ' style="font-weight:650"' : ''}><td>${i === 0 ? ICON.check : i + 1}</td><td>${esc(r.ipName)}</td><td>${esc(r.oopName)}</td>
-  <td class="num">${fmt(r.fit, 1)}</td><td class="num">${signed(r.balance.points)}</td>
+  <td class="num">${fmt(r.fit, 1)}</td><td class="num">${signed(r.balance.points)}</td>${withPicks ? `<td class="num">${signed(r.picks || 0)}</td>` : ''}
   <td class="num">${r.complexity >= 0.05 ? '−' : ''}${fmt(r.complexity, 1)}</td><td class="num">${fmt(r.score, 1)}</td></tr>`,
     )
     .join('');
@@ -288,11 +339,11 @@ function why(result) {
   ${noteList(balanceNotes)}
   <h3>Best systems tested</h3>
   <div class="tablewrap"><table>
-    <thead><tr><th></th><th>In possession</th><th>Out of possession</th><th class="num">Fit</th><th class="num">Balance + plan</th><th class="num">Complexity</th><th class="num">Total</th></tr></thead>
+    <thead><tr><th></th><th>In possession</th><th>Out of possession</th><th class="num">Fit</th><th class="num">Balance + plan</th>${withPicks ? '<th class="num">Your picks</th>' : ''}<th class="num">Complexity</th><th class="num">Total</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>
   <p class="legend">Fit = average of the eleven players' role scores (half in possession, half out of possession). Complexity = a small
-  deduction when players move a long way between the two shapes, because FM27 makes complex tactics harder to learn.</p>
+  deduction when players move a long way between the two shapes, because FM27 makes complex tactics harder to learn.${withPicks ? ' Your picks = the extra weight given to your marquee players and future stars, which steers the choice towards systems that suit them.' : ''}</p>
   <h3>Squad profile</h3>
   <p class="lede">Each bar compares a part of your starting XI with the team's own general level of <strong>${fmt(profile.level, 1)}</strong>
   (the average of all their outfield attributes). Measuring against your own level means the advice suits your league, whatever its standard.
@@ -302,6 +353,13 @@ function why(result) {
 }
 
 // ---------------------------------------------------------------- 4. depth
+
+const STAR_PATH = 'M8 1.4l1.9 4.1 4.5.5-3.3 3.1.9 4.4L8 11.3l-3.9 2.2.9-4.4L1.6 6l4.5-.5z';
+function star(p) {
+  if (p.label === 'marquee') return ` <svg class="ico" viewBox="0 0 16 16" aria-label="marquee"><path d="${STAR_PATH}" fill="currentColor"/></svg>`;
+  if (p.label === 'future') return ` <svg class="ico" viewBox="0 0 16 16" aria-label="future star"><path d="${STAR_PATH}" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>`;
+  return '';
+}
 
 function depth(result) {
   const { depth: dc, ctx } = result;
@@ -324,8 +382,8 @@ function depth(result) {
   <div class="hd"><strong>${esc(slotLabel(slots, d.lane.ip))}</strong>
     <span class="roles"><span>${phaseKey('IP')}${esc(d.lane.ipRole.abbr)}</span><span>${phaseKey('OOP')}${esc(d.lane.oopRole.abbr)}</span></span></div>
   <div class="who">
-    <span class="rk">1</span><span class="nm1">${esc(d.starter.name)}</span>${fitChip(d.starterValue)}
-    <span class="rk">2</span>${d.secondChoice ? `<span class="dim">${esc(d.secondChoice.player.name)}</span>${fitChip(d.secondChoice.value)}` : '<span class="dim">nobody fit</span><span></span>'}
+    <span class="rk">1</span><span class="nm1">${esc(d.starter.name)}${star(d.starter)}</span>${fitChip(d.starterValue)}
+    <span class="rk">2</span>${d.secondChoice ? `<span class="dim">${esc(d.secondChoice.player.name)}${star(d.secondChoice.player)}</span>${fitChip(d.secondChoice.value)}` : '<span class="dim">nobody fit</span><span></span>'}
   </div>
   ${extra.length ? `<div class="extra">Also: ${extra.join(' · ')}</div>` : ''}
   ${weak ? `<div class="flag">${ICON.warn}Weak spot – see below</div>` : ''}
@@ -422,7 +480,29 @@ function training(result) {
   <h3>Individual focus for the starting XI</h3>
   <p class="lede small">The weakest trainable key attributes for each player's two roles. FM27 renamed some individual training focuses, so pick the one that trains that attribute.</p>
   ${ind ? `<div class="tablewrap"><table><thead><tr><th>Player</th><th>Roles</th><th>Work on</th><th></th></tr></thead><tbody>${ind}</tbody></table></div>` : '<p>No clear weak spots in the starters\' key attributes.</p>'}
+  ${futureStars(result)}
 </section>`;
+}
+
+function futureStars(result) {
+  const plans = result.picks?.futureStars || [];
+  if (!plans.length) return '';
+  const slots = result.ctx.slots;
+  const rows = plans
+    .map((f) => {
+      const p = f.player;
+      const stars = p.ability != null || p.potential != null ? `<div class="sub">${p.ability != null ? `ability ${fmt(p.ability, 1)}` : ''}${p.ability != null && p.potential != null ? ' → ' : ''}${p.potential != null ? `potential ${fmt(p.potential, 1)} stars` : ''}</div>` : '';
+      const target = f.lane ? `${esc(slotLabel(slots, f.lane.ip))} · ${role('IP', f.lane.ipRole)}<br>${esc(slotLabel(slots, f.lane.oop))} · ${role('OOP', f.lane.oopRole)}` : '<span class="muted">no natural place in this system</span>';
+      const status = f.starting ? '<span class="tag accent">Starts</span>' : f.lane ? `<span class="muted">behind ${esc(f.lane.player.name)} by ${fmt(f.gap)}</span>${f.second ? '<div class="sub">next in line</div>' : ''}` : '';
+      return `<tr><td><strong>${esc(p.name)}</strong>${p.age != null ? ` <span class="muted small">${p.age}</span>` : ''}${stars}</td><td>${target}</td>
+<td class="num">${f.value != null ? fitChip(f.value) : ''}</td><td>${status}</td>
+<td>${f.train.map((t) => `<span class="tag">${esc(t.attr)} <span class="muted">${fmt(t.value)}</span></span>`).join(' ')}</td><td class="small muted">${esc(f.minutes)}</td></tr>`;
+    })
+    .join('');
+  return `<h3>Developing your future stars</h3>
+<p class="lede small">The position and roles each future star grows into in this tactic, how close he is to starting there, the key attributes to
+train for those roles, and how to give him minutes. Potential stars are FM's own estimate from your export, where included.</p>
+<div class="tablewrap"><table><thead><tr><th>Player</th><th>Grows into</th><th class="num">Fit now</th><th>Status</th><th>Train</th><th>Minutes</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // ---------------------------------------------------------------- 7. suitability
@@ -464,6 +544,7 @@ function suitability(result) {
           .join('');
       const flags = [];
       if (xiIds.has(p.id)) flags.push('<span class="tag accent">Starting XI</span>');
+      if (p.label || p.mustStart) flags.push(pickTags(p));
       if (p.onLoan) flags.push(`<span class="tag">On loan${p.club ? ' at ' + esc(p.club) : ''}</span>`);
       if (p.injured) flags.push(`<span class="tag warn">${ICON.warn}Injured${p.injury ? ': ' + esc(p.injury) : ''}</span>`);
       if (p.uncertainAttrs.length) flags.push(`<span class="tag warn">${p.uncertainAttrs.length} scouting ranges</span>`);
@@ -534,6 +615,7 @@ function dataNotes(result) {
   if (loaned.length) {
     items.push(`${loaned.length} player(s) are out on loan, so they were left out of the tactic and the depth chart (they appear in the suitability tables, marked "loan"): ${loaned.map((p) => `${esc(p.name)}${p.club ? ` (${esc(p.club)})` : ''}`).join(', ')}.`);
   }
+  for (const ig of result.picks?.ignored || []) items.push(`Your pick of ${esc(ig.player.name)} was ignored: he is ${esc(ig.reason)}.`);
   const ranged = players.filter((p) => p.uncertainAttrs.length);
   if (ranged.length) {
     items.push(`${ranged.length} player(s) have attributes shown as scouting ranges (e.g. "11-14"). The tool uses the middle of the range and shows the possible spread as ±: ${ranged.map((p) => esc(p.name)).join(', ')}.`);

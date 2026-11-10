@@ -117,7 +117,23 @@ export function buildAlternatives(main, players, docs, options) {
     }),
   );
 
-  // 3. The best system with a different shape (back line or number of strikers).
+  // 3. Your future stars starting, if the main tactic leaves some of them out.
+  const future = players.filter((p) => p.label === 'future' && !p.onLoan);
+  const starting = new Set(main.best.lanes.map((l) => l.player));
+  const lockedCount = players.filter((p) => !p.onLoan && (p.mustStart || p.label === 'marquee')).length;
+  if (future.some((p) => !starting.has(p)) && future.length + lockedCount <= 11) {
+    run(
+      'With your future stars starting',
+      `Use to give your future stars (${future.map((p) => p.name.split(/\s+/).pop()).join(', ')}) minutes: cup games, dead rubbers or a development season.`,
+      { extraLocks: future.map((p) => p.id) },
+      {},
+      strength,
+      '',
+      () => ({}),
+    );
+  }
+
+  // 4. The best system with a different shape (back line or number of strikers).
   const mainKey = shapeKey(main.best);
   const other = main.search.ranking.find((s) => shapeKey(s) !== mainKey);
   if (other) {

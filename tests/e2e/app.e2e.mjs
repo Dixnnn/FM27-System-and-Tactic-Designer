@@ -57,6 +57,26 @@ console.log('ok  theme toggle (dark default, light remembered)');
 await page.click('#sample');
 await page.waitForSelector('#result:not(.hidden) .report');
 
+// Choose players: a marquee player and a must-start player, rebuilt and remembered
+await page.click('#choose-players');
+await page.waitForSelector('#picker:not(.hidden) .pk-row');
+await page.locator('.pk-row', { hasText: 'Caleb Lindqvist' }).locator('label:has(input[value="marquee"])').click();
+await page.locator('.pk-row', { hasText: 'Sami Pemberton' }).locator('.switch').click();
+await page.click('#pk-apply');
+await page.waitForFunction(() => document.querySelector('.report')?.textContent.includes('Built around your picks'), null, { timeout: 30000 });
+const overviewText = await page.textContent('#overview');
+assert.ok(overviewText.includes('Lindqvist') && overviewText.includes('Pemberton'), 'picked players start');
+assert.equal(await page.textContent('#picks-badge'), '2');
+console.log('ok  choose players: marquee + must start rebuild the tactic');
+await page.click('#choose-players');
+await page.locator('.pk-row', { hasText: 'Callum Ashdown' }).locator('.switch').click();
+await page.locator('.pk-row', { hasText: 'Rafael Holloway' }).locator('.switch').click();
+assert.ok(await page.isDisabled('#pk-apply'), 'two goalkeepers cannot be applied');
+await page.click('#pk-clear');
+await page.click('#pk-apply');
+await page.waitForFunction(() => !document.querySelector('.report').textContent.includes('Built around your picks'), null, { timeout: 30000 });
+console.log('ok  picks validated and cleared');
+
 const [download] = await Promise.all([page.waitForEvent('download'), page.click('#save')]);
 assert.match(download.suggestedFilename(), /^FM27 tactic - Harbour City - \d{4}-\d{2}-\d{2}\.html$/);
 console.log('ok  save report');

@@ -341,6 +341,63 @@ export function decideInstructions(profile, system, ctx, opts = {}) {
   else if (at === 'Counter-Attack' && d('fwdPace') >= VS) [gk, gkWhy] = ['Flanks', 'Release your quick wide players early.'];
   set('gkDistribution', gk, gkWhy);
 
+  // ---------- built around your marquee players ----------
+  const builtAround = [];
+  const marquee = system.lanes.filter((l) => l.player.label === 'marquee');
+  const wideSides = new Set();
+  for (const lane of marquee) {
+    const p = lane.player;
+    const nm = p.name.split(/\s+/).pop();
+    const a = (k) => p.attrs[k]?.v ?? 0;
+    const lvl = profile.level ?? 10;
+    const pos = ctx.slots[lane.ip][2];
+    const x = ctx.slots[lane.ip][0];
+    const side = x < 30 ? 'L' : x > 70 ? 'R' : 'C';
+    const attacking = /^(AM|ST)/.test(pos) || /^M \((L|R)\)/.test(pos);
+    const tweak = (id, value, why) => {
+      const text = `Built around ${nm}: ${why}`;
+      if (values[id] !== value) set(id, value, text);
+      else reasons[id] = `${text} ${reasons[id]}`;
+      builtAround.push({ player: p, id, value, why });
+    };
+    if (side !== 'C' && (attacking || lane.ipRole.tagSet.has('attackingBack'))) wideSides.add(side);
+    if (lane.ipRole.tagSet.has('creator') && ['DM', 'M (C)'].includes(pos) && values.buildUpStrategy !== 'Bypass Press') {
+      tweak('gkDistribution', 'Playmaker', 'get the ball to your playmaker as early as possible.');
+    }
+    if (lane.ipRole.tagSet.has('distributor') && pos === 'D (C)' && a('Passing') >= lvl + 2) {
+      tweak('buildUpStrategy', 'Play Through Press', `his passing (${a('Passing')}) is good enough to start attacks from the back.`);
+    }
+    if ((pos === 'ST (C)' || pos.startsWith('AM')) && (a('Pace') + a('Acceleration')) / 2 >= lvl + 2) {
+      tweak('passReception', 'Pass Into Space', `use his pace (Pace ${a('Pace')}, Acceleration ${a('Acceleration')}) with balls in behind.`);
+    }
+    if (pos === 'ST (C)' && ((a('Heading') + a('Jumping Reach')) / 2 >= lvl + 2.5 || ((p.heightCm || 0) >= 188 && a('Heading') >= lvl + 1))) {
+      tweak('crossingStyle', d('crossing') >= S ? 'Whipped Crosses' : 'Floated Crosses', `give him crosses to attack (Heading ${a('Heading')}${p.heightCm ? `, ${p.heightCm} cm` : ''}).`);
+    }
+    if (attacking && (a('Dribbling') + a('Flair')) / 2 >= lvl + 3) {
+      tweak('dribbling', 'Encourage', `let him run at defenders (Dribbling ${a('Dribbling')}, Flair ${a('Flair')}).`);
+      tweak('creativeFreedom', 'More Expressive', 'give him freedom to make things happen.');
+    }
+    if (['DM', 'M (C)', 'AM (C)', 'AM (L)', 'AM (R)'].includes(pos) && a('Long Shots') >= lvl + 3) {
+      tweak('shotsFromDistance', 'Encourage', `he can score from distance (Long Shots ${a('Long Shots')}).`);
+    }
+  }
+  if (wideSides.size) {
+    const value = wideSides.size === 2 ? 'Both Flanks' : wideSides.has('L') ? 'Left' : 'Right';
+    const who = marquee.filter((l) => {
+      const x = ctx.slots[l.ip][0];
+      return x < 30 || x > 70;
+    });
+    const nm = who.map((l) => l.player.name.split(/\s+/).pop()).join(' and ');
+    const text = `Built around ${nm}: get the ball to ${who.length > 1 ? 'them' : 'him'} on ${value === 'Both Flanks' ? 'both flanks' : `the ${value.toLowerCase()} flank`}.`;
+    if (values.progressThrough !== value) set('progressThrough', value, text);
+    builtAround.push({ player: who[0].player, id: 'progressThrough', value, why: text });
+  } else if (marquee.some((l) => ['DM', 'M (C)', 'AM (C)'].includes(ctx.slots[l.ip][2]) && l.ipRole.tagSet.has('creator'))) {
+    const l = marquee.find((m) => ['DM', 'M (C)', 'AM (C)'].includes(ctx.slots[m.ip][2]) && m.ipRole.tagSet.has('creator'));
+    const text = `Built around ${l.player.name.split(/\s+/).pop()}: play through the middle, where he is.`;
+    if (values.progressThrough !== 'Middle') set('progressThrough', 'Middle', text);
+    builtAround.push({ player: l.player, id: 'progressThrough', value: 'Middle', why: text });
+  }
+
   // ---------- overrides (alternative tactics) ----------
   for (const [id, val] of Object.entries(opts.overrides || {})) {
     if (val == null) continue;
@@ -375,6 +432,7 @@ export function decideInstructions(profile, system, ctx, opts = {}) {
     ip: build(catalogue.inPossession),
     oop: build(catalogue.outOfPossession),
     values: { ...values, mentality },
+    builtAround,
     plan,
     strength,
     strengthLabel,

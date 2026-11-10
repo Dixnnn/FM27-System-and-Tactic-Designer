@@ -160,6 +160,8 @@ export function parsePlayers(table, map, columnsDoc, tuning) {
       injured,
       suspended,
       rating: parseNumber(get(row, 'rating'), table.decimalComma),
+      ability: parseNumber(get(row, 'ability'), table.decimalComma),
+      potential: parseNumber(get(row, 'potential'), table.decimalComma),
       playingTime: cleanText(get(row, 'playingTime')),
       mediaHandling: cleanText(get(row, 'mediaHandling')),
       onLoan: false,

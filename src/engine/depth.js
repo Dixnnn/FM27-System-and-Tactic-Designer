@@ -28,7 +28,9 @@ export function depthChart(system, ctx) {
 
   // Exact second XI from fit players outside the first XI
   const value = system.lanes.map((lane) => fitBench.map((p) => laneValue(ctx, p, lane)));
-  const second = fitBench.length ? assignMax(value).rowToCol : [];
+  // future stars get their selection bonus here too, so they are first in line as cover
+  const preferred = value.map((row) => row.map((v, j) => (v > FORBIDDEN / 2 ? v + ctx.pickBonus(fitBench[j]) : v)));
+  const second = fitBench.length ? assignMax(preferred).rowToCol : [];
 
   const lanes = system.lanes.map((lane, i) => {
     const options = bench

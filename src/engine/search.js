@@ -38,7 +38,15 @@ export function createContext(players, docs, options = {}) {
     warnings: [],
   };
   const atClub = players.filter((p) => !p.onLoan);
-  let available = atClub.filter((p) => !(search.excludeInjured && p.injured));
+  // Your picks: "must start" and marquee players are locked into the XI (even when injured, since you chose
+  // them); marquee players and future stars also count more when systems and roles are compared.
+  const picksCfg = tuning.picks;
+  const usePicks = !search.ignorePicks;
+  const extra = new Set(search.extraLocks || []);
+  ctx.locked = new Set(usePicks ? atClub.filter((p) => p.mustStart || p.label === 'marquee' || extra.has(p.id)) : []);
+  ctx.pickWeight = (p) => (!usePicks ? 1 : p.label === 'marquee' ? picksCfg.marqueeWeight : p.label === 'future' ? picksCfg.futureStarWeight : 1);
+  ctx.pickBonus = (p) => (usePicks && p.label === 'future' ? picksCfg.futureStarBonus : 0);
+  let available = atClub.filter((p) => !(search.excludeInjured && p.injured) || ctx.locked.has(p));
   if (available.length < 11) {
     ctx.warnings.push('Fewer than 11 fit players, so injured players were included.');
     available = atClub.length >= 11 ? atClub : players.slice();
@@ -124,7 +132,15 @@ function laneValue(ctx, player, lane, fixed) {
 
 function pickXI(ctx, lanes, roles) {
   const pool = ctx.available;
-  const value = lanes.map((lane, i) => pool.map((p) => laneValue(ctx, p, lane, roles && roles[i])));
+  const lockBonus = ctx.tuning.picks.lockBonus;
+  const value = lanes.map((lane, i) =>
+    pool.map((p) => {
+      const v = laneValue(ctx, p, lane, roles && roles[i]);
+      if (v <= FORBIDDEN / 2) return v;
+      // locked players always start; a future star gets a small head start in close calls
+      return ctx.locked.has(p) ? v * ctx.pickWeight(p) + lockBonus : v + ctx.pickBonus(p);
+    }),
+  );
   const { rowToCol } = assignMax(value);
   return rowToCol.map((c) => pool[c]);
 }
@@ -133,11 +149,15 @@ function objective(ctx, lanes, xi, roles) {
   const { ipWeight, oopWeight } = ctx.search;
   let fit = 0;
   let choice = 0;
+  let picks = 0;
   const full = lanes.map((lane, i) => {
     const p = xi[i];
     if (laneAllowed(ctx, p, lane)) {
-      fit += ipWeight * slotRoleScore(p, roles[i].ipRole, lane.ip, ctx).score + oopWeight * slotRoleScore(p, roles[i].oopRole, lane.oop, ctx).score;
+      const v = ipWeight * slotRoleScore(p, roles[i].ipRole, lane.ip, ctx).score + oopWeight * slotRoleScore(p, roles[i].oopRole, lane.oop, ctx).score;
+      fit += v;
       choice += ipWeight * choiceScore(ctx, p, roles[i].ipRole, lane.ip) + oopWeight * choiceScore(ctx, p, roles[i].oopRole, lane.oop);
+      // marquee players and future stars count extra, so systems and roles that suit them win
+      picks += (ctx.pickWeight(p) - 1) * v + ctx.pickBonus(p);
     } else {
       fit += FORBIDDEN;
       choice += FORBIDDEN;
@@ -146,13 +166,14 @@ function objective(ctx, lanes, xi, roles) {
   });
   fit /= lanes.length;
   choice /= lanes.length;
+  picks /= lanes.length;
   const balance = evaluateBalance(full, ctx.slots, ctx.tuning.balance);
   if (ctx.plan) {
     const plan = evaluatePlan(full, ctx.slots, ctx.plan, ctx.tuning.plan);
     balance.points += plan.points;
     balance.notes.push(...plan.notes);
   }
-  return { fit, balance, total: choice + balance.points };
+  return { fit, balance, picks, total: choice + picks + balance.points };
 }
 
 function refineRoles(ctx, lanes, xi, roles) {
@@ -285,6 +306,11 @@ export function evaluateSystem(ctx, ipF, oopF, deep = false) {
       forbidden: !laneAllowed(ctx, player, lane),
     };
   });
+  // Every locked player must start, in a position he can play; otherwise this system can't work for your picks.
+  if (ctx.locked.size) {
+    const placed = new Set(resultLanes.filter((l) => !l.forbidden).map((l) => l.player));
+    for (const p of ctx.locked) if (!placed.has(p)) return null;
+  }
   const complexity = match.meanCost * ctx.search.complexityPenaltyPerCost;
   const fit = best.obj.fit;
   return {
@@ -297,8 +323,9 @@ export function evaluateSystem(ctx, ipF, oopF, deep = false) {
     lanes: resultLanes,
     fit,
     balance: best.obj.balance,
+    picks: best.obj.picks,
     complexity,
-    score: fit + best.obj.balance.points - complexity,
+    score: fit + best.obj.balance.points + best.obj.picks - complexity,
     valid: !resultLanes.some((l) => l.forbidden),
   };
 }

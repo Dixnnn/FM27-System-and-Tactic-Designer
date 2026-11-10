@@ -76,7 +76,51 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; margin: -10px 0 4px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .toolbar .spacer { flex: 1; }
-@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+#result-note .error { margin: 10px 0; }
+.btn .badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--accent-ink); color: var(--accent); font-size: 12px; font-weight: 700; }
+.btn .badge[hidden] { display: none; }
+.picker { margin: 12px 0 16px; padding: 20px 22px; }
+.pk-head { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.pk-head h2 { font-size: 18px; margin: 0 0 4px; }
+.pk-head .hint { max-width: 72ch; margin: 0; }
+.pk-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pk-count { font-size: 12.5px; color: var(--muted); margin-right: 4px; }
+.pk-tools { margin: 14px 0 6px; }
+.pk-tools input { font: inherit; font-size: 14px; width: min(320px, 100%); padding: 8px 11px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); }
+.pk-tools input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pk-msg { min-height: 0; margin: 6px 0; font-size: 13.5px; }
+.pk-warn { color: var(--warn); }
+.pk-list { display: grid; gap: 14px; margin-top: 8px; }
+.pk-gt { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 650; margin: 4px 0 6px; }
+.pk-row { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(170px, 1.3fr) auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
+.pk-row:hover { background: var(--surface-2); border-color: var(--line); }
+.pk-row[hidden] { display: none; }
+.pk-name { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+.pk-name strong { font-size: 14px; }
+.pk-sub { font-size: 12px; color: var(--muted); }
+.pk-inj { color: var(--warn); }
+.pk-role { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); min-width: 0; }
+.pk-role .fit { display: inline-flex; align-items: center; gap: 6px; }
+.pk-role .fit .n { font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pk-role .fit .m { width: 28px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; display: inline-block; }
+.pk-role .fit .m i { display: block; height: 100%; background: var(--accent); }
+.pk-rn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.switch input { position: absolute; opacity: 0; pointer-events: none; }
+.switch .knob { width: 34px; height: 20px; border-radius: 10px; background: var(--line-2); position: relative; transition: background .15s; flex: none; }
+.switch .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
+.switch input:checked + .knob { background: var(--accent); }
+.switch input:checked + .knob::after { transform: translateX(14px); }
+.switch input:disabled + .knob { opacity: .55; }
+.switch input:focus-visible + .knob { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg.mini { padding: 3px; gap: 2px; flex-wrap: nowrap; }
+.seg.mini span { padding: 4px 9px; font-size: 12.5px; }
+@media (max-width: 860px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .pk-row { grid-template-columns: 1fr auto; }
+  .pk-role { grid-column: 1 / -1; order: 3; }
+  .pk-row .seg.mini { grid-column: 1 / -1; order: 4; }
+}
 @media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
 @media print { body { background: #fff; } .appbar, .toolbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
 </style>
@@ -166,11 +210,14 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 
   <section id="result" class="hidden">
     <div class="toolbar no-print">
-      <button class="btn" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
+      <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
+      <button class="btn ghost" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
       <button class="btn ghost" id="save" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Save report</button>
       <span class="spacer"></span>
       <button class="btn ghost" id="again" type="button">Load another file</button>
     </div>
+    <div id="result-note" class="no-print"></div>
+    <div id="picker" class="panel picker hidden no-print"></div>
     <div id="report-holder"></div>
   </section>
 </main>

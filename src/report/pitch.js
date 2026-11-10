@@ -49,10 +49,28 @@ function markings() {
   ].join('');
 }
 
+function starPath(cx, cy, r) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const rad = i % 2 ? r * 0.45 : r;
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    pts.push(`${(cx + rad * Math.cos(a)).toFixed(1)},${(cy + rad * Math.sin(a)).toFixed(1)}`);
+  }
+  return `M${pts.join('L')}Z`;
+}
+
+/** Small badge on a token: filled star = marquee, outline star = future star, dot = must start. */
+function pickMark(mark, x, y) {
+  if (mark === 'marquee') return `<path d="${starPath(x, y, 6.5)}" class="mk-marquee" />`;
+  if (mark === 'future') return `<path d="${starPath(x, y, 6.5)}" class="mk-future" />`;
+  if (mark === 'start') return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" class="mk-start" />`;
+  return '';
+}
+
 /**
  * Players in one phase: a token per player (ring colour = fit band), role abbreviation inside,
  * surname and fit score underneath.
- * @param {Array<{slot:string, abbr:string, roleName:string, name:string, score:number}>} items
+ * @param {Array<{slot:string, abbr:string, roleName:string, name:string, score:number, mark?:string}>} items
  */
 export function pitchSVG(items, slots, title) {
   const players = items
@@ -61,10 +79,11 @@ export function pitchSVG(items, slots, title) {
       const cx = px(x).toFixed(1);
       const cy = py(y).toFixed(1);
       const s = Math.round(it.score);
+      const markTitle = it.mark === 'marquee' ? ' · marquee player' : it.mark === 'future' ? ' · future star' : it.mark === 'start' ? ' · must start' : '';
       return `<g class="pl ${scoreClass(it.score)}" tabindex="0">
-  <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}</title>
+  <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}</title>
   <circle cx="${cx}" cy="${cy}" r="22" class="hit" />
-  <circle cx="${cx}" cy="${cy}" r="15.5" class="dot" />
+  <circle cx="${cx}" cy="${cy}" r="15.5" class="dot" />${pickMark(it.mark, +cx + 12.5, +cy - 12.5)}
   <text x="${cx}" y="${(+cy + 3.4).toFixed(1)}" class="abbr">${esc(it.abbr)}</text>
   <text x="${cx}" y="${(+cy + 29).toFixed(1)}" class="nm">${esc(shortName(it.name))}</text>
   <text x="${cx}" y="${(+cy + 40.5).toFixed(1)}" class="sc">${s}</text>
