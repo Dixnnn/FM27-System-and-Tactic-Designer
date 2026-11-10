@@ -1,0 +1,54 @@
+{
+  "_about": [
+    "FM27 tactic settings in the order the Tactics screens show them. Used to list every setting in the report.",
+    "Names and options follow FM27 as closely as public sources allow (in-game checks of 7 Nov 2026 and decoded FM27 tactic files).",
+    "If a label differs slightly in your game, pick the option with the same meaning. 'verified': false marks names not yet confirmed in an English FM27.",
+    "'scale': true marks options that run from one extreme to the other (shown as a step indicator in the report)."
+  ],
+  "mentalities": ["Very Defensive", "Defensive", "Cautious", "Balanced", "Positive", "Attacking", "Very Attacking"],
+  "styles": [
+    "Control Possession", "Gegenpress", "Tiki-Taka", "Vertical Tiki-Taka", "Wing Play", "Route One",
+    "Fluid Counter-Attack", "Direct Counter-Attack", "Catenaccio", "Park the Bus", "Clean Sheet"
+  ],
+  "inPossession": [
+    { "section": "Overview", "id": "passingDirectness", "name": "Passing Directness", "options": ["Much Shorter", "Shorter", "Standard", "More Direct", "Much More Direct"], "scale": true, "default": "Standard" },
+    { "section": "Overview", "id": "tempo", "name": "Tempo", "options": ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], "scale": true, "default": "Standard" },
+    { "section": "Overview", "id": "attackingWidth", "name": "Attacking Width", "options": ["Much Narrower", "Narrower", "Standard", "Wider", "Much Wider"], "scale": true, "default": "Standard" },
+    { "section": "Overview", "id": "attackingTransition", "name": "Attacking Transition", "options": ["Hold Shape", "Standard", "Counter-Attack"], "scale": true, "default": "Standard" },
+    { "section": "Overview", "id": "creativeFreedom", "name": "Creative Freedom", "options": ["More Disciplined", "Balanced", "More Expressive"], "scale": true, "default": "Balanced" },
+    { "section": "Overview", "id": "timeWasting", "name": "Time Wasting", "options": ["Less Often", "Standard", "More Often"], "scale": true, "default": "Standard" },
+    { "section": "Overview", "id": "playForSetPieces", "name": "Play for Set Pieces", "options": ["Keep Ball in Play", "Play for Set Pieces"], "default": "Keep Ball in Play" },
+    { "section": "Final Third", "id": "patience", "name": "Patience", "options": ["Hit Early Crosses", "Standard", "Work Ball Into Box"], "scale": true, "default": "Standard" },
+    { "section": "Final Third", "id": "shotsFromDistance", "name": "Shots from Distance", "options": ["Discourage", "Balanced", "Encourage"], "scale": true, "default": "Balanced" },
+    { "section": "Final Third", "id": "crossingStyle", "name": "Crossing Style", "options": ["Balanced", "Floated Crosses", "Whipped Crosses", "Low Crosses"], "default": "Balanced" },
+    { "section": "Final Third", "id": "dribbling", "name": "Dribbling", "options": ["Discourage", "Balanced", "Encourage"], "scale": true, "default": "Balanced", "note": "Also shown on the Progression page; it is the same setting." },
+    { "section": "Progression", "id": "supportingRuns", "name": "Supporting Runs", "options": ["Balanced", "Left", "Right", "Both Flanks"], "default": "Balanced", "verified": false },
+    { "section": "Progression", "id": "progressThrough", "name": "Progress Through", "options": ["Balanced", "Left", "Middle", "Right", "Both Flanks"], "default": "Balanced" },
+    { "section": "Progression", "id": "passReception", "name": "Pass Reception", "options": ["Pass To Feet", "Balanced", "Pass Into Space"], "scale": true, "default": "Balanced" },
+    { "section": "Build-Up", "id": "buildUpStrategy", "name": "Build-Up Strategy", "options": ["Play Through Press", "Balanced", "Bypass Press"], "scale": true, "default": "Balanced" },
+    { "section": "Build-Up", "id": "goalKicks", "name": "Goal Kicks", "options": ["Short", "Mixed", "Long"], "scale": true, "default": "Mixed" },
+    { "section": "Build-Up", "id": "gkDistributionSpeed", "name": "Goalkeeper Distribution Speed", "options": ["Slow Pace Down", "Balanced", "Distribute Quickly"], "scale": true, "default": "Balanced" },
+    { "section": "Build-Up", "id": "gkDistribution", "name": "Goalkeeper Distribution", "options": ["Balanced", "Centre-Backs", "Full-Backs", "Flanks", "Playmaker", "Target Forward", "Over Opposition Defence"], "default": "Balanced" }
+  ],
+  "outOfPossession": [
+    { "section": "Out of Possession", "id": "lineOfEngagement", "name": "Line of Engagement", "options": ["Low Block", "Mid Block", "High Press"], "scale": true, "default": "Mid Block" },
+    { "section": "Out of Possession", "id": "defensiveLine", "name": "Defensive Line", "options": ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], "scale": true, "default": "Standard" },
+    { "section": "Out of Possession", "id": "defensiveLineBehaviour", "name": "Defensive Line Behaviour", "options": ["Step Up More", "Balanced", "Drop Off More"], "scale": true, "default": "Balanced" },
+    { "section": "Out of Possession", "id": "triggerPress", "name": "Trigger Press", "options": ["Much Less Often", "Less Often", "Standard", "More Often", "Much More Often"], "scale": true, "default": "Standard" },
+    { "section": "Out of Possession", "id": "defensiveTransition", "name": "Defensive Transition", "options": ["Counter-Press", "Standard", "Regroup"], "scale": true, "default": "Standard" },
+    { "section": "Out of Possession", "id": "tackling", "name": "Tackling", "options": ["Get Stuck In", "Standard", "Stay On Feet"], "scale": true, "default": "Standard" },
+    { "section": "Out of Possession", "id": "pressingTrap", "name": "Pressing Trap", "options": ["Trap Inside", "Balanced", "Trap Outside"], "default": "Balanced" },
+    { "section": "Out of Possession", "id": "crossEngagement", "name": "Cross Engagement", "options": ["Stop Crosses", "Balanced", "Invite Crosses"], "scale": true, "default": "Balanced" },
+    { "section": "Out of Possession", "id": "preventShortGkDistribution", "name": "Prevent Short GK Distribution", "options": ["No", "Yes"], "default": "No" }
+  ],
+  "playerInstructions": {
+    "_about": "Player instruction names seen in FM26/FM27 sources. These are the least certain labels: check them in the game's player instruction screen.",
+    "inPossession": ["Shooting", "Dribbling Frequency", "Dribbling Direction", "Passing Risk", "Hold Up Ball", "Cross From", "Forward Runs", "Attacking Width"],
+    "outOfPossession": ["Trigger Press", "Tackling", "Marking"]
+  },
+  "training": {
+    "_about": "FM27 training session names (Training > schedule). Tactical Understanding sessions match the tactic areas; Match Preparation sessions are separate.",
+    "tacticalUnderstanding": ["Passing Style", "Build Up", "Chance Creation", "In Possession Shape", "Line of Engagement", "Pressing Intensity", "Pressing Trap", "Out Of Possession Shape"],
+    "matchPreparation": ["Press Avoidance", "Defensive Block", "Defensive Positioning", "Defensive Engagement", "Corners", "Free Kicks", "Penalty"]
+  }
+}

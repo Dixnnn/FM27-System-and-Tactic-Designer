@@ -1,0 +1,557 @@
+{
+  "_about": [
+    "Columns the tool reads. 'headers' lists every column name accepted for a field (FM27 names first; FM24-style abbreviations also work).",
+    "'menu' is where to find the column in FM27: in the squad table, right-click a column header (or open the view menu) > Insert Column > this path.",
+    "importance: essential = needed for a useful tactic; recommended = improves it; optional = shown if present."
+  ],
+  "fields": [
+    {
+      "field": "id",
+      "headers": ["Unique ID", "UID", "ID"],
+      "menu": "General > Unique ID",
+      "importance": "recommended",
+      "why": "Lets the tool tell apart two players with the same name."
+    },
+    {
+      "field": "name",
+      "headers": ["Player", "Name"],
+      "menu": null,
+      "importance": "essential",
+      "why": "Always part of the squad table."
+    },
+    {
+      "field": "position",
+      "headers": ["Position", "Positions"],
+      "menu": "General > Position",
+      "importance": "essential",
+      "why": "Which positions the player can play."
+    },
+    {
+      "field": "bestPos",
+      "headers": ["Best Pos", "Best Position"],
+      "menu": "Ability and Roles > Assistant manager's opinion of this player's best position",
+      "importance": "recommended",
+      "why": "Used as the player's natural position."
+    },
+    {
+      "field": "secPosition",
+      "headers": ["Sec. Position", "Secondary Position"],
+      "menu": "General > Secondary Position",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "age",
+      "headers": ["Age"],
+      "menu": "General > Age",
+      "importance": "recommended",
+      "why": ""
+    },
+    {
+      "field": "height",
+      "headers": ["Height"],
+      "menu": "General > Height",
+      "importance": "recommended",
+      "why": "Aerial targets and centre-backs."
+    },
+    {
+      "field": "preferredFoot",
+      "headers": ["Preferred Foot", "Foot"],
+      "menu": "General > Preferred Foot",
+      "importance": "recommended",
+      "why": ""
+    },
+    {
+      "field": "leftFoot",
+      "headers": ["Left Foot"],
+      "menu": "General > Left Foot",
+      "importance": "recommended",
+      "why": "Footedness for wide roles (e.g. inside forwards)."
+    },
+    {
+      "field": "rightFoot",
+      "headers": ["Right Foot"],
+      "menu": "General > Right Foot",
+      "importance": "recommended",
+      "why": "Footedness for wide roles (e.g. inside forwards)."
+    },
+    {
+      "field": "personality",
+      "headers": ["Personality"],
+      "menu": "General > Personality",
+      "importance": "recommended",
+      "why": "Captain choice."
+    },
+    {
+      "field": "traits",
+      "headers": ["Player Trait", "Player Traits", "Traits", "PPMs", "Preferred Moves"],
+      "menu": "Training > Player Trait",
+      "importance": "recommended",
+      "why": "Player instructions and role choices."
+    },
+    {
+      "field": "condition",
+      "headers": ["CON", "Condition", "Overall Physical Condition", "Cond"],
+      "menu": "Fitness and Injuries > Overall Physical Condition",
+      "importance": "optional",
+      "why": "Shown as an icon in FM27, so exports usually leave it empty."
+    },
+    {
+      "field": "sharpness",
+      "headers": ["SHP", "Match Sharpness"],
+      "menu": "Fitness and Injuries > Match Sharpness",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "fatigue",
+      "headers": ["Fatigue"],
+      "menu": "Fitness and Injuries > Fatigue",
+      "importance": "optional",
+      "why": "Shown as an icon in FM27, so exports usually leave it empty."
+    },
+    {
+      "field": "injury",
+      "headers": ["Injury", "Injuries", "Current Injury"],
+      "menu": "Fitness and Injuries > Injury",
+      "importance": "recommended",
+      "why": "Injured players are left out of the starting XI."
+    },
+    {
+      "field": "info",
+      "headers": ["Inf", "Player Status", "Information"],
+      "menu": "General > Player Status",
+      "importance": "recommended",
+      "why": "Injury, suspension and other flags."
+    },
+    {
+      "field": "bestRole",
+      "headers": ["Best Role"],
+      "menu": "Ability and Roles > Assistant manager's opinion of this player's best tactical role",
+      "importance": "optional",
+      "why": "FM's own best-role opinion, shown for comparison."
+    },
+    {
+      "field": "roleAbility",
+      "headers": ["Role Ability"],
+      "menu": "Ability and Roles > Assistant manager's opinion of this player's current ability in the selected role - IP",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "roleAbilityOOP",
+      "headers": ["Role Ability Out Of Possession"],
+      "menu": "Ability and Roles > Assistant manager's opinion of this player's current ability in the selected role - OOP",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "ability",
+      "headers": ["Ability", "Current Ability (stars)"],
+      "menu": "Ability and Roles > Assistant manager's opinion of this player's current ability",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "potential",
+      "headers": ["Potential"],
+      "menu": "Ability and Roles > Assistant manager's opinion of this player's potential ability",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "rating",
+      "headers": ["Rating", "Av Rat", "Average Rating"],
+      "menu": "Stats (General) > General > Average Rating",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "playingTime",
+      "headers": ["Playing Time", "Agreed Playing Time"],
+      "menu": "Transfer > Agreed Playing Time",
+      "importance": "recommended",
+      "why": "Spots players who are out on loan."
+    },
+    {
+      "field": "secondNation",
+      "headers": ["2nd Nat", "Second Nationality"],
+      "menu": "General > Second Nationality",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "mediaHandling",
+      "headers": ["Media Handling", "Media Handling Style"],
+      "menu": "General > Media Handling Style",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "wage",
+      "headers": ["Wage"],
+      "menu": "Contract > General > Wage",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "transferValue",
+      "headers": ["Transfer Value", "Value"],
+      "menu": "Transfer > Transfer Value",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "club",
+      "headers": ["Club"],
+      "menu": "Club > Club",
+      "importance": "recommended",
+      "why": "Spots players who are out on loan at other clubs."
+    },
+    {
+      "field": "squadNumber",
+      "headers": ["No.", "Squad Number", "Num"],
+      "menu": "General > Squad Number",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "nation",
+      "headers": ["Nation", "Nationality"],
+      "menu": "General > Nationality",
+      "importance": "optional",
+      "why": ""
+    }
+  ],
+  "attributes": [
+    {
+      "field": "Aerial Reach",
+      "group": "Goalkeeping",
+      "headers": ["Aer", "Aerial Reach"],
+      "menu": "Attributes > Goalkeeping > Aerial Reach",
+      "importance": "essential"
+    },
+    {
+      "field": "Command of Area",
+      "group": "Goalkeeping",
+      "headers": ["Cmd", "Command Of Area", "Command of Area"],
+      "menu": "Attributes > Goalkeeping > Command Of Area",
+      "importance": "essential"
+    },
+    {
+      "field": "Communication",
+      "group": "Goalkeeping",
+      "headers": ["Com", "Communication"],
+      "menu": "Attributes > Goalkeeping > Communication",
+      "importance": "essential"
+    },
+    {
+      "field": "Eccentricity",
+      "group": "Goalkeeping",
+      "headers": ["Ecc", "Eccentricity"],
+      "menu": "Attributes > Goalkeeping > Eccentricity",
+      "importance": "recommended"
+    },
+    {
+      "field": "Handling",
+      "group": "Goalkeeping",
+      "headers": ["Han", "Handling"],
+      "menu": "Attributes > Goalkeeping > Handling",
+      "importance": "essential"
+    },
+    {
+      "field": "Kicking",
+      "group": "Goalkeeping",
+      "headers": ["Kic", "Kicking"],
+      "menu": "Attributes > Goalkeeping > Kicking",
+      "importance": "essential"
+    },
+    {
+      "field": "One on Ones",
+      "group": "Goalkeeping",
+      "headers": ["1v1", "One On Ones", "One on Ones", "1 v 1", "One vs One"],
+      "menu": "Attributes > Goalkeeping > One on Ones",
+      "importance": "essential"
+    },
+    {
+      "field": "Punching (Tendency)",
+      "group": "Goalkeeping",
+      "headers": ["Pun", "Punching", "Punching (Tendency)"],
+      "menu": "Attributes > Goalkeeping > Punching (Tendency)",
+      "importance": "recommended"
+    },
+    {
+      "field": "Reflexes",
+      "group": "Goalkeeping",
+      "headers": ["Ref", "Reflexes"],
+      "menu": "Attributes > Goalkeeping > Reflexes",
+      "importance": "essential"
+    },
+    {
+      "field": "Rushing Out (Tendency)",
+      "group": "Goalkeeping",
+      "headers": ["Rushing Out", "Rushing Out (Tendency)", "TRO", "Rushing Out", "Rushing out"],
+      "menu": "Attributes > Goalkeeping > Rushing out (Tendency)",
+      "importance": "essential"
+    },
+    {
+      "field": "Throwing",
+      "group": "Goalkeeping",
+      "headers": ["Thr", "Throwing"],
+      "menu": "Attributes > Goalkeeping > Throwing",
+      "importance": "essential"
+    },
+    {
+      "field": "Corners",
+      "group": "Technical",
+      "headers": ["Cor", "Corners"],
+      "menu": "Attributes > Technical > Corners",
+      "importance": "recommended"
+    },
+    {
+      "field": "Crossing",
+      "group": "Technical",
+      "headers": ["Cro", "Crossing"],
+      "menu": "Attributes > Technical > Crossing",
+      "importance": "essential"
+    },
+    {
+      "field": "Dribbling",
+      "group": "Technical",
+      "headers": ["Dri", "Dribbling"],
+      "menu": "Attributes > Technical > Dribbling",
+      "importance": "essential"
+    },
+    {
+      "field": "Finishing",
+      "group": "Technical",
+      "headers": ["Fin", "Finishing"],
+      "menu": "Attributes > Technical > Finishing",
+      "importance": "essential"
+    },
+    {
+      "field": "First Touch",
+      "group": "Technical",
+      "headers": ["Fir", "First Touch"],
+      "menu": "Attributes > Technical > First Touch",
+      "importance": "essential"
+    },
+    {
+      "field": "Free Kick Taking",
+      "group": "Technical",
+      "headers": ["Fre", "Free Kick Taking", "Free Kicks"],
+      "menu": "Attributes > Technical > Free Kicks",
+      "importance": "recommended"
+    },
+    {
+      "field": "Heading",
+      "group": "Technical",
+      "headers": ["Hea", "Heading"],
+      "menu": "Attributes > Technical > Heading",
+      "importance": "essential"
+    },
+    {
+      "field": "Long Shots",
+      "group": "Technical",
+      "headers": ["Lon", "Long Shots"],
+      "menu": "Attributes > Technical > Long Shots",
+      "importance": "essential"
+    },
+    {
+      "field": "Long Throws",
+      "group": "Technical",
+      "headers": ["L Th", "Long Throws"],
+      "menu": "Attributes > Technical > Long Throws",
+      "importance": "recommended"
+    },
+    {
+      "field": "Marking",
+      "group": "Technical",
+      "headers": ["Mar", "Marking"],
+      "menu": "Attributes > Technical > Marking",
+      "importance": "essential"
+    },
+    {
+      "field": "Passing",
+      "group": "Technical",
+      "headers": ["Pas", "Passing"],
+      "menu": "Attributes > Technical > Passing",
+      "importance": "essential"
+    },
+    {
+      "field": "Penalty Taking",
+      "group": "Technical",
+      "headers": ["Pen", "Penalty Taking"],
+      "menu": "Attributes > Technical > Penalty Taking",
+      "importance": "recommended"
+    },
+    {
+      "field": "Tackling",
+      "group": "Technical",
+      "headers": ["Tackling", "Tck"],
+      "menu": "Attributes > Technical > Tackling",
+      "importance": "essential"
+    },
+    {
+      "field": "Technique",
+      "group": "Technical",
+      "headers": ["Tec", "Technique"],
+      "menu": "Attributes > Technical > Technique",
+      "importance": "essential"
+    },
+    {
+      "field": "Aggression",
+      "group": "Mental",
+      "headers": ["Agg", "Aggression"],
+      "menu": "Attributes > Mental > Aggression",
+      "importance": "essential"
+    },
+    {
+      "field": "Anticipation",
+      "group": "Mental",
+      "headers": ["Ant", "Anticipation"],
+      "menu": "Attributes > Mental > Anticipation",
+      "importance": "essential"
+    },
+    {
+      "field": "Bravery",
+      "group": "Mental",
+      "headers": ["Bra", "Bravery"],
+      "menu": "Attributes > Mental > Bravery",
+      "importance": "essential"
+    },
+    {
+      "field": "Composure",
+      "group": "Mental",
+      "headers": ["Cmp", "Composure"],
+      "menu": "Attributes > Mental > Composure",
+      "importance": "essential"
+    },
+    {
+      "field": "Concentration",
+      "group": "Mental",
+      "headers": ["Cnt", "Concentration"],
+      "menu": "Attributes > Mental > Concentration",
+      "importance": "essential"
+    },
+    {
+      "field": "Decisions",
+      "group": "Mental",
+      "headers": ["Dec", "Decisions"],
+      "menu": "Attributes > Mental > Decisions",
+      "importance": "essential"
+    },
+    {
+      "field": "Determination",
+      "group": "Mental",
+      "headers": ["Det", "Determination"],
+      "menu": "Attributes > Mental > Determination",
+      "importance": "recommended"
+    },
+    {
+      "field": "Flair",
+      "group": "Mental",
+      "headers": ["Fla", "Flair"],
+      "menu": "Attributes > Mental > Flair",
+      "importance": "essential"
+    },
+    {
+      "field": "Leadership",
+      "group": "Mental",
+      "headers": ["Ldr", "Leadership"],
+      "menu": "Attributes > Mental > Leadership",
+      "importance": "recommended"
+    },
+    {
+      "field": "Off the Ball",
+      "group": "Mental",
+      "headers": ["Off The Ball", "Off the Ball", "OtB"],
+      "menu": "Attributes > Mental > Off The Ball",
+      "importance": "essential"
+    },
+    {
+      "field": "Positioning",
+      "group": "Mental",
+      "headers": ["Pos", "Positioning"],
+      "menu": "Attributes > Mental > Positioning",
+      "importance": "essential"
+    },
+    {
+      "field": "Teamwork",
+      "group": "Mental",
+      "headers": ["Tea", "Team Work", "Teamwork", "Team work"],
+      "menu": "Attributes > Mental > Teamwork",
+      "importance": "essential"
+    },
+    {
+      "field": "Vision",
+      "group": "Mental",
+      "headers": ["Vis", "Vision"],
+      "menu": "Attributes > Mental > Vision",
+      "importance": "essential"
+    },
+    {
+      "field": "Work Rate",
+      "group": "Mental",
+      "headers": ["Wor", "Work Rate"],
+      "menu": "Attributes > Mental > Work Rate",
+      "importance": "essential"
+    },
+    {
+      "field": "Acceleration",
+      "group": "Physical",
+      "headers": ["Acc", "Acceleration"],
+      "menu": "Attributes > Physical > Acceleration",
+      "importance": "essential"
+    },
+    {
+      "field": "Agility",
+      "group": "Physical",
+      "headers": ["Agi", "Agility"],
+      "menu": "Attributes > Physical > Agility",
+      "importance": "essential"
+    },
+    {
+      "field": "Balance",
+      "group": "Physical",
+      "headers": ["Bal", "Balance"],
+      "menu": "Attributes > Physical > Balance",
+      "importance": "essential"
+    },
+    {
+      "field": "Jumping Reach",
+      "group": "Physical",
+      "headers": ["Jum", "Jumping Reach"],
+      "menu": "Attributes > Physical > Jumping Reach",
+      "importance": "essential"
+    },
+    {
+      "field": "Natural Fitness",
+      "group": "Physical",
+      "headers": ["Nat", "Natural Fitness"],
+      "menu": "Attributes > Physical > Natural Fitness",
+      "importance": "recommended"
+    },
+    {
+      "field": "Pace",
+      "group": "Physical",
+      "headers": ["Pac", "Pace"],
+      "menu": "Attributes > Physical > Pace",
+      "importance": "essential"
+    },
+    {
+      "field": "Stamina",
+      "group": "Physical",
+      "headers": ["Sta", "Stamina"],
+      "menu": "Attributes > Physical > Stamina",
+      "importance": "essential"
+    },
+    {
+      "field": "Strength",
+      "group": "Physical",
+      "headers": ["Str", "Strength"],
+      "menu": "Attributes > Physical > Strength",
+      "importance": "essential"
+    }
+  ]
+}

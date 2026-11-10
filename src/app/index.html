@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'">
+<title>FM27 Tactic Builder</title>
+<script>try { if (localStorage.getItem('fm27-tactic-builder.theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}</script>
+<style>
+/*__THEME_CSS__*/
+/*__REPORT_CSS__*/
+* { box-sizing: border-box; }
+.hidden { display: none !important; }
+.appbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand svg { width: 30px; height: 30px; flex: none; }
+.brand .name { font-weight: 700; font-size: 15.5px; letter-spacing: -.005em; }
+.brand .sub { font-size: 12px; color: var(--muted); }
+.icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); cursor: pointer; }
+.icon-btn:hover { color: var(--ink); border-color: var(--line-2); }
+.icon-btn svg { width: 18px; height: 18px; }
+:root:not([data-theme="light"]) .icon-btn .sun { display: block; } :root:not([data-theme="light"]) .icon-btn .moon { display: none; }
+:root[data-theme="light"] .icon-btn .sun { display: none; } :root[data-theme="light"] .icon-btn .moon { display: block; }
+.shell { max-width: 1180px; margin: 0 auto; padding: 26px 20px 48px; }
+.hero h1 { font-size: 28px; line-height: 1.2; margin: 6px 0 8px; letter-spacing: -.015em; }
+.hero p { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.drop { border: 1.5px dashed var(--line-2); border-radius: 12px; padding: 34px 18px 30px; text-align: center; background: var(--surface-2); transition: border-color .15s, background .15s; cursor: pointer; outline: none; }
+.drop:hover, .drop:focus-visible { border-color: var(--accent); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop svg { width: 38px; height: 38px; color: var(--accent); }
+.drop-title { font-size: 19px; font-weight: 650; margin: 8px 0 4px; }
+.drop-sub { color: var(--muted); font-size: 13.5px; margin: 0 auto 18px; max-width: 52ch; }
+.row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 14px; font-weight: 600; border-radius: 9px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-2); }
+.btn.ghost:hover { border-color: var(--ink-2); filter: none; }
+.btn.small { padding: 6px 11px; font-size: 13px; }
+.btn svg { width: 16px; height: 16px; }
+.btn:focus-visible, .icon-btn:focus-visible, .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field { margin-top: 20px; }
+.field .label { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; }
+.seg label { flex: 1 1 auto; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; text-align: center; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.seg span:hover { color: var(--ink); background: var(--surface-3); }
+.seg input:checked + span { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--line-2), 0 1px 3px rgba(0,0,0,.15); }
+.hint { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+.status { margin-top: 14px; min-height: 0; }
+.working { display: flex; align-items: center; gap: 12px; color: var(--ink-2); font-size: 14px; }
+.working .track { flex: 1; max-width: 220px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; position: relative; }
+.working .track i { position: absolute; inset: 0 auto 0 0; width: 35%; border-radius: 2px; background: var(--accent); animation: slide 1.1s ease-in-out infinite; }
+@keyframes slide { 0% { left: -35%; } 100% { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .working .track i { animation: none; width: 100%; opacity: .5; } }
+.error { display: flex; gap: 10px; border: 1px solid var(--line); border-left: 3px solid var(--warn-line); background: var(--warn-soft); color: var(--ink); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.error svg { width: 16px; height: 16px; color: var(--warn); flex: none; margin-top: 3px; }
+.error ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); }
+details.opts { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+details.opts summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--ink-2); }
+details.opts summary:hover { color: var(--ink); }
+details.opts p { color: var(--muted); font-size: 13px; }
+.check { display: flex; gap: 9px; align-items: center; margin: 10px 0 2px; font-size: 14px; color: var(--ink-2); }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.help h2 { font-size: 16px; margin: 0 0 12px; }
+ol.howto { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; counter-reset: s; }
+ol.howto li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 14px; color: var(--ink-2); counter-increment: s; }
+ol.howto li::before { content: counter(s); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 12.5px; }
+ol.howto strong { color: var(--ink); }
+code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border-radius: 5px; font-size: 12.5px; overflow-wrap: anywhere; }
+.privacy { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+.privacy svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
+.toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; margin: -10px 0 4px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.toolbar .spacer { flex: 1; }
+#result-note .error { margin: 10px 0; }
+.btn .badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--accent-ink); color: var(--accent); font-size: 12px; font-weight: 700; }
+.btn .badge[hidden] { display: none; }
+.picker { margin: 12px 0 16px; padding: 20px 22px; }
+.pk-head { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.pk-head h2 { font-size: 18px; margin: 0 0 4px; }
+.pk-head .hint { max-width: 72ch; margin: 0; }
+.pk-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pk-count { font-size: 12.5px; color: var(--muted); margin-right: 4px; }
+.pk-tools { margin: 14px 0 6px; }
+.pk-tools input { font: inherit; font-size: 14px; width: min(320px, 100%); padding: 8px 11px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); }
+.pk-tools input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pk-msg { min-height: 0; margin: 6px 0; font-size: 13.5px; }
+.pk-warn { color: var(--warn); }
+.pk-list { display: grid; gap: 14px; margin-top: 8px; }
+.pk-gt { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 650; margin: 4px 0 6px; }
+.pk-row { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(170px, 1.3fr) auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
+.pk-row:hover { background: var(--surface-2); border-color: var(--line); }
+.pk-row[hidden] { display: none; }
+.pk-name { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+.pk-name strong { font-size: 14px; }
+.pk-sub { font-size: 12px; color: var(--muted); }
+.pk-inj { color: var(--warn); }
+.pk-role { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); min-width: 0; }
+.pk-role .fit { display: inline-flex; align-items: center; gap: 6px; }
+.pk-role .fit .n { font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pk-role .fit .m { width: 28px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; display: inline-block; }
+.pk-role .fit .m i { display: block; height: 100%; background: var(--accent); }
+.pk-rn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.switch input { position: absolute; opacity: 0; pointer-events: none; }
+.switch .knob { width: 34px; height: 20px; border-radius: 10px; background: var(--line-2); position: relative; transition: background .15s; flex: none; }
+.switch .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
+.switch input:checked + .knob { background: var(--accent); }
+.switch input:checked + .knob::after { transform: translateX(14px); }
+.switch input:disabled + .knob { opacity: .55; }
+.switch input:focus-visible + .knob { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg.mini { padding: 3px; gap: 2px; flex-wrap: nowrap; }
+.seg.mini span { padding: 4px 9px; font-size: 12.5px; }
+@media (max-width: 860px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .pk-row { grid-template-columns: 1fr auto; }
+  .pk-role { grid-column: 1 / -1; order: 3; }
+  .pk-row .seg.mini { grid-column: 1 / -1; order: 4; }
+}
+@media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
+@media print { body { background: #fff; } .appbar, .toolbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
+</style>
+</head>
+<body>
+<header class="appbar no-print">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+      <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
+    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v<!--APP_VERSION--> · works offline · reads your export, never your game</div></div>
+  </div>
+  <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
+    <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 12.6A7 7 0 0 1 7.4 3.5a7 7 0 1 0 9.1 9.1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+  </button>
+</header>
+
+<main class="shell">
+  <section id="start">
+    <div class="hero no-print">
+      <h1>Build an FM27 tactic around your squad</h1>
+      <p>Drop the squad export and get a complete tactic: both shapes and every role, all 27 team instructions with reasons, player instructions,
+        set pieces, depth chart, training and three alternative tactics.</p>
+    </div>
+    <div class="grid2 no-print">
+      <div class="panel">
+        <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose or drop your FM27 squad export">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 30h-1.5A7.5 7.5 0 0 1 9.6 15a10 10 0 0 1 19.5 2.2A6.5 6.5 0 0 1 28.5 30H28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 34V20m-5 5 5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="drop-title">Drop your squad export here</div>
+          <div class="drop-sub">CSV or HTML from FM View Exporter (F9 on your squad screen), FM27 Player Export, or any squad export with player attributes.</div>
+          <div class="row">
+            <button class="btn" id="choose" type="button">Choose file…</button>
+            <button class="btn ghost" id="sample" type="button">Try the sample squad</button>
+          </div>
+          <input type="file" id="file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
+        </div>
+
+        <div class="field">
+          <div class="label" id="strength-label">How strong is your team in its league?</div>
+          <div class="seg" role="radiogroup" aria-labelledby="strength-label">
+            <label><input type="radio" name="strength" value="2"><span>Title favourites</span></label>
+            <label><input type="radio" name="strength" value="1"><span>Top half</span></label>
+            <label><input type="radio" name="strength" value="0" checked><span>Mid-table</span></label>
+            <label><input type="radio" name="strength" value="-1"><span>Lower half</span></label>
+            <label><input type="radio" name="strength" value="-2"><span>Underdogs</span></label>
+          </div>
+          <div class="hint">Sets the mentality and how high to press. Remembered on this computer.</div>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+
+        <details class="opts">
+          <summary>Options</summary>
+          <label class="check"><input type="checkbox" id="opt-injured" checked> Leave injured players out of the starting XI</label>
+        </details>
+        <details class="opts">
+          <summary>Advanced: role and tuning files</summary>
+          <p>The roles (with their key attributes) and the engine's numbers live in two JSON files. After an FM27 patch you can edit them
+            and load your copy here; it's remembered in this browser.</p>
+          <div class="btnrow">
+            <button class="btn ghost small" id="dl-roles" type="button">Download roles.json</button>
+            <button class="btn ghost small" id="dl-tuning" type="button">Download tuning.json</button>
+            <button class="btn ghost small" id="load-json" type="button">Load my own…</button>
+            <button class="btn ghost small" id="reset-json" type="button">Use built-in files</button>
+            <input type="file" id="json-file" accept=".json,application/json" class="hidden">
+          </div>
+          <p id="json-status"></p>
+        </details>
+      </div>
+
+      <aside class="panel help">
+        <h2>Getting the export from FM27</h2>
+        <ol class="howto">
+          <li><span>Install <strong>FM View Exporter</strong> once (free; see the README). It adds an <strong>F9</strong> export to FM27.</span></li>
+          <li><span>In FM27 open <strong>Squad</strong> and pick a view that shows all attributes (the README lists the columns).</span></li>
+          <li><span>Press <strong>F9</strong> and wait until it stops scrolling. The file is saved in <code>Documents\Sports Interactive\FM View Exporter</code>.</span></li>
+          <li><span>Drop that <code>squad_….csv</code> (or <code>.html</code>) on the box.</span></li>
+        </ol>
+        <div class="privacy">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3.5 4.5v5c0 4 2.8 7.2 6.5 8.5 3.7-1.3 6.5-4.5 6.5-8.5v-5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7 10 2.2 2.2L13.3 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Nothing is uploaded: the file is read inside this page, on your PC, and the page is blocked from using the internet.</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="result" class="hidden">
+    <div class="toolbar no-print">
+      <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
+      <button class="btn ghost" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
+      <button class="btn ghost" id="save" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Save report</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" id="again" type="button">Load another file</button>
+    </div>
+    <div id="result-note" class="no-print"></div>
+    <div id="picker" class="panel picker hidden no-print"></div>
+    <div id="report-holder"></div>
+  </section>
+</main>
+<!--APP_SCRIPT-->
+</body>
+</html>
