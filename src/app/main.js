@@ -86,10 +86,12 @@ function decode(buffer) {
 
 function showError(result) {
   const c = result.columns;
-  let extra = '';
+  let extra = lastInput?.fromGame
+    ? '<p>In FM27, switch your Squad view to <strong>FM27TFT</strong>, the plugin’s built-in view (or add the columns below) and press <strong>F8</strong> again.</p>'
+    : '';
   if (c && (c.missingEssential.length || c.fatal)) {
     const list = c.missingEssential.slice(0, 20).map((m) => `<li><strong>${esc(m.label)}</strong>${m.menu ? ` – Insert Column › ${esc(m.menu)}` : ''}</li>`).join('');
-    if (list) extra = `<p>Columns to add to your squad view in FM27:</p><ul>${list}</ul>`;
+    if (list) extra += `<p>Columns to add to your squad view in FM27:</p><ul>${list}</ul>`;
   }
   setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
 }
@@ -113,14 +115,23 @@ function showResult(result, note = '') {
   $('picks-badge').textContent = n ? String(n) : '';
   $('picks-badge').hidden = !n;
   $('result-note').innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : '';
+  $('src-note').textContent = lastInput?.label || '';
+  $('strength-quick').value = String(strengthValue());
+  $('strength-quick').disabled = false;
   setStatus('');
   window.scrollTo(0, 0);
 }
 
-function run(text, filename) {
-  lastInput = { text, filename };
+/**
+ * @param {string} text  the export
+ * @param {string} filename
+ * @param {{label?: string, fromGame?: boolean}} [from]  where it came from, shown above the report
+ */
+function run(text, filename, from = {}) {
+  lastInput = { text, filename, label: from.label ?? filename, fromGame: !!from.fromGame };
   setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
   setTimeout(() => {
+    $('strength-quick').disabled = false; // the work below is synchronous, so the page can't be clicked meanwhile
     let result;
     let note = '';
     try {
@@ -187,6 +198,24 @@ async function readFile(file) {
   run(decode(buffer), file.name);
 }
 
+/** The squad the FM27 plugin put into this page (F8), or null when the page was opened on its own. */
+function readInjected() {
+  try {
+    const data = JSON.parse(document.getElementById('fm27tb-export')?.textContent || 'null');
+    return data && typeof data.text === 'string' && data.text.trim() ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function injectedLabel(data) {
+  const at = data.exportedAt ? new Date(data.exportedAt) : null;
+  const when = at && !Number.isNaN(at.getTime())
+    ? at.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : '';
+  return `Read from FM27${when ? ` · ${when}` : ''}`;
+}
+
 function download(name, content, type) {
   const url = URL.createObjectURL(new Blob([content], { type }));
   const a = document.createElement('a');
@@ -243,9 +272,19 @@ function init() {
     if (!$('start').classList.contains('hidden') && e.dataTransfer?.files?.[0]) readFile(e.dataTransfer.files[0]);
   });
 
-  $('sample').addEventListener('click', () => run(sampleCsv, 'squad_20261108_201500.csv (sample)'));
+  $('sample').addEventListener('click', () => run(sampleCsv, 'squad_20261108_201500.csv (sample)', { label: 'Sample squad' }));
   $('print').addEventListener('click', () => window.print());
   $('choose-players').addEventListener('click', openPicker);
+  // Change the team strength on the report itself (the plugin opens the page straight on the tactic).
+  $('strength-quick').addEventListener('change', (e) => {
+    const value = e.target.value;
+    const radio = document.querySelector(`input[name="strength"][value="${CSS.escape(value)}"]`);
+    if (radio) radio.checked = true;
+    remember(STRENGTH_KEY, value);
+    if (!lastInput) return;
+    e.target.disabled = true;
+    run(lastInput.text, lastInput.filename, { label: lastInput.label, fromGame: lastInput.fromGame });
+  });
   $('save').addEventListener('click', () => {
     if (!lastResult) return;
     const date = new Date().toISOString().slice(0, 10);
@@ -300,6 +339,10 @@ function init() {
   for (const r of document.querySelectorAll('input[name="strength"]')) {
     r.addEventListener('change', () => remember(STRENGTH_KEY, r.value));
   }
+
+  // Opened by the FM27 plugin (F8): the squad is already inside this page, so build the tactic straight away.
+  const injected = readInjected();
+  if (injected) run(injected.text, injected.name || 'squad.csv', { label: injectedLabel(injected), fromGame: true });
 }
 
 init();

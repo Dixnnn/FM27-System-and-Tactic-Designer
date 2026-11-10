@@ -1,0 +1,75 @@
+name: Plugin
+
+# Tests the FM27 plugin and builds the downloads: the setup (.exe), the full package (BepInEx + plugin)
+# and the plugin zip. They appear under "Artifacts" on each run. Run it by hand with "Publish a release"
+# ticked to put them on the Releases page as v<version> (version from package.json).
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Publish a release (tag v<version from package.json>)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - id: version
+        run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+      - name: Tests (squad reader core, tactic page, setup logic)
+        run: dotnet test plugin/tests/FM27TacticBuilder.Tests
+      - name: Build plugin, full package and setup
+        run: bash plugin/packaging/package.sh "${{ steps.version.outputs.version }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FM27TacticBuilder-${{ steps.version.outputs.version }}
+          path: plugin/dist/
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'workflow_dispatch' && inputs.release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: FM27TacticBuilder-${{ needs.build.outputs.version }}
+          path: dist
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          cat > notes.md <<NOTES
+          **FM27 Tactic Builder $VERSION**: press F8 on your squad screen in Football Manager 27 and your tactic opens in your browser.
+
+          | File | Use it when |
+          | --- | --- |
+          | \`FM27TacticBuilder-$VERSION-setup.exe\` | **Recommended.** Finds FM27, installs BepInEx and the plugin, updates, uninstalls and edits the settings. |
+          | \`FM27TacticBuilder-$VERSION-full-package.zip\` | Manual install: BepInEx + plugin, extract next to fm.exe. |
+          | \`FM27TacticBuilder-$VERSION-plugin.zip\` | Only the plugin, if BepInEx is already installed (for example by FM View Exporter). |
+
+          Free software under the GNU GPL v3. The squad reader is based on FM View Exporter by ElectroHugin.
+
+          SHA-256:
+          \`\`\`
+          $(cat dist/SHA256SUMS.txt)
+          \`\`\`
+          NOTES
+          gh release create "v$VERSION" dist/*.exe dist/*.zip dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "FM27 Tactic Builder $VERSION" --notes-file notes.md

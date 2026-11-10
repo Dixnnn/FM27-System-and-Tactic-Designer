@@ -3,6 +3,8 @@
 
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import assert from 'node:assert/strict';
 import { ROOT, SAMPLE_FILES } from '../helpers.js';
 
@@ -80,6 +82,30 @@ console.log('ok  picks validated and cleared');
 const [download] = await Promise.all([page.waitForEvent('download'), page.click('#save')]);
 assert.match(download.suggestedFilename(), /^FM27 tactic - Harbour City - \d{4}-\d{2}-\d{2}\.html$/);
 console.log('ok  save report');
+
+// Opened by the FM27 plugin (F8): the squad sits in the page's slot and the tactic appears without a click.
+// Same filling as plugin/src/FM27TacticBuilder.Core/TacticPage.cs (JSON with <, > and & escaped).
+const SLOT = '<script type="application/json" id="fm27tb-export">null</script>';
+const csv = readFileSync(join(ROOT, 'samples', 'squad_20261108_201500.csv'), 'utf8');
+const json = JSON.stringify({ name: 'squad_20261110_180852.csv', exportedAt: '2026-11-10T18:08:52', source: 'Football Manager 27', text: csv })
+  .replace(/[<>&\u2028\u2029]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+const template = readFileSync(join(ROOT, 'FM27-Tactic-Builder.html'), 'utf8');
+assert.equal(template.split(SLOT).length, 2, 'the page has one slot for the plugin');
+const filled = join(mkdtempSync(join(tmpdir(), 'fm27tb-')), 'FM27 Tactic Builder.html');
+writeFileSync(filled, template.replace(SLOT, () => SLOT.replace('>null<', `>${json}<`)));
+const fromGame = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+fromGame.on('pageerror', (e) => problems.push(e.message));
+fromGame.on('request', (r) => !/^(file|data|blob):/.test(r.url()) && external.push(r.url()));
+await fromGame.goto('file://' + filled);
+await fromGame.waitForSelector('#result:not(.hidden) .report', { timeout: 15000 });
+assert.match(await fromGame.textContent('#src-note'), /^Read from FM27 · /);
+assert.match(await fromGame.textContent('.report'), /Harbour City/);
+assert.equal(await fromGame.$eval('#strength-quick', (e) => e.value), '0');
+await fromGame.selectOption('#strength-quick', '2');
+await fromGame.waitForFunction(() => /title favourites/.test(document.querySelector('.report .meta')?.textContent || ''), null, { timeout: 15000 });
+assert.match(await fromGame.textContent('#src-note'), /^Read from FM27/, 'still the squad from the game');
+await fromGame.close();
+console.log('ok  page filled by the plugin opens straight on the tactic; team strength changes on the report');
 
 await page.click('#again');
 await page.setInputFiles('#file', { name: 'notes.csv', mimeType: 'text/csv', buffer: Buffer.from('Name,Club\nA,B\n') });

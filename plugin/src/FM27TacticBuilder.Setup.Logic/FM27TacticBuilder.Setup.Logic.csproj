@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Setup logic without a window and without Windows APIs. Tested in CI and compiled straight into
+       FM27TacticBuilder.Setup, so there is a single .exe. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>FM27TacticBuilder.Setup</RootNamespace>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="FM27TacticBuilder.Tests" />
+  </ItemGroup>
+</Project>

@@ -348,6 +348,10 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; margin: -10px 0 4px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .toolbar .spacer { flex: 1; }
+.src-note { font-size: 12.5px; color: var(--muted); }
+.tb-strength { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
+.tb-strength select { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 8px 10px; cursor: pointer; }
+.tb-strength select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #result-note .error { margin: 10px 0; }
 .btn .badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--accent-ink); color: var(--accent); font-size: 12px; font-weight: 700; }
 .btn .badge[hidden] { display: none; }
@@ -403,7 +407,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
     <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
       <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
       <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
-    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.4.0 · works offline · reads your export, never your game</div></div>
+    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.5.1 · works offline · only reads your squad, never changes your game</div></div>
   </div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
     <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -423,7 +427,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose or drop your FM27 squad export">
           <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 30h-1.5A7.5 7.5 0 0 1 9.6 15a10 10 0 0 1 19.5 2.2A6.5 6.5 0 0 1 28.5 30H28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 34V20m-5 5 5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="drop-title">Drop your squad export here</div>
-          <div class="drop-sub">CSV or HTML from FM View Exporter (F9 on your squad screen), FM27 Player Export, or any squad export with player attributes.</div>
+          <div class="drop-sub">With the FM27 plugin you don't need this: press <strong>F8</strong> in the game. Otherwise drop a CSV or HTML from FM View Exporter (F9), FM27 Player Export, or any squad export with player attributes.</div>
           <div class="row">
             <button class="btn" id="choose" type="button">Choose file…</button>
             <button class="btn ghost" id="sample" type="button">Try the sample squad</button>
@@ -465,12 +469,12 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
       </div>
 
       <aside class="panel help">
-        <h2>Getting the export from FM27</h2>
+        <h2>Getting your squad from FM27</h2>
         <ol class="howto">
-          <li><span>Install <strong>FM View Exporter</strong> once (free; see the README). It adds an <strong>F9</strong> export to FM27.</span></li>
-          <li><span>In FM27 open <strong>Squad</strong> and pick a view that shows all attributes (the README lists the columns).</span></li>
-          <li><span>Press <strong>F9</strong> and wait until it stops scrolling. The file is saved in <code>Documents\Sports Interactive\FM View Exporter</code>.</span></li>
-          <li><span>Drop that <code>squad_….csv</code> (or <code>.html</code>) on the box.</span></li>
+          <li><span>Install the <strong>FM27 Tactic Builder plugin</strong> once with its setup (see the README).</span></li>
+          <li><span>In FM27 open <strong>Squad</strong> and switch the view to <strong>FM27TFT</strong>, the plugin's built-in view (or any view with all attributes; the README lists the columns).</span></li>
+          <li><span>Press <strong>F8</strong>. The plugin reads your players and opens this page with your tactic.</span></li>
+          <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (F9) and drop the <code>squad_….csv</code> on the box.</span></li>
         </ol>
         <div class="privacy">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3.5 4.5v5c0 4 2.8 7.2 6.5 8.5 3.7-1.3 6.5-4.5 6.5-8.5v-5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7 10 2.2 2.2L13.3 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -485,7 +489,17 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
       <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
       <button class="btn ghost" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
       <button class="btn ghost" id="save" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Save report</button>
+      <label class="tb-strength">Team strength
+        <select id="strength-quick">
+          <option value="2">Title favourites</option>
+          <option value="1">Top half</option>
+          <option value="0">Mid-table</option>
+          <option value="-1">Lower half</option>
+          <option value="-2">Underdogs</option>
+        </select>
+      </label>
       <span class="spacer"></span>
+      <span class="src-note" id="src-note"></span>
       <button class="btn ghost" id="again" type="button">Load another file</button>
     </div>
     <div id="result-note" class="no-print"></div>
@@ -493,6 +507,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
     <div id="report-holder"></div>
   </section>
 </main>
+<script type="application/json" id="fm27tb-export">null</script>
 <script>
 (() => {
   // src/input/csv.js
@@ -5527,8 +5542,8 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
   <div class="eyebrow">FM27 Tactic Builder</div>
   <h1>${club}your tactic</h1>
   <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · team strength: ${esc(result.instructions.strengthLabel)} · made ${esc(when)}</p>
-  <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your export file and never
-  touches the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
+  <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your squad and never
+  changes the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
   <nav class="toc"><a href="#overview">At a glance</a><a href="#setup">Enter it in FM27</a><a href="#why">Why</a><a href="#depth">Depth</a>
   <a href="#alternatives">Alternatives</a><a href="#training">Training</a><a href="#suitability">Role suitability</a><a href="#data">Your data</a></nav>
 </header>
@@ -5744,10 +5759,10 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
   }
   function showError(result) {
     const c = result.columns;
-    let extra = "";
+    let extra = lastInput?.fromGame ? "<p>In FM27, switch your Squad view to <strong>FM27TFT</strong>, the plugin’s built-in view (or add the columns below) and press <strong>F8</strong> again.</p>" : "";
     if (c && (c.missingEssential.length || c.fatal)) {
       const list = c.missingEssential.slice(0, 20).map((m) => `<li><strong>${esc(m.label)}</strong>${m.menu ? ` – Insert Column › ${esc(m.menu)}` : ""}</li>`).join("");
-      if (list) extra = `<p>Columns to add to your squad view in FM27:</p><ul>${list}</ul>`;
+      if (list) extra += `<p>Columns to add to your squad view in FM27:</p><ul>${list}</ul>`;
     }
     setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
   }
@@ -5769,13 +5784,17 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     $("picks-badge").textContent = n ? String(n) : "";
     $("picks-badge").hidden = !n;
     $("result-note").innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : "";
+    $("src-note").textContent = lastInput?.label || "";
+    $("strength-quick").value = String(strengthValue());
+    $("strength-quick").disabled = false;
     setStatus("");
     window.scrollTo(0, 0);
   }
-  function run(text, filename) {
-    lastInput = { text, filename };
+  function run(text, filename, from = {}) {
+    lastInput = { text, filename, label: from.label ?? filename, fromGame: !!from.fromGame };
     setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
     setTimeout(() => {
+      $("strength-quick").disabled = false;
       let result;
       let note = "";
       try {
@@ -5838,6 +5857,19 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     const buffer = await file.arrayBuffer();
     run(decode(buffer), file.name);
   }
+  function readInjected() {
+    try {
+      const data = JSON.parse(document.getElementById("fm27tb-export")?.textContent || "null");
+      return data && typeof data.text === "string" && data.text.trim() ? data : null;
+    } catch {
+      return null;
+    }
+  }
+  function injectedLabel(data) {
+    const at = data.exportedAt ? new Date(data.exportedAt) : null;
+    const when = at && !Number.isNaN(at.getTime()) ? at.toLocaleString(void 0, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    return `Read from FM27${when ? ` · ${when}` : ""}`;
+  }
   function download(name, content, type) {
     const url = URL.createObjectURL(new Blob([content], { type }));
     const a = document.createElement("a");
@@ -5889,9 +5921,18 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
       e.preventDefault();
       if (!$("start").classList.contains("hidden") && e.dataTransfer?.files?.[0]) readFile(e.dataTransfer.files[0]);
     });
-    $("sample").addEventListener("click", () => run(squad_20261108_201500_default, "squad_20261108_201500.csv (sample)"));
+    $("sample").addEventListener("click", () => run(squad_20261108_201500_default, "squad_20261108_201500.csv (sample)", { label: "Sample squad" }));
     $("print").addEventListener("click", () => window.print());
     $("choose-players").addEventListener("click", openPicker);
+    $("strength-quick").addEventListener("change", (e) => {
+      const value = e.target.value;
+      const radio2 = document.querySelector(`input[name="strength"][value="${CSS.escape(value)}"]`);
+      if (radio2) radio2.checked = true;
+      remember(STRENGTH_KEY, value);
+      if (!lastInput) return;
+      e.target.disabled = true;
+      run(lastInput.text, lastInput.filename, { label: lastInput.label, fromGame: lastInput.fromGame });
+    });
     $("save").addEventListener("click", () => {
       if (!lastResult) return;
       const date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
@@ -5942,6 +5983,8 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     for (const r of document.querySelectorAll('input[name="strength"]')) {
       r.addEventListener("change", () => remember(STRENGTH_KEY, r.value));
     }
+    const injected = readInjected();
+    if (injected) run(injected.text, injected.name || "squad.csv", { label: injectedLabel(injected), fromGame: true });
   }
   init();
 })();

@@ -2,8 +2,8 @@
 
 Designs a complete Football Manager 27 tactic around **your** squad.
 
-Drop your squad export onto one HTML page and get a printable report with everything you need to enter in FM27, in the order
-the tactics screens show it:
+Press **F8** on your squad screen in FM27 (or drop a squad export onto one HTML page) and get a printable report with
+everything you need to enter in FM27, in the order the tactics screens show it:
 
 - **Style and mentality:** the closest FM27 style to start from, and a mentality based on how strong your team is.
 - **Shapes and roles:** the in-possession and out-of-possession formations as pitch diagrams, and the best eleven, each with an
@@ -20,69 +20,82 @@ the tactics screens show it:
 - **Your players:** optionally, mark players who must start, a **marquee** player to build the tactic around, and **future stars**
   to develop. The tactic is rebuilt around them.
 
+**Two ways to use it:**
+
+- **Inside FM27, with the plugin (easiest).** Install it once, then press **F8** on your squad screen. The plugin reads your
+  players straight from the screen and your tactic opens in your browser a few seconds later.
+- **The page on its own.** Export your squad with FM View Exporter (F9) and drop the file onto `FM27-Tactic-Builder.html`.
+
 **What it can't do:** it can't put the tactic into FM27 for you. You copy the settings in by hand; the report lists them in
-order. It only ever *reads* your export file. It never touches the game, your saves or the game's memory, and it works
-offline: the page is blocked from using the internet at all.
+order. It only ever *reads*: the plugin reads what FM27 shows on screen, the page reads your export. Neither touches your
+saves, your game files or the game's memory, and neither uses the internet (the page is blocked from it entirely).
 
 ---
 
-## What you need
+## Use it inside FM27 (the plugin)
 
-- A Windows PC with **Football Manager 27 on Steam**
-- **Google Chrome** or **Microsoft Edge** (Edge comes with Windows)
-- The free **FM View Exporter** plugin, to get your squad out of FM27. FM27 has no built-in export any more: Sports
-  Interactive removed it in FM26. The plugin only reads what's on screen and never changes your save.
+You need a Windows PC with **Football Manager 27 on Steam**, and **Microsoft Edge** or **Google Chrome** to show the tactic
+(Edge comes with Windows).
 
----
+### 1. Install the plugin (one time)
 
-## Step 1: get the Tactic Builder (one time)
-
-1. On this project's GitHub page, click **`FM27-Tactic-Builder.html`**, then the **Download raw file** button (the arrow
-   pointing down, top right of the file).
-2. Put the file anywhere you like, for example your Desktop.
-3. Double-click it. It opens in your web browser. That's the whole tool: there is nothing to install.
-
-If double-clicking opens it in Notepad instead, right-click the file › **Open with** › **Microsoft Edge** (or Chrome).
-
-## Step 2: install FM View Exporter (one time)
-
-Full instructions are on the plugin's page: **github.com/ElectroHugin/FM-View-Exporter**. In short:
-
-1. From its **Releases** page, download `FMViewExporter-…-setup.exe` and run it.
-2. Windows may warn you, because the setup isn't signed yet. Click **More info › Run anyway**.
+1. Download **`FM27TacticBuilder-…-setup.exe`** from this project's **Releases** page. (Before the first release: open
+   **Actions › Plugin**, click the latest green run and download the file under **Artifacts**; it's a zip with the setup inside.)
+2. Run it. Windows may warn you because the setup isn't signed: click **More info › Run anyway**.
 3. The setup finds FM27 in your Steam library (or you pick the folder that contains `fm.exe`). Click **Install**.
-4. Start FM27. **The first start takes a few minutes** while the mod loader prepares itself. Later starts are normal.
+4. Start FM27. **The first start takes a few minutes** while the mod loader (BepInEx) prepares itself. When you're in the
+   game, a small message in the top right corner says *FM27 Tactic Builder is ready*.
 
-To remove it later, run the setup again and click **Uninstall**. Your saves are not affected.
+Already using **FM View Exporter**? That's fine: both work side by side (F9 there, F8 here), and the setup keeps the shared
+BepInEx.
 
-*Already use vinteset's **FM27 Player Export** plugin instead? That works too: the Tactic Builder reads its
-semicolon-separated files.*
+To remove it, run the setup again and click **Uninstall**. Your saves are not affected.
 
-## Step 3: set up the squad view (one time)
+### 2. Set up the squad view (one time)
 
-The plugin exports the columns you can see, so the squad table needs to show all player attributes plus a few extras.
-**Follow [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md).** The quickest way is to import the plugin's ready-made view and add 2
-columns.
+The plugin reads the columns you can see, so the squad table needs to show all player attributes plus a few extras.
 
-## Step 4: export your squad
+- **With the built-in view:** the plugin copies its view into FM27's `views` folder as `FM27 Tactic Builder - Squad.fmf`.
+  On the **Squad** screen open the table's view menu, choose **Import View…** and pick that file. In the game the view is
+  called **FM27TFT**; switch to it whenever you press F8.
+- **Without it** (or if Import View doesn't list it): set up the view by hand as in
+  **[docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md)**. It takes about 10 minutes, and FM27 remembers it.
 
-1. In FM27 open **Squad** and choose the view from step 3.
-2. Press **F9**. The list scrolls by itself. **Don't click anything until it stops.**
-3. The file is saved in **`Documents\Sports Interactive\FM View Exporter`**, named like `squad_20261108_201500.csv` (there's
-   an `.html` copy too; either works).
+### 3. Make your tactic
 
-## Step 5: make your tactic
+1. In FM27 open **Squad** with that view.
+2. Press **F8**. The list scrolls by itself; **don't click anything until the message in the top right corner changes.**
+3. Your tactic opens in your browser (switch to it with **Alt+Tab**). Set **Team strength** at the top of the report
+   (title favourites … underdogs): it sets the mentality and how high to press, and is remembered.
 
-1. Open `FM27-Tactic-Builder.html`.
-2. Answer **"How strong is your team in its league?"** (title favourites … underdogs). It sets the mentality and how high to
-   press, and is remembered for next time.
-3. Drag the `squad_….csv` file onto the box, or click **Choose file…**.
-4. The report appears in a few seconds. Use **Print / Save as PDF** or **Save report** to keep it.
+Everything is saved in **`Documents\Sports Interactive\FM27 Tactic Builder`**: `FM27 Tactic Builder.html` (your latest
+tactic; open it any time), `exports\` (every squad you read, as CSV) and `views\`.
 
-The page opens in **dark mode**; the sun/moon button (top right) switches to light and is remembered. Printing and PDFs always
-use a light, ink-friendly layout.
+| Key | What it does |
+| --- | --- |
+| **F8** | Reads the list on screen and opens your tactic |
+| **Ctrl+F8** | Only saves the list as CSV (works on the squad, player database and shortlist screens) |
+| **Ctrl+Shift+F8** | Writes a dump of the game's screen layout, for fixing the plugin after an FM27 patch |
 
-Want to see it first? Click **Try the sample squad**. It uses a made-up club.
+Keys and other settings can be changed in the setup's **Settings** tab.
+
+---
+
+## Or: use the page on its own
+
+1. **Get the page.** On this project's GitHub page, click **`FM27-Tactic-Builder.html`**, then **Download raw file** (the
+   arrow pointing down, top right). Put it anywhere, for example your Desktop. If double-clicking opens it in Notepad,
+   right-click it › **Open with** › **Microsoft Edge** (or Chrome).
+2. **Install FM View Exporter** (free, github.com/ElectroHugin/FM-View-Exporter): run its `FMViewExporter-…-setup.exe`
+   from its Releases page and click **Install**. *vinteset's **FM27 Player Export** plugin works too.*
+3. **Set up the squad view** as in [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md).
+4. **Export:** in FM27 open **Squad** with that view and press **F9**. Don't click until it stops scrolling. The file is
+   saved in `Documents\Sports Interactive\FM View Exporter`, named like `squad_20261108_201500.csv`.
+5. **Make your tactic:** open `FM27-Tactic-Builder.html`, answer **"How strong is your team in its league?"**, and drag the
+   `squad_….csv` onto the box (or click **Choose file…**). Use **Print / Save as PDF** or **Save report** to keep it.
+
+Want to see it first? Click **Try the sample squad**; it uses a made-up club. The page opens in **dark mode**; the sun/moon
+button switches to light. Printing always uses a light, ink-friendly layout.
 
 ## Build around your players (optional)
 
@@ -102,7 +115,7 @@ Picks are remembered for that club in this browser, so your next export of the s
 export no longer fits them (say a picked player has left), the tactic is built without them and the report tells you.
 Players out on loan can't be picked.
 
-## Step 6: put it into FM27
+## Put it into FM27
 
 Section 2 of the report, "Enter it in FM27", has six steps in the order of FM27's screens:
 
@@ -164,11 +177,18 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 
 | Problem | Fix |
 | --- | --- |
+| **Nothing happens when I press F8** | The game window must be in front and a player list open (Squad screen). Look in `BepInEx\LogOutput.log` in the FM27 game folder for lines from *FM27 Tactic Builder*. No such lines at all: run the setup again and click **Update**. |
+| **"No player list on screen"** | Open the **Squad** screen (the list of your players, not a single player's profile) and press F8 again. |
+| **"This view lacks …" / "Opened, but columns are missing"** | Switch the squad view to *FM27TFT* (or add the columns from [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md)) and press F8 again. |
+| **The browser didn't open** | Open `Documents\Sports Interactive\FM27 Tactic Builder\FM27 Tactic Builder.html` yourself. To stop it opening, untick *Open the tactic in the browser* in the setup's Settings. |
+| **F8 already does something in my game** | Pick another key in the setup's **Settings** tab (for example `Ctrl+Shift+T`), then restart FM27. |
+| **No message appears in the game** | The message box is a nice-to-have; everything still works and is logged in `BepInEx\LogOutput.log`. It can be switched off in Settings. |
+| **The plugin stopped working after an FM27 patch** | Press **Ctrl+Shift+F8** on the squad screen and send the newest file from `Documents\Sports Interactive\FM27 Tactic Builder\Diagnostics` with your `BepInEx\LogOutput.log`. Meanwhile the page on its own still works with any export. |
 | **Nothing happens when I press F9** | A player list must be open (Squad screen). Check `BepInEx\LogOutput.log` in the FM27 game folder for a message from FM View Exporter. |
 | **"Only N player attributes were found"** | Your view doesn't show the attributes. Set it up as in [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md) and export again. |
 | **The report says some columns are missing** | Its last section lists each one and where it is in FM27's *Insert Column* menu. Add them and export again. The tactic still works without them, just with less detail. |
 | **Some columns came out empty** | FM27 only fills about the first 255 columns of a view. Keep the view to the columns in the guide. Icon-only columns (like morale) are always empty. |
-| **The export has fewer players than my squad** | You clicked or scrolled while F9 was running. Export again and keep your hands off the mouse until it stops. |
+| **The tactic has fewer players than my squad** | You clicked or scrolled while F8/F9 was reading. Try again and keep your hands off the mouse until it stops. |
 | **FM27 won't start, or acts oddly, after installing the plugin** | Delete or rename `winhttp.dll` in the FM27 game folder. The game then starts without mods. |
 | **The HTML file opens as text / in Notepad** | Right-click it › Open with › Microsoft Edge (or Chrome). |
 | **Strange characters in player names** | Re-export with the plugin's default settings (UTF-8). The tool also reads UTF-16 and older Windows encodings. |
@@ -184,9 +204,13 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 
 ## Privacy and safety
 
-- Everything happens inside the page on your PC. Nothing is uploaded, and the page blocks itself from making internet
-  connections.
-- The tool never opens your saves, never reads the game's memory and never changes anything in FM27.
+- Everything happens on your PC. Nothing is uploaded, and the page blocks itself from making internet connections. The plugin
+  has no network code at all.
+- The plugin only reads what FM27 shows on screen, the same way FM View Exporter does. While it reads, it briefly makes the
+  list taller and the frame rate faster so it can scroll quicker, then puts both back exactly as they were. It never opens your
+  saves, never reads the game's memory and never changes game files or settings.
+- It writes only to `Documents\Sports Interactive\FM27 Tactic Builder`, plus its own view file into FM27's `views` folder
+  (switch that off with *Install the squad view* in Settings). It never overwrites or deletes any other file.
 
 ## For developers
 
@@ -197,7 +221,15 @@ npm run build        # rebuilds FM27-Tactic-Builder.html from src/ and data/
 npm run test:e2e     # builds, then checks the page in Chromium (needs Playwright)
 npm run samples      # regenerates the made-up sample squads in samples/
 npm run report -- samples/squad_20261108_201500.csv out/report.html
+
+# The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
+dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
+dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
+plugin/packaging/package.sh 0.5.1                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
+
+GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the
+setup. Run *Plugin* by hand with *Publish a release* ticked to put it on the Releases page.
 
 Layout: each layer can be swapped or fixed on its own after a patch.
 
@@ -208,13 +240,23 @@ Layout: each layer can be swapped or fixed on its own after a patch.
 | `src/engine/` | Role scoring, Hungarian algorithm, formation search, balance and game-plan rules, squad profile, team and player instructions, depth chart, set pieces, captain, training, alternatives |
 | `src/report/` | The HTML report |
 | `src/app/` | The page you open |
+| `plugin/` | The FM27 plugin (C#, BepInEx 6 IL2CPP): `src/FM27TacticBuilder` (in-game part: keys, reading the table, messages, opening the page), `src/FM27TacticBuilder.Core` (no Unity: table model, CSV, putting the squad into the page, view files), `src/FM27TacticBuilder.Setup*` (the installer), `tests/`, `packaging/`, `views/` (the built-in squad view) |
 | `data/` | Editable JSON: `roles.json` (79 FM27 roles), `formations.json`, `instructions.json` (FM27's tactic settings in screen order), `columns.json` (column names + FM27 menu paths), `tuning.json` (all the engine's numbers) |
+
+## Licence
+
+Free software under the **GNU General Public License v3** ([LICENSE](LICENSE)), because the plugin is built on FM View
+Exporter's GPLv3 code. You may use, share and change it; if you share a changed version, it must stay under the GPL with its
+source. No warranty.
 
 ## Credits and sources
 
-- **FM View Exporter** (ElectroHugin, GPLv3) for the F9 export, and its FM27 column and menu catalogue.
+- **FM View Exporter** (ElectroHugin, GPLv3): the plugin's squad reader, setup program and packaging are based on its code
+  (each such file says so at the top), and its FM27 column and menu catalogue. The page on its own also reads its exports.
+- **BepInEx** (LGPL-2.1) and **Il2CppInterop** (LGPL-3.0) load the plugin into FM27; the full package ships them unchanged
+  (see `plugin/packaging/THIRD-PARTY-NOTICES.txt`).
 - FM27 role names and their key/preferred attributes were transcribed from the game by the **FM Player Analyzer** project
-  (ElectroHugin). This tool uses those game facts in its own format; no code is copied.
+  (ElectroHugin). This tool uses those game facts in its own format.
 - FM27 tactics screen research (instruction names and screen order) from the community projects *FM27-apka* and
   *fm-ai-assistent*.
 - Not affiliated with or endorsed by Sports Interactive or SEGA. Football Manager is a trademark of Sports Interactive.
