@@ -26,6 +26,8 @@
   .btn.small { padding: 5px 11px; font-size: 13.5px; }
   .btn:focus-visible { outline: 3px solid #8cc7ab; outline-offset: 2px; }
   .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .strength { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 2px 0; }
+  .strength select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
   details { margin-top: 10px; }
   summary { cursor: pointer; font-weight: 600; }
   .opts label { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
@@ -53,7 +55,7 @@
 <div class="shell">
   <div class="top no-print">
     <h1>FM27 Tactic Builder</h1>
-    <span class="ver">Version 0.1.0 · works offline · only reads your file, never your game</span>
+    <span class="ver">Version 0.2.0 · works offline · only reads your file, never your game</span>
   </div>
 
   <div id="start" class="no-print">
@@ -66,6 +68,17 @@
           <button class="btn secondary" id="sample">Try the sample squad</button>
         </div>
         <input type="file" id="file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
+      </div>
+      <div class="strength">
+        <label for="opt-strength"><strong>How strong is your team in its league?</strong></label>
+        <select id="opt-strength">
+          <option value="2">Title favourites</option>
+          <option value="1">Top half</option>
+          <option value="0" selected>Mid-table</option>
+          <option value="-1">Lower half</option>
+          <option value="-2">Underdogs / relegation fight</option>
+        </select>
+        <span class="small muted">Sets the mentality and how high to press.</span>
       </div>
       <div id="status" class="status" role="status" aria-live="polite"></div>
 
@@ -566,6 +579,9 @@
         injured,
         suspended,
         rating: parseNumber(get(row, "rating"), table.decimalComma),
+        playingTime: cleanText(get(row, "playingTime")),
+        mediaHandling: cleanText(get(row, "mediaHandling")),
+        onLoan: false,
         fmBestRole: cleanText(get(row, "bestRole")),
         fmRoleStars: parseNumber(get(row, "roleAbility"), table.decimalComma),
         fmRoleStarsOOP: parseNumber(get(row, "roleAbilityOOP"), table.decimalComma)
@@ -885,6 +901,53 @@
     const points = notes.reduce((s, n) => s + n.points, 0);
     return { points, notes };
   }
+  function oopRows(lanes, slots) {
+    let mid = 0;
+    let front = 0;
+    for (const l of lanes) {
+      const y = slots[l.oop][1];
+      if (l.oop === "GK" || y < 30) continue;
+      if (y >= 62) front++;
+      else mid++;
+    }
+    return { mid, front };
+  }
+  function evaluatePlan(lanes, slots, plan, cfg) {
+    const notes = [];
+    const add = (points, text) => {
+      if (points) notes.push({ points, text });
+    };
+    const ip = lanes.map((l) => l.ipRole).filter(Boolean);
+    const oop = lanes.map((l) => l.oopRole).filter(Boolean);
+    const count = (list, tags) => list.filter((r) => tags.some((t) => r.tagSet.has(t))).length;
+    const { mid, front } = oopRows(lanes, slots);
+    const capped = (n) => Math.min(cfg.roleCap, n * cfg.roleEach);
+    if (plan.lineOfEngagement === "High Press") {
+      if (front >= 3) add(cfg.shapeMatch, "Out of possession it keeps three players high, which suits pressing high.");
+      else if (front <= 1) add(cfg.shapeMismatch, "Only one player stays high out of possession: hard to press high from this shape.");
+      add(capped(count(oop, ["presser", "tracker"])), "Pressing and tracking roles suit a high press.");
+      const outlets = count(oop, ["outlet"]);
+      if (outlets > 1) add(cfg.extraOutletEach * (outlets - 1), "Outlet roles rest instead of pressing.");
+    } else if (plan.lineOfEngagement === "Low Block") {
+      if (mid >= 4 && front <= 2) add(cfg.shapeMatch, "Out of possession it forms a compact midfield line, which suits a low block.");
+      else if (front >= 3) add(cfg.shapeMismatch, "Three players stay high out of possession, leaving a low block short of bodies.");
+      add(capped(count(oop, ["cover", "screen"])), "Covering and screening roles suit a low block.");
+    } else if (mid >= 4) {
+      add(cfg.shapeMatch / 3, "A compact midfield line of four or more suits a mid block.");
+    }
+    if (plan.buildUpStrategy === "Play Through Press") {
+      add(Math.min(cfg.distributorCap, count(ip, ["distributor"]) * cfg.distributorEach), "Ball-playing goalkeeper/centre-backs suit playing through the press.");
+      if (lanes.some((l) => ["DM", "M (C)"].includes(slots[l.ip][2]) && l.ipRole?.tagSet.has("creator"))) add(cfg.deepCreator, "A deep playmaker helps play through the press.");
+    } else if (plan.buildUpStrategy === "Bypass Press" && count(ip, ["target", "aerial"])) {
+      add(cfg.targetForBypass, "A striker who wins headers gives long balls a target.");
+    }
+    if (plan.attackingTransition === "Counter-Attack") {
+      add(capped(count(ip, ["runner"])), "Runners in behind suit counter-attacks.");
+    } else if (plan.attackingTransition === "Hold Shape") {
+      add(capped(count(ip, ["creator", "link"])), "Creators and link players suit keeping the ball.");
+    }
+    return { points: notes.reduce((s, n) => s + n.points, 0), notes: notes.map((n) => ({ ...n, plan: true })) };
+  }
 
   // src/engine/search.js
   var FORBIDDEN = -1e3;
@@ -919,10 +982,11 @@
       allowedFam: new Set(tuning.familiarity.allowInStartingXI),
       warnings: []
     };
-    let available = players.filter((p) => !(search.excludeInjured && p.injured));
+    const atClub = players.filter((p) => !p.onLoan);
+    let available = atClub.filter((p) => !(search.excludeInjured && p.injured));
     if (available.length < 11) {
       ctx.warnings.push("Fewer than 11 fit players, so injured players were included.");
-      available = players.slice();
+      available = atClub.length >= 11 ? atClub : players.slice();
     }
     ctx.available = available;
     return ctx;
@@ -1011,6 +1075,11 @@
     fit /= lanes.length;
     choice /= lanes.length;
     const balance = evaluateBalance(full, ctx.slots, ctx.tuning.balance);
+    if (ctx.plan) {
+      const plan = evaluatePlan(full, ctx.slots, ctx.plan, ctx.tuning.plan);
+      balance.points += plan.points;
+      balance.notes.push(...plan.notes);
+    }
     return { fit, balance, total: choice + balance.points };
   }
   function refineRoles(ctx, lanes, xi, roles) {
@@ -1039,7 +1108,48 @@
     }
     return roles;
   }
-  function evaluateSystem(ctx, ipF, oopF) {
+  function pairMoves(ctx, lanes, xi, roles) {
+    roles = roles.map((r) => ({ ...r }));
+    let best = objective(ctx, lanes, xi, roles).total;
+    let improved = false;
+    for (const [key, listKey] of [["ipRole", "ipRoles"], ["oopRole", "oopRoles"]]) {
+      for (let i = 0; i < lanes.length; i++) {
+        for (let j = i + 1; j < lanes.length; j++) {
+          const ci = roles[i][key];
+          const cj = roles[j][key];
+          let bi = ci;
+          let bj = cj;
+          for (const ri of lanes[i][listKey]) {
+            if (ri === ci) continue;
+            for (const rj of lanes[j][listKey]) {
+              if (rj === cj) continue;
+              roles[i][key] = ri;
+              roles[j][key] = rj;
+              const t = objective(ctx, lanes, xi, roles).total;
+              if (t > best + 1e-9) {
+                best = t;
+                bi = ri;
+                bj = rj;
+                improved = true;
+              }
+            }
+          }
+          roles[i][key] = bi;
+          roles[j][key] = bj;
+        }
+      }
+    }
+    return { roles, improved };
+  }
+  function deepRefine(ctx, lanes, xi, roles) {
+    for (let round = 0; round < 3; round++) {
+      const pm = pairMoves(ctx, lanes, xi, roles);
+      if (!pm.improved) break;
+      roles = refineRoles(ctx, lanes, xi, pm.roles);
+    }
+    return roles;
+  }
+  function evaluateSystem(ctx, ipF, oopF, deep = false) {
     const match = laneMatching(ipF.slots, oopF.slots, ctx);
     if (!match.valid) return null;
     const lanes = match.lanes.map((l) => ({
@@ -1054,12 +1164,14 @@
       oopRole: bestOf(ctx, p, lanes[i].oopRoles, lanes[i].oop, true).role
     }));
     roles = refineRoles(ctx, lanes, xi, roles);
+    if (deep) roles = deepRefine(ctx, lanes, xi, roles);
     let best = { xi, roles, obj: objective(ctx, lanes, xi, roles) };
     for (let iter = 0; iter < 3; iter++) {
       const xi2 = pickXI(ctx, lanes, roles);
       if (xi2.every((p, i) => p === xi[i])) break;
       xi = xi2;
       roles = refineRoles(ctx, lanes, xi, roles);
+      if (deep) roles = deepRefine(ctx, lanes, xi, roles);
       const obj = objective(ctx, lanes, xi, roles);
       if (obj.total > best.obj.total) best = { xi, roles, obj };
       else break;
@@ -1091,6 +1203,8 @@
     return {
       ipName: ipF.name,
       oopName: oopF.name,
+      ipFormation: ipF,
+      oopFormation: oopF,
       ipSlots: ipF.slots,
       oopSlots: oopF.slots,
       lanes: resultLanes,
@@ -1101,24 +1215,855 @@
       valid: !resultLanes.some((l) => l.forbidden)
     };
   }
-  function searchSystems(ctx) {
-    const results = [];
+  function closestPartner(ctx, ipF) {
+    let best = null;
+    for (const oopF of ctx.formations.outOfPossession) {
+      const m = laneMatching(ipF.slots, oopF.slots, ctx);
+      if (m.valid && (!best || m.meanCost < best.cost)) best = { oopF, cost: m.meanCost };
+    }
+    return best?.oopF;
+  }
+  function searchSystems(ctx, { polishTop = ctx.search.polishTop, quick = false } = {}) {
+    let results = [];
     for (const ipF of ctx.formations.inPossession) {
-      for (const oopF of ctx.formations.outOfPossession) {
+      const partners = quick ? [closestPartner(ctx, ipF)].filter(Boolean) : ctx.formations.outOfPossession;
+      for (const oopF of partners) {
         const r = evaluateSystem(ctx, ipF, oopF);
         if (r) results.push(r);
       }
     }
+    results.sort((a, b) => b.score - a.score);
+    const top = results.slice(0, polishTop).map((r) => {
+      const deep = evaluateSystem(ctx, r.ipFormation, r.oopFormation, true);
+      return deep && deep.score > r.score ? deep : r;
+    });
+    results = [...top, ...results.slice(polishTop)];
     const valid = results.filter((r) => r.valid);
-    const ranked = (valid.length ? valid : results).sort((a, b) => b.score - a.score);
+    const ranked2 = (valid.length ? valid : results).sort((a, b) => b.score - a.score);
     if (!valid.length && results.length) ctx.warnings.push("No formation could be filled without playing someone out of position.");
-    return { best: ranked[0] || null, ranking: ranked, tested: results.length };
+    return { best: ranked2[0] || null, ranking: ranked2, tested: results.length };
   }
   function suitabilityTable(ctx) {
     return ctx.players.map((p) => ({
       player: p,
       scores: Object.fromEntries(ctx.roles.roles.map((r) => [r.id, bestRoleScore(p, r, ctx)]))
     }));
+  }
+
+  // src/engine/profile.js
+  var SET_PIECE_AND_HIDDEN = /* @__PURE__ */ new Set(["Corners", "Free Kick Taking", "Long Throws", "Penalty Taking", "Natural Fitness", "Leadership", "Determination"]);
+  var GK_ONLY2 = /* @__PURE__ */ new Set(["Aerial Reach", "Command of Area", "Communication", "Eccentricity", "Handling", "Kicking", "One on Ones", "Punching (Tendency)", "Reflexes", "Rushing Out (Tendency)", "Throwing"]);
+  function generalLevel(player) {
+    let sum = 0;
+    let n = 0;
+    for (const [name, a] of Object.entries(player.attrs)) {
+      if (!a || GK_ONLY2.has(name) || SET_PIECE_AND_HIDDEN.has(name)) continue;
+      sum += a.v;
+      n++;
+    }
+    return n ? sum / n : null;
+  }
+  function attrAvg(players, attrs) {
+    let sum = 0;
+    let n = 0;
+    for (const p of players) {
+      for (const a of attrs) {
+        const v = p.attrs[a];
+        if (v) {
+          sum += v.v;
+          n++;
+        }
+      }
+    }
+    return n ? sum / n : null;
+  }
+  var mean = (xs) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+  var METRICS = [
+    ["pace", "Pace and acceleration", "outfield", ["Pace", "Acceleration"]],
+    ["stamina", "Stamina", "outfield", ["Stamina", "Natural Fitness"]],
+    ["workRate", "Work rate and teamwork", "outfield", ["Work Rate", "Teamwork"]],
+    ["pressing", "Pressing (work rate, stamina, aggression, acceleration, teamwork, anticipation)", "pressers", ["Work Rate", "Stamina", "Aggression", "Acceleration", "Teamwork", "Anticipation"]],
+    ["aggression", "Aggression and bravery", "outfield", ["Aggression", "Bravery"]],
+    ["passing", "Passing and vision", "outfield", ["Passing", "Vision"]],
+    ["technique", "Technique and first touch", "outfield", ["Technique", "First Touch"]],
+    ["composure", "Composure and decisions", "outfield", ["Composure", "Decisions"]],
+    ["buildUp", "Playing out from the back (centre-backs and holding midfielders)", "buildUp", ["Passing", "Composure", "First Touch", "Technique", "Decisions", "Vision"]],
+    ["creativity", "Midfield creativity (vision, passing, flair, technique)", "centralIP", ["Vision", "Passing", "Flair", "Technique"]],
+    ["cbPace", "Centre-backs' pace and acceleration", "cbs", ["Pace", "Acceleration"]],
+    ["cbAerial", "Centre-backs' heading, jumping and strength", "cbs", ["Heading", "Jumping Reach", "Strength"]],
+    ["cbReading", "Centre-backs' reading of the game", "cbs", ["Anticipation", "Positioning", "Concentration", "Decisions"]],
+    ["tackling", "Tackling and marking", "defensive", ["Tackling", "Marking"]],
+    ["wideDefending", "Defending by the wide players", "wideOOP", ["Tackling", "Marking", "Work Rate", "Acceleration"]],
+    ["centralDefending", "Defending in the middle", "centralOOP", ["Tackling", "Marking", "Positioning", "Strength"]],
+    ["fwdPace", "Front line's pace and acceleration", "front", ["Pace", "Acceleration"]],
+    ["fwdMovement", "Front line's movement (off the ball, anticipation)", "front", ["Off the Ball", "Anticipation"]],
+    ["finishing", "Front line's finishing and composure", "front", ["Finishing", "Composure"]],
+    ["dribbling", "Attackers' dribbling, flair and agility", "attackers", ["Dribbling", "Flair", "Agility"]],
+    ["crossing", "Wide players' crossing", "wideIP", ["Crossing"]],
+    ["aerialAttack", "Strikers' heading, jumping, strength and bravery", "strikers", ["Heading", "Jumping Reach", "Strength", "Bravery"]],
+    ["longShots", "Midfielders' long shots", "shooters", ["Long Shots"]],
+    ["gkSweeping", "Goalkeeper's sweeping (rushing out, one on ones, acceleration)", "gk", ["Rushing Out (Tendency)", "One on Ones", "Acceleration", "Anticipation"]],
+    ["gkDistribution", "Goalkeeper's distribution (kicking, passing, composure)", "gk", ["Kicking", "Passing", "Composure", "Decisions"]],
+    ["gkAerial", "Goalkeeper's aerial reach and command of area", "gk", ["Aerial Reach", "Command of Area"]]
+  ];
+  function squadProfile(system, ctx) {
+    const lanes = system.lanes;
+    const pos = (code) => ctx.slots[code][2];
+    const x = (code) => ctx.slots[code][0];
+    const pick = (pred) => lanes.filter(pred).map((l) => l.player);
+    const groups = {
+      gk: pick((l) => l.ip === "GK"),
+      outfield: pick((l) => l.ip !== "GK"),
+      cbs: pick((l) => pos(l.oop) === "D (C)"),
+      defensive: pick((l) => ["D (C)", "D (L)", "D (R)", "WB (L)", "WB (R)", "DM", "M (C)"].includes(pos(l.oop))),
+      wideOOP: pick((l) => l.oop !== "GK" && (x(l.oop) < 30 || x(l.oop) > 70) && ctx.slots[l.oop][1] < 65),
+      centralOOP: pick((l) => ["D (C)", "DM", "M (C)"].includes(pos(l.oop))),
+      pressers: pick((l) => l.ip !== "GK" && pos(l.oop) !== "D (C)"),
+      buildUp: pick((l) => ["D (C)", "DM"].includes(pos(l.ip))),
+      centralIP: pick((l) => ["DM", "M (C)", "AM (C)"].includes(pos(l.ip))),
+      front: pick((l) => ["AM (L)", "AM (R)", "AM (C)", "ST (C)"].includes(pos(l.ip))),
+      attackers: pick((l) => ["AM (L)", "AM (R)", "AM (C)", "ST (C)", "M (L)", "M (R)"].includes(pos(l.ip))),
+      wideIP: pick((l) => l.ip !== "GK" && (x(l.ip) < 30 || x(l.ip) > 70)),
+      strikers: pick((l) => pos(l.ip) === "ST (C)"),
+      shooters: pick((l) => ["M (C)", "AM (C)", "AM (L)", "AM (R)", "DM"].includes(pos(l.ip)))
+    };
+    if (!groups.strikers.length) groups.strikers = groups.front.slice(0, 1);
+    const level = mean(groups.outfield.map(generalLevel).filter((v) => v != null));
+    const metrics = {};
+    for (const [key, label, group, attrs] of METRICS) {
+      const players = groups[group];
+      const value = attrAvg(players, attrs);
+      metrics[key] = {
+        key,
+        label,
+        value,
+        delta: value == null || level == null ? 0 : value - level,
+        players: players.map((p) => p.name),
+        attrs
+      };
+    }
+    const heights = (ps) => mean(ps.map((p) => p.heightCm).filter(Boolean));
+    return {
+      level,
+      metrics,
+      groups,
+      cbHeight: heights(groups.cbs),
+      strikerHeight: heights(groups.strikers),
+      youngShare: groups.outfield.filter((p) => p.age != null && p.age <= 21).length / Math.max(1, groups.outfield.length)
+    };
+  }
+
+  // src/engine/instructions.js
+  var STRENGTH_LABEL = {
+    2: "title favourites",
+    1: "a top-half side",
+    0: "a mid-table side",
+    "-1": "a lower-half side",
+    "-2": "underdogs in most games"
+  };
+  var f1 = (n) => n == null ? "–" : Number(n).toFixed(1);
+  function surnames(names, max = 4) {
+    const s = names.map((n) => n.split(/\s+/).pop());
+    return s.length > max ? `${s.slice(0, max).join(", ")} +${s.length - max}` : s.join(", ");
+  }
+  function stat(profile, key) {
+    const m = profile.metrics[key];
+    if (!m || m.value == null) return "";
+    const rel = m.delta >= 0.35 ? `${f1(m.delta)} above` : m.delta <= -0.35 ? `${f1(-m.delta)} below` : "about the same as";
+    return `${m.label}: ${f1(m.value)} (${surnames(m.players)}), ${rel} your team's level of ${f1(profile.level)}.`;
+  }
+  function roleList(system, phase) {
+    return system.lanes.map((l) => phase === "IP" ? l.ipRole : l.oopRole);
+  }
+  var hasRole = (system, phase, name) => roleList(system, phase).some((r) => r.name === name);
+  var hasTag = (system, phase, tag) => roleList(system, phase).some((r) => r.tagSet.has(tag));
+  function derivePlan(profile, strength, cfg, override = {}) {
+    const d = (k) => profile.metrics[k]?.delta ?? 0;
+    const press = d("pressing") + cfg.strengthWeight * strength + 0.25 * d("cbPace");
+    let lineOfEngagement = press >= cfg.strong ? "High Press" : press <= -cfg.strong ? "Low Block" : "Mid Block";
+    let pressCorrected = false;
+    if (lineOfEngagement === "High Press" && d("cbPace") + 0.3 * d("gkSweeping") + 0.5 <= -cfg.strong) {
+      lineOfEngagement = "Mid Block";
+      pressCorrected = true;
+    }
+    const build = d("buildUp");
+    const buildUpStrategy = build >= cfg.strong * 0.8 ? "Play Through Press" : build <= -cfg.strong * 0.8 ? "Bypass Press" : "Balanced";
+    const tech = (d("technique") + d("passing") + d("composure")) / 3;
+    let attackingTransition = "Standard";
+    if (d("fwdPace") >= cfg.strong * 0.8 && !(lineOfEngagement === "High Press" && strength >= 1)) attackingTransition = "Counter-Attack";
+    else if (tech >= cfg.strong && d("fwdPace") < 0.5) attackingTransition = "Hold Shape";
+    return { lineOfEngagement, buildUpStrategy, attackingTransition, pressCorrected, pressScore: press, ...override };
+  }
+  var STYLE_SIGNS = {
+    Gegenpress: { lineOfEngagement: ["High Press"], triggerPress: ["More Often", "Much More Often"], defensiveTransition: ["Counter-Press"], tempo: ["Higher", "Much Higher"] },
+    "Tiki-Taka": { passingDirectness: ["Shorter", "Much Shorter"], passReception: ["Pass To Feet"], buildUpStrategy: ["Play Through Press"], attackingTransition: ["Hold Shape"], lineOfEngagement: ["High Press"] },
+    "Vertical Tiki-Taka": { passingDirectness: ["Shorter", "Much Shorter"], tempo: ["Higher", "Much Higher"], attackingWidth: ["Narrower", "Much Narrower"], buildUpStrategy: ["Play Through Press"] },
+    "Control Possession": { passingDirectness: ["Shorter", "Much Shorter"], tempo: ["Lower", "Much Lower"], patience: ["Work Ball Into Box"], buildUpStrategy: ["Play Through Press"], attackingTransition: ["Hold Shape"] },
+    "Wing Play": { attackingWidth: ["Wider", "Much Wider"], patience: ["Hit Early Crosses"], supportingRuns: ["Both Flanks", "Left", "Right"], crossingStyle: ["Floated Crosses", "Whipped Crosses", "Low Crosses"] },
+    "Route One": { passingDirectness: ["More Direct", "Much More Direct"], buildUpStrategy: ["Bypass Press"], goalKicks: ["Long"], gkDistribution: ["Target Forward"] },
+    "Fluid Counter-Attack": { attackingTransition: ["Counter-Attack"], lineOfEngagement: ["Mid Block"], passReception: ["Pass Into Space"], creativeFreedom: ["More Expressive"] },
+    "Direct Counter-Attack": { attackingTransition: ["Counter-Attack"], passingDirectness: ["More Direct", "Much More Direct"], lineOfEngagement: ["Mid Block", "Low Block"], defensiveTransition: ["Regroup"] },
+    Catenaccio: { lineOfEngagement: ["Low Block"], defensiveLine: ["Lower", "Much Lower"], defensiveTransition: ["Regroup"], mentality: ["Cautious", "Defensive"] },
+    "Park the Bus": { lineOfEngagement: ["Low Block"], defensiveLine: ["Much Lower"], mentality: ["Defensive", "Very Defensive"], timeWasting: ["More Often"] }
+  };
+  function closestStyle(values) {
+    let best = null;
+    for (const [style, signs] of Object.entries(STYLE_SIGNS)) {
+      const keys = Object.keys(signs);
+      const hits = keys.filter((k) => signs[k].includes(values[k]));
+      const score2 = hits.length / keys.length;
+      if (!best || score2 > best.score) best = { style, score: score2, hits, total: keys.length };
+    }
+    return best;
+  }
+  var band = (x, S, VS, [muchLow, low, mid, high, muchHigh]) => x >= VS ? muchHigh : x >= S ? high : x <= -VS ? muchLow : x <= -S ? low : mid;
+  function decideInstructions(profile, system, ctx, opts = {}) {
+    const cfg = ctx.tuning.instructions;
+    const S = cfg.strong;
+    const VS = cfg.veryStrong;
+    const strength = Math.max(-2, Math.min(2, Number(opts.strength) || 0));
+    const strengthLabel = STRENGTH_LABEL[strength];
+    const d = (k) => profile.metrics[k]?.delta ?? 0;
+    const st = (k) => stat(profile, k);
+    const values = {};
+    const reasons = {};
+    const set = (id, value, reason) => {
+      values[id] = value;
+      reasons[id] = reason;
+    };
+    const plan = derivePlan(profile, strength, cfg, opts.planOverride);
+    const engagement = plan.lineOfEngagement;
+    const asSide = opts.situation ? ` ${opts.situation}` : strength ? ` As ${strengthLabel}, ${strength > 0 ? "you will often want to win the ball back high up" : "you will often face better teams"}.` : "";
+    if (plan.pressCorrected) {
+      set("lineOfEngagement", engagement, `${st("pressing")} That is enough to press high, but your centre-backs lack pace (see Defensive Line). Pressing high in front of them would leave a big gap, so the press starts in a mid block.`);
+    } else if (engagement === "High Press") {
+      set("lineOfEngagement", engagement, `${st("pressing")} ${d("cbPace") >= S ? `With quick centre-backs behind them (${f1(profile.metrics.cbPace.value)}), the team can squeeze high and cover the space left behind.` : "The team has the legs to press high."}${asSide}`);
+    } else if (engagement === "Low Block") {
+      set("lineOfEngagement", engagement, `${st("pressing")} A deeper block saves energy and keeps the team compact.${asSide}`);
+    } else {
+      set("lineOfEngagement", engagement, `${st("pressing")} A mid block balances pressing with protecting the space behind.${asSide}`);
+    }
+    const lineScore = d("cbPace") + 0.3 * d("gkSweeping") + (engagement === "High Press" ? 0.5 : engagement === "Low Block" ? -0.5 : 0);
+    let line = band(lineScore, S, 2.5, ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"]);
+    if (engagement === "High Press" && line.includes("Lower")) line = "Standard";
+    set(
+      "defensiveLine",
+      line,
+      line.includes("Higher") ? `${st("cbPace")} Quick centre-backs can hold a high line and squeeze the space between the lines.` : line.includes("Lower") ? `${st("cbPace")} Slower centre-backs need a deeper line, so balls over the top don't leave them racing back.` : `${st("cbPace")} A standard line is safe.`
+    );
+    if (d("cbReading") >= S && d("cbPace") >= -0.5) set("defensiveLineBehaviour", "Step Up More", `${st("cbReading")} They can step up together and catch attackers offside.`);
+    else if (d("cbPace") <= -S) set("defensiveLineBehaviour", "Drop Off More", "Your centre-backs lack pace: dropping off is safer than stepping up into space they can be run in behind.");
+    else set("defensiveLineBehaviour", "Balanced", `${st("cbReading")} No reason to change how the line steps up.`);
+    let trigger = band(d("pressing") + 0.3 * strength, S, VS, ["Much Less Often", "Less Often", "Standard", "More Often", "Much More Often"]);
+    let triggerWhy = st("pressing");
+    if (engagement === "Low Block" && /More Often/.test(trigger)) {
+      trigger = "Standard";
+      triggerWhy += " In a low block they hold their shape rather than chase the ball.";
+    }
+    if (/More Often/.test(trigger) && d("stamina") <= -S) {
+      trigger = trigger === "Much More Often" ? "More Often" : "Standard";
+      triggerWhy += ` But stamina is a weak point (${f1(profile.metrics.stamina.value)}), so the pressing is toned down to last 90 minutes.`;
+    }
+    if (engagement === "High Press" && /Less Often/.test(trigger)) trigger = "Standard";
+    set("triggerPress", trigger, triggerWhy);
+    if (d("pressing") >= S && d("stamina") >= -0.3 && engagement !== "Low Block") {
+      set("defensiveTransition", "Counter-Press", `${st("pressing")} A high-energy side should win the ball straight back while the opponent is disorganised.`);
+    } else if (engagement === "Low Block" || d("pressing") <= -0.5) {
+      set("defensiveTransition", "Regroup", "When the ball is lost, get back into shape: chasing it with this squad would open gaps.");
+    } else {
+      set("defensiveTransition", "Standard", "Pressing is neither a big strength nor a weakness, so leave it standard.");
+    }
+    if (d("tackling") >= S && d("aggression") >= 0.5) set("tackling", "Get Stuck In", `${st("tackling")} Your defenders are also aggressive, so let them win the ball firmly.`);
+    else if (d("tackling") <= -S || d("aggression") >= 1.5 && d("composure") <= -S) set("tackling", "Stay On Feet", `${st("tackling")} Staying on their feet avoids fouls and cards.`);
+    else set("tackling", "Standard", `${st("tackling")} Standard tackling.`);
+    const wide = profile.metrics.wideDefending;
+    const central = profile.metrics.centralDefending;
+    const trapDiff = (wide?.value ?? 0) - (central?.value ?? 0);
+    if (wide?.players.length >= 2 && trapDiff >= S) {
+      set("pressingTrap", "Trap Outside", `Your wide players defend better (${f1(wide.value)}) than your central ones (${f1(central.value)}), so push the opponent's play out to the touchline where they can win it.`);
+    } else if (trapDiff <= -S) {
+      set("pressingTrap", "Trap Inside", `Your central players defend better (${f1(central.value)}) than your wide ones (${f1(wide?.value)}), so force play into the middle.`);
+    } else {
+      set("pressingTrap", "Balanced", `Wide (${f1(wide?.value)}) and central (${f1(central?.value)}) defending are about even, so don't steer the press either way.`);
+    }
+    const heightNote = profile.cbHeight ? ` Average height ${Math.round(profile.cbHeight)} cm.` : "";
+    const aerial = d("cbAerial") + ((profile.cbHeight || 185) - 185) / 5 + 0.3 * d("gkAerial");
+    if (aerial >= 1.5) set("crossEngagement", "Invite Crosses", `${st("cbAerial")}${heightNote} Let opponents cross into areas you dominate.`);
+    else if (aerial <= -S) set("crossEngagement", "Stop Crosses", `${st("cbAerial")}${heightNote} Stop crosses at source rather than defend them in the box.`);
+    else set("crossEngagement", "Balanced", `${st("cbAerial")}${heightNote} No need to invite or stop crosses.`);
+    set(
+      "preventShortGkDistribution",
+      engagement === "High Press" ? "Yes" : "No",
+      engagement === "High Press" ? "Part of pressing high: stop the goalkeeper rolling it out short." : "Not pressing high, so let the keeper play short while your block sets up."
+    );
+    const attackEdge = (d("finishing") + d("technique") + d("creativity")) / 3;
+    let mentality = ["Defensive", "Cautious", "Balanced", "Positive", "Positive"][strength + 2];
+    if (strength === 2 && attackEdge >= S) mentality = "Attacking";
+    if (strength === 1 && attackEdge <= -S) mentality = "Balanced";
+    if (strength === -1 && d("pressing") >= S) mentality = "Balanced";
+    if (strength === -2 && engagement !== "Low Block") mentality = "Cautious";
+    if (engagement === "Low Block" && ["Positive", "Attacking"].includes(mentality)) mentality = "Balanced";
+    const mentalityWhy = `You said the team is ${strengthLabel}${mentality === "Attacking" ? ", and the attack is a clear strength" : ""}. Raise it a step when you need a goal and lower it to protect a lead.`;
+    const tech = (d("passing") + d("technique") + d("composure")) / 3;
+    const hasTF = hasRole(system, "IP", "Target Forward");
+    const counter = plan.attackingTransition === "Counter-Attack";
+    const directness = -tech - 0.3 * d("buildUp") + (hasTF ? 0.8 : 0) + (counter ? 0.8 : 0);
+    let pd = band(directness, S * 0.8, VS, ["Much Shorter", "Shorter", "Standard", "More Direct", "Much More Direct"]);
+    if (counter && pd === "Much Shorter") pd = "Shorter";
+    set(
+      "passingDirectness",
+      pd,
+      pd.includes("Shorter") ? `${st("passing")} ${st("technique")} This side can keep the ball${counter ? ", even when it breaks quickly" : ""}.` : pd.includes("Direct") ? `${st("passing")}${hasTF ? " You also have a Target Forward to aim at." : ""} Get the ball forward quickly rather than risk losing it in your own half.` : `${st("passing")} A normal mix of short and long passes.`
+    );
+    let tempo = "Standard";
+    let tempoWhy = "No strong reason to speed up or slow down the build-up.";
+    if (counter || engagement === "High Press" && d("pressing") >= S) {
+      tempo = "Higher";
+      tempoWhy = `${st("fwdPace")} Move the ball quickly before opponents set up.`;
+      if (d("composure") <= -S) {
+        tempo = "Standard";
+        tempoWhy += ` But composure is a weak point (${f1(profile.metrics.composure.value)}), so a standard tempo cuts mistakes.`;
+      }
+    } else if (pd.includes("Shorter") && d("fwdPace") < 0) {
+      tempo = "Lower";
+      tempoWhy = "A patient, short-passing side whose front line is not especially quick: take time to open teams up.";
+    }
+    set("tempo", tempo, tempoWhy);
+    const ipLanes = system.lanes.filter((l) => l.ip !== "GK");
+    const sideOf = (l) => ctx.slots[l.ip][0] < 30 ? "L" : ctx.slots[l.ip][0] > 70 ? "R" : "C";
+    const widthBy = (side) => ipLanes.filter((l) => sideOf(l) === side && l.ipRole.tagSet.has("width"));
+    const wideL = widthBy("L");
+    const wideR = widthBy("R");
+    if (wideL.length && wideR.length && d("crossing") >= 0.5) {
+      set("attackingWidth", "Wider", `You have width on both flanks (${surnames([...wideL, ...wideR].map((l) => l.player.name))}). ${st("crossing")} Stretch the pitch.`);
+    } else if (!wideL.length && !wideR.length) {
+      set("attackingWidth", "Narrower", "Nobody in the side is asked to stay wide, so play narrow and overload the middle.");
+    } else {
+      set("attackingWidth", "Standard", "The roles already give this side the width it needs.");
+    }
+    const at = plan.attackingTransition;
+    set(
+      "attackingTransition",
+      at,
+      at === "Counter-Attack" ? `${st("fwdPace")} Break forward as soon as you win the ball.` : at === "Hold Shape" ? `${st("technique")} A technical side whose front line isn't especially quick: keep the ball and build up rather than rush forward.` : "Neither a quick front line nor a possession side: let the players choose when to break."
+    );
+    const cf = (d("dribbling") + d("composure")) / 2;
+    if (cf >= S) set("creativeFreedom", "More Expressive", `${st("dribbling")} ${st("composure")} Give them freedom to improvise.`);
+    else if (cf <= -S || profile.youngShare >= 0.6 && d("composure") <= -0.5) {
+      set("creativeFreedom", "More Disciplined", `${st("composure")}${profile.youngShare >= 0.6 ? " In a young side," : ""} A clear structure helps.`);
+    } else set("creativeFreedom", "Balanced", "A normal amount of freedom suits this squad.");
+    set("timeWasting", "Standard", "Switch to More Often only when protecting a lead late on.");
+    const aerialTargets = opts.setPieces?.aerialTargets || [];
+    const bestCorner = opts.setPieces?.cornerTaker;
+    const top3 = aerialTargets.slice(0, 3);
+    const setPieceThreat = top3.length >= 2 && top3.reduce((s, t) => s + t.delta, 0) / top3.length >= 2.5;
+    if (setPieceThreat && bestCorner && bestCorner.value >= profile.level + 2) {
+      set("playForSetPieces", "Play for Set Pieces", `Strong aerial targets (${surnames(top3.map((t) => t.name))}) and good delivery from ${bestCorner.name.split(" ").pop()} (Corners ${bestCorner.corners}).`);
+    } else {
+      set("playForSetPieces", "Keep Ball in Play", "Set pieces are not a big enough weapon to play for them.");
+    }
+    if ((d("creativity") >= S || tech >= S) && d("longShots") <= 0.5) {
+      set("patience", "Work Ball Into Box", `${st("creativity")} Without a real long-range threat, work the ball into the box for better chances.`);
+    } else if (d("crossing") >= S && (d("aerialAttack") >= S || hasTF)) {
+      set("patience", "Hit Early Crosses", `${st("crossing")} ${st("aerialAttack")} Deliver crosses early.`);
+    } else {
+      set("patience", "Standard", "A normal mix of patience and early crosses.");
+    }
+    const ls = d("longShots");
+    set(
+      "shotsFromDistance",
+      ls >= 1.5 ? "Encourage" : ls <= -1.5 ? "Discourage" : "Balanced",
+      `${st("longShots")}${ls >= 1.5 ? " Let them shoot." : ls <= -1.5 ? " Wait for better chances." : ""}`
+    );
+    const crossers = ipLanes.filter((l) => l.ipRole.tagSet.has("crosser")).length;
+    let cs = "Balanced";
+    let csWhy = crossers ? "No clear reason to prefer one type of cross." : "Few players are asked to cross, so leave it balanced.";
+    if (crossers >= 1) {
+      if (d("aerialAttack") >= 1.5 || (profile.strikerHeight || 0) >= 188) {
+        cs = d("crossing") >= S ? "Whipped Crosses" : "Floated Crosses";
+        csWhy = `${st("aerialAttack")}${profile.strikerHeight ? ` Height ${Math.round(profile.strikerHeight)} cm.` : ""} Give him crosses he can attack in the air.`;
+      } else if (d("aerialAttack") <= -S && d("fwdPace") >= 0.5) {
+        cs = "Low Crosses";
+        csWhy = `${st("aerialAttack")} Your forwards are quicker than they are strong in the air: keep crosses low.`;
+      }
+    }
+    set("crossingStyle", cs, csWhy);
+    const dr = d("dribbling");
+    set(
+      "dribbling",
+      dr >= 1.2 ? "Encourage" : dr <= -1.2 ? "Discourage" : "Balanced",
+      `${st("dribbling")}${dr >= 1.2 ? " Let them run at defenders." : dr <= -1.2 ? " Move the ball instead." : ""}`
+    );
+    const attackingBack = (side) => ipLanes.some((l) => sideOf(l) === side && /^(D|WB)/.test(ctx.slots[l.ip][2]) && l.ipRole.tagSet.has("attackingBack"));
+    const runL = attackingBack("L");
+    const runR = attackingBack("R");
+    set(
+      "supportingRuns",
+      runL && runR ? "Both Flanks" : runL ? "Left" : runR ? "Right" : "Balanced",
+      runL || runR ? `Your ${runL && runR ? "full-backs/wing-backs on both sides have" : runL ? "left full-back/wing-back has" : "right full-back/wing-back has"} an attacking role, so support the attack down ${runL && runR ? "both flanks" : "that side"}.` : "No attacking full-backs or wing-backs: leave supporting runs balanced."
+    );
+    const sideValue = (side) => {
+      const xs = ipLanes.filter((l) => sideOf(l) === side);
+      return xs.length ? xs.reduce((s, l) => s + l.ipScore.score, 0) / xs.length : null;
+    };
+    const L = sideValue("L");
+    const R = sideValue("R");
+    const C = sideValue("C");
+    let pt = "Balanced";
+    let ptWhy = `Your left (fit ${f1(L)}), centre (${f1(C)}) and right (${f1(R)}) are about equally strong.`;
+    if (L != null && R != null && L - R >= 5) [pt, ptWhy] = ["Left", `Your left side is clearly stronger (fit ${f1(L)} against ${f1(R)} on the right).`];
+    else if (L != null && R != null && R - L >= 5) [pt, ptWhy] = ["Right", `Your right side is clearly stronger (fit ${f1(R)} against ${f1(L)} on the left).`];
+    else if (C != null && C - Math.max(L ?? 0, R ?? 0) >= 5) [pt, ptWhy] = ["Middle", `Your central players are clearly the strongest (fit ${f1(C)}).`];
+    set("progressThrough", pt, ptWhy);
+    if (d("fwdPace") >= S && d("fwdMovement") >= 0) set("passReception", "Pass Into Space", `${st("fwdPace")} ${st("fwdMovement")} Play balls into space for them to run onto.`);
+    else if (tech >= S && d("fwdPace") <= 0) set("passReception", "Pass To Feet", `${st("technique")} The forwards aren't especially quick, so pass to feet.`);
+    else set("passReception", "Balanced", `${st("fwdMovement")} A mix of passes to feet and into space.`);
+    let bu = plan.buildUpStrategy;
+    let buWhy = bu === "Play Through Press" ? `${st("buildUp")} They are comfortable playing out under pressure.` : bu === "Bypass Press" ? `${st("buildUp")} Playing out from the back is risky for them: go around the press.` : `${st("buildUp")} A balanced build-up.`;
+    if (bu === "Play Through Press" && d("gkDistribution") <= -VS) {
+      bu = "Balanced";
+      buWhy += ` But the goalkeeper is weak with the ball (${f1(profile.metrics.gkDistribution.value)}), so keep it balanced.`;
+    }
+    set("buildUpStrategy", bu, buWhy);
+    const aerialStriker = hasTF || d("aerialAttack") >= S;
+    set(
+      "goalKicks",
+      bu === "Play Through Press" ? "Short" : bu === "Bypass Press" && aerialStriker ? "Long" : "Mixed",
+      bu === "Play Through Press" ? "Goes with playing through the press." : bu === "Bypass Press" && aerialStriker ? "Goes with bypassing the press: aim at a striker who wins headers." : "A mix keeps opponents guessing."
+    );
+    set(
+      "gkDistributionSpeed",
+      at === "Counter-Attack" ? "Distribute Quickly" : at === "Hold Shape" ? "Slow Pace Down" : "Balanced",
+      at === "Counter-Attack" ? "Start counter-attacks before the opponent recovers." : at === "Hold Shape" ? "Let the team settle into shape before building up." : "No need to hurry or slow the keeper."
+    );
+    let gk = "Balanced";
+    let gkWhy = "Let the keeper pick the best option.";
+    if (bu === "Bypass Press" && aerialStriker) [gk, gkWhy] = ["Target Forward", "Goes with bypassing the press: find the striker who wins headers."];
+    else if (bu === "Play Through Press" && hasTag(system, "IP", "distributor")) [gk, gkWhy] = ["Centre-Backs", "Your ball-playing centre-backs start the build-up."];
+    else if (bu !== "Bypass Press" && system.lanes.some((l) => ["DM", "M (C)"].includes(ctx.slots[l.ip][2]) && l.ipRole.tagSet.has("creator"))) [gk, gkWhy] = ["Playmaker", "Get the ball to your deep playmaker early."];
+    else if (at === "Counter-Attack" && d("fwdPace") >= VS) [gk, gkWhy] = ["Flanks", "Release your quick wide players early."];
+    set("gkDistribution", gk, gkWhy);
+    for (const [id, val3] of Object.entries(opts.overrides || {})) {
+      if (val3 == null) continue;
+      values[id] = val3;
+      reasons[id] = (opts.extraReasons || {})[id] || reasons[id];
+    }
+    let mentalityReason = mentalityWhy;
+    if (opts.mentality) {
+      mentality = opts.mentality;
+      mentalityReason = opts.mentalityReason || mentalityWhy;
+    }
+    const catalogue = ctx.instructionsDoc;
+    const build = (list) => list.map((item) => ({
+      ...item,
+      value: values[item.id] ?? item.default,
+      changed: (values[item.id] ?? item.default) !== item.default,
+      reason: reasons[item.id] || ""
+    }));
+    const style = closestStyle({ ...values, mentality });
+    return {
+      mentality: { value: mentality, reason: mentalityReason },
+      style: {
+        value: style.score >= 0.5 ? style.style : null,
+        hits: style.hits,
+        reason: style.score >= 0.5 ? `Its preset is the closest to the settings below (${style.hits.length} of its ${style.total} key settings match). Pick it as a starting point, then change the settings below; FM27 will call it "Custom ${style.style}".` : "No preset style is a close match. Pick any style as a starting point, then set everything below; FM27 will mark it as Custom."
+      },
+      ip: build(catalogue.inPossession),
+      oop: build(catalogue.outOfPossession),
+      values: { ...values, mentality },
+      plan,
+      strength,
+      strengthLabel
+    };
+  }
+
+  // src/engine/playerInstructions.js
+  var val = (p, a) => p.attrs[a]?.v ?? null;
+  var avg = (p, attrs) => {
+    const vs = attrs.map((a) => val(p, a)).filter((v) => v != null);
+    return vs.length ? vs.reduce((s, v) => s + v, 0) / vs.length : null;
+  };
+  var hasTrait = (p, re) => p.traits.some((t) => re.test(t));
+  function playerInstructions(system, profile, instructions, ctx) {
+    const level = profile.level ?? 10;
+    const S = ctx.tuning.instructions.strong;
+    const out = [];
+    for (const lane of system.lanes) {
+      if (lane.ip === "GK") continue;
+      const p = lane.player;
+      const items = [];
+      const add = (phase, name, value, reason) => items.push({ phase, name, value, reason });
+      const ipPos = ctx.slots[lane.ip][2];
+      const side = ctx.slots[lane.ip][0] < 30 ? "L" : ctx.slots[lane.ip][0] > 70 ? "R" : "C";
+      const role = lane.ipRole;
+      const attackingMid = /^(M|AM) /.test(ipPos) || ipPos === "ST (C)" || ["Box-To-Box Midfielder", "Box-To-Box Playmaker"].includes(role.name);
+      const ls = val(p, "Long Shots");
+      if (ls != null && attackingMid && ls >= level + 3 && ls >= 13) add("IP", "Shooting", "Shoot More Often", `Long Shots ${ls}, well above the team level.`);
+      else if (ls != null && attackingMid && ls <= level - 3 && hasTrait(p, /long range shots|shoots from distance/i)) {
+        add("IP", "Shooting", "Shoot Less Often", `He likes shooting from distance (trait) but Long Shots is only ${ls}.`);
+      }
+      if (side !== "C" && /^(D|WB|M|AM) /.test(ipPos)) {
+        const sameFoot = side === "L" ? p.leftFoot : p.rightFoot;
+        const otherFoot = side === "L" ? p.rightFoot : p.leftFoot;
+        if (role.tagSet.has("inside") && otherFoot != null && otherFoot >= 0.7 && (val(p, "Dribbling") ?? 0) >= level) {
+          add("IP", "Dribbling Direction", "Cut Inside With Ball", `Plays on the ${side === "L" ? "left" : "right"} with a strong ${side === "L" ? "right" : "left"} foot.`);
+        } else if (role.tagSet.has("width") && /^(M|AM) /.test(ipPos) && sameFoot != null && sameFoot >= 0.7 && (val(p, "Crossing") ?? 0) >= level) {
+          add("IP", "Dribbling Direction", "Run Wide With Ball", `Natural ${side === "L" ? "left" : "right"}-footer who crosses well (Crossing ${val(p, "Crossing")}).`);
+        }
+      }
+      const dribble = avg(p, ["Dribbling", "Flair"]);
+      if (dribble != null && /^(M|AM|ST) /.test(ipPos)) {
+        if (dribble >= level + 3) add("IP", "Dribbling Frequency", "Dribble More", `Dribbling ${val(p, "Dribbling")}, Flair ${val(p, "Flair")}.`);
+        else if (dribble <= level - 3 && (role.tagSet.has("width") || role.tagSet.has("inside"))) add("IP", "Dribbling Frequency", "Dribble Less", `Dribbling ${val(p, "Dribbling")} is a weakness: move the ball on.`);
+      }
+      const vis = val(p, "Vision");
+      const pas = val(p, "Passing");
+      if (vis != null && pas != null && vis >= level + 3 && pas >= level + 2 && (role.tagSet.has("creator") || role.tagSet.has("distributor"))) {
+        add("IP", "Passing Risk", "Take More Risks", `Vision ${vis}, Passing ${pas}: let him try the killer ball.`);
+      } else if (pas != null && pas <= level - 2.5 && (role.tagSet.has("creator") || role.tagSet.has("distributor") || ipPos === "D (C)")) {
+        add("IP", "Passing Risk", "Take Fewer Risks", `Passing ${pas} is low for his role: keep it simple.`);
+      }
+      if (ipPos === "ST (C)") {
+        const hold = avg(p, ["Strength", "Balance", "First Touch"]);
+        if (hold != null && hold >= level + 2 && !role.tagSet.has("runner")) add("IP", "Hold Up Ball", "Yes", `Strength ${val(p, "Strength")}, Balance ${val(p, "Balance")}, First Touch ${val(p, "First Touch")}: he can hold the ball up for runners.`);
+      }
+      if (role.tagSet.has("crosser") && side !== "C") {
+        const quick = avg(p, ["Pace", "Acceleration", "Dribbling"]);
+        const cross = val(p, "Crossing");
+        if (quick != null && cross != null && quick >= level + 2 && cross >= level) add("IP", "Cross From", "Byline", "Quick enough to get to the byline before crossing.");
+        else if (cross != null && quick != null && cross >= level + 2.5 && quick <= level) add("IP", "Cross From", "Deep", `Good delivery (Crossing ${cross}) but not quick: cross early from deep.`);
+      }
+      if (["DM", "M (C)"].includes(ipPos)) {
+        const otb = val(p, "Off the Ball");
+        if (otb != null && otb >= level + 3 && (val(p, "Stamina") ?? 0) >= level && !role.tagSet.has("holder")) add("IP", "Forward Runs", "More Often", `Off the Ball ${otb}: arrives in the box well.`);
+      }
+      const pressing = avg(p, ["Work Rate", "Stamina", "Aggression"]);
+      if (pressing != null && pressing >= level + 2.5 && instructions.values.lineOfEngagement !== "Low Block" && !lane.oopRole.tagSet.has("outlet")) {
+        add("OOP", "Trigger Press", "More Often", `Work Rate ${val(p, "Work Rate")}, Stamina ${val(p, "Stamina")}, Aggression ${val(p, "Aggression")}: a natural presser.`);
+      } else if (pressing != null && (val(p, "Stamina") ?? 20) <= level - 3 && instructions.values.lineOfEngagement === "High Press") {
+        add("OOP", "Trigger Press", "Less Often", `Stamina ${val(p, "Stamina")}: save his legs.`);
+      }
+      const tck = val(p, "Tackling");
+      const agg = val(p, "Aggression");
+      if (tck != null && agg != null && tck >= level + 2.5 && agg >= level + 1 && (val(p, "Bravery") ?? 0) >= level && instructions.values.tackling !== "Get Stuck In") {
+        add("OOP", "Tackling", "Get Stuck In", `Tackling ${tck}, Aggression ${agg}.`);
+      } else if (tck != null && tck <= level - 2.5 && (agg >= level + 1 || hasTrait(p, /dives into tackles/i)) && /^(D|WB|DM|M) /.test(ctx.slots[lane.oop][2] + " ")) {
+        add("OOP", "Tackling", "Stay On Feet", `Tackling ${tck} with Aggression ${agg ?? "–"}: likely to give away fouls.`);
+      }
+      const mark = avg(p, ["Marking", "Strength"]);
+      if (mark != null && mark >= level + S * 2.5 && ["D (C)", "DM"].includes(ctx.slots[lane.oop][2])) add("OOP", "Marking", "Mark Tighter", `Marking ${val(p, "Marking")}, Strength ${val(p, "Strength")}.`);
+      if (hasTrait(p, /gets forward whenever possible/i) && lane.ipRole.tagSet.has("safeBack")) {
+        add("IP", "Forward Runs", "Less Often", 'His trait "Gets Forward Whenever Possible" works against his more defensive role.');
+      }
+      if (hasTrait(p, /stays back at all times/i) && lane.ipRole.tagSet.has("attackingBack")) {
+        items.push({ phase: "IP", name: "Note", value: "Trait clash", reason: 'His trait "Stays Back At All Times" fights his attacking role; consider a safer role for him.' });
+      }
+      out.push({ lane, player: p, items: items.slice(0, 4) });
+    }
+    return out;
+  }
+
+  // src/engine/depth.js
+  var FORBIDDEN2 = -1e3;
+  function laneValue2(ctx, p, lane) {
+    const ipFam = familiarity(p, ctx.slots[lane.ip][2], ctx.adjacency);
+    const oopFam = familiarity(p, ctx.slots[lane.oop][2], ctx.adjacency);
+    if (!ctx.allowedFam.has(ipFam) || !ctx.allowedFam.has(oopFam)) return FORBIDDEN2;
+    const { ipWeight, oopWeight } = ctx.search;
+    return ipWeight * slotRoleScore(p, lane.ipRole, lane.ip, ctx).score + oopWeight * slotRoleScore(p, lane.oopRole, lane.oop, ctx).score;
+  }
+  function depthChart(system, ctx) {
+    const cfg = ctx.tuning.depth;
+    const xi = new Set(system.lanes.map((l) => l.player));
+    const atClub = ctx.players.filter((p) => !p.onLoan);
+    const bench = atClub.filter((p) => !xi.has(p));
+    const fitBench = bench.filter((p) => !p.injured);
+    const value = system.lanes.map((lane) => fitBench.map((p) => laneValue2(ctx, p, lane)));
+    const second = fitBench.length ? assignMax(value).rowToCol : [];
+    const lanes = system.lanes.map((lane, i) => {
+      const options = bench.map((p) => ({ player: p, value: laneValue2(ctx, p, lane), injured: p.injured })).filter((o) => o.value > FORBIDDEN2 / 2).sort((a, b) => b.value - a.value).slice(0, 3);
+      const c = second[i];
+      const secondChoice = c != null && c >= 0 && value[i][c] > FORBIDDEN2 / 2 ? { player: fitBench[c], value: value[i][c] } : null;
+      const loanOptions = ctx.players.filter((p) => p.onLoan).map((p) => ({ player: p, value: laneValue2(ctx, p, lane) })).filter((o) => o.value > FORBIDDEN2 / 2 && o.value >= (secondChoice?.value ?? 0) + 2).sort((a, b) => b.value - a.value).slice(0, 2);
+      return { lane, starter: lane.player, starterValue: lane.value, secondChoice, options, loanOptions };
+    });
+    const weakAreas = [];
+    for (const d of lanes) {
+      const reasons = [];
+      if (d.starterValue < system.fit - cfg.weakStarterGap || d.starterValue < cfg.weakStarterAbsolute) {
+        reasons.push(`the starter's fit (${d.starterValue.toFixed(0)}) is well below the team average (${system.fit.toFixed(0)})`);
+      }
+      const injuredCover = d.options.find((o) => o.injured);
+      const coverValue = Math.max(d.secondChoice?.value ?? -Infinity, injuredCover?.value ?? -Infinity);
+      if (coverValue === -Infinity) reasons.push("nobody else in the squad can cover this position");
+      else if (coverValue < d.starterValue - cfg.thinCoverGap) {
+        const c = d.secondChoice && d.secondChoice.value >= (injuredCover?.value ?? -Infinity) ? d.secondChoice : injuredCover;
+        reasons.push(`the best cover, ${c.player.name} (${c.value.toFixed(0)}), is a big drop from the starter`);
+      }
+      if (!reasons.length) continue;
+      const lane = d.lane;
+      const keys = [.../* @__PURE__ */ new Set([...lane.ipRole.key, ...lane.oopRole.key])];
+      const p = lane.player;
+      const lookFor = keys.map((a) => ({ attr: a, starter: p.attrs[a]?.v ?? null })).sort((a, b) => (a.starter ?? 0) - (b.starter ?? 0)).slice(0, 6);
+      weakAreas.push({ lane, reasons, lookFor, priority: system.fit - d.starterValue + (coverValue > -Infinity ? (d.starterValue - coverValue) / 2 : 10) });
+    }
+    weakAreas.sort((a, b) => b.priority - a.priority);
+    return { lanes, weakAreas };
+  }
+
+  // src/engine/extras.js
+  var val2 = (p, a) => p.attrs[a]?.v ?? null;
+  function weighted(p, weights) {
+    let s = 0;
+    let w = 0;
+    for (const [a, k] of Object.entries(weights)) {
+      const v = val2(p, a);
+      if (v == null) continue;
+      s += v * k;
+      w += k;
+    }
+    return w ? s / w : null;
+  }
+  function ranked(players, weights, extra = () => 0) {
+    return players.map((p) => ({ player: p, score: weighted(p, weights) })).filter((x) => x.score != null).map((x) => ({ ...x, score: x.score + extra(x.player) })).sort((a, b) => b.score - a.score);
+  }
+  var footWord = (p) => p.leftFoot != null && p.rightFoot != null ? p.leftFoot > p.rightFoot ? "left-footed" : p.rightFoot > p.leftFoot ? "right-footed" : "two-footed" : "";
+  function setPiecePlan(system, profile, ctx) {
+    const xi = system.lanes.map((l) => l.player);
+    const outfield = system.lanes.filter((l) => l.ip !== "GK").map((l) => l.player);
+    const corners = ranked(outfield, { Corners: 0.6, Technique: 0.2, Crossing: 0.2 });
+    const directFK = ranked(outfield, { "Free Kick Taking": 0.5, Technique: 0.2, "Long Shots": 0.2, Composure: 0.1 });
+    const indirectFK = ranked(outfield, { "Free Kick Taking": 0.4, Crossing: 0.4, Technique: 0.2 });
+    const penalties = ranked(outfield, { "Penalty Taking": 0.6, Composure: 0.3, Finishing: 0.1 });
+    const longThrows = ranked(outfield, { "Long Throws": 1 });
+    const aerial = ranked(
+      outfield,
+      { Heading: 1, "Jumping Reach": 1, Strength: 0.5, Bravery: 0.5 },
+      (p) => p.heightCm ? Math.max(-2, Math.min(3, (p.heightCm - 182) / 4)) : 0
+    );
+    const level = profile.level ?? 10;
+    const aerialTargets = aerial.slice(0, 4).map((x) => ({ name: x.player.name, player: x.player, score: x.score, delta: x.score - level, height: x.player.heightCm }));
+    const targetSet = new Set(aerialTargets.slice(0, 3).map((t) => t.player));
+    const defensive = system.lanes.filter((l) => ["D (C)", "D (L)", "D (R)", "WB (L)", "WB (R)", "DM"].includes(ctx.slots[l.oop][2])).map((l) => l.player).filter((p) => !targetSet.has(p));
+    const stayBack = ranked(defensive, { Pace: 1, Acceleration: 1, Positioning: 0.7, Anticipation: 0.7 }).slice(0, 2);
+    const preferNonTargets = (list) => {
+      const others = list.filter((x) => !targetSet.has(x.player));
+      return others.length && list.length && others[0].score >= list[0].score - 1.5 ? others.concat(list.filter((x) => targetSet.has(x.player))) : list;
+    };
+    const cornerList = preferNonTargets(corners);
+    const cornerFor = (side) => {
+      const prefersRightFoot = side === "left";
+      const pool = cornerList.slice(0, 3);
+      const match = pool.find((x) => prefersRightFoot ? x.player.rightFoot >= x.player.leftFoot : x.player.leftFoot >= x.player.rightFoot);
+      return match || pool[0];
+    };
+    const take = (x) => x ? { name: x.player.name, player: x.player, foot: footWord(x.player) } : null;
+    const best = cornerList[0];
+    return {
+      cornersLeft: take(cornerFor("left")),
+      cornersRight: take(cornerFor("right")),
+      directFreeKicks: take(directFK[0]),
+      indirectFreeKicks: take(preferNonTargets(indirectFK)[0]),
+      penalties: penalties.slice(0, 5).map(take),
+      longThrows: longThrows[0] && val2(longThrows[0].player, "Long Throws") >= Math.max(13, level + 2) ? take(longThrows[0]) : null,
+      aerialTargets,
+      stayBack: stayBack.map(take),
+      cornerTaker: best ? { name: best.player.name, corners: val2(best.player, "Corners"), value: best.score } : null,
+      goalkeeper: xi.find((p, i) => system.lanes[i].ip === "GK")
+    };
+  }
+  var PERSONALITY_BONUS = {
+    "born leader": 4,
+    leader: 3,
+    "model citizen": 3,
+    "model professional": 2.5,
+    resolute: 2,
+    "iron willed": 1.5,
+    professional: 1.5,
+    determined: 1.5,
+    "fairly professional": 0.5,
+    "fairly determined": 0.5,
+    driven: 1,
+    perfectionist: 1,
+    spirited: 0.5,
+    unambitious: -1,
+    casual: -1.5,
+    "low self-belief": -1.5,
+    "easily discouraged": -1.5,
+    temperamental: -2,
+    fickle: -2,
+    mercenary: -1,
+    "low determination": -2,
+    slack: -2
+  };
+  function captaincy(system) {
+    const scored = system.lanes.map((l) => l.player).map((p) => {
+      const pers = PERSONALITY_BONUS[(p.personality || "").toLowerCase()] ?? 0;
+      const media = /volatile|confrontational/i.test(p.mediaHandling || "") ? -0.5 : 0;
+      const age = p.age == null ? 0 : p.age >= 27 ? 1.5 : p.age >= 24 ? 1 : p.age <= 19 ? -1.5 : p.age <= 21 ? -0.5 : 0;
+      const base = (val2(p, "Leadership") ?? 10) * 2 + (val2(p, "Determination") ?? 10) + 0.5 * (val2(p, "Teamwork") ?? 10) + 0.5 * (val2(p, "Composure") ?? 10);
+      return { player: p, score: base + 2 * pers + media + age, pers };
+    }).sort((a, b) => b.score - a.score);
+    const why2 = (x) => {
+      const bits = [`Leadership ${val2(x.player, "Leadership") ?? "–"}`, `Determination ${val2(x.player, "Determination") ?? "–"}`];
+      if (x.player.personality) bits.push(`personality: ${x.player.personality}`);
+      if (x.player.age != null) bits.push(`age ${x.player.age}`);
+      return bits.join(", ");
+    };
+    return {
+      captain: scored[0] ? { name: scored[0].player.name, player: scored[0].player, why: why2(scored[0]) } : null,
+      vice: scored[1] ? { name: scored[1].player.name, player: scored[1].player, why: why2(scored[1]) } : null
+    };
+  }
+  var HARD_TO_TRAIN = /* @__PURE__ */ new Set(["Aggression", "Bravery", "Determination", "Flair", "Leadership", "Natural Fitness"]);
+  function trainingFocus(instructions, profile, system, ctx) {
+    const v = instructions.values;
+    const team = [];
+    const add = (session, why2) => team.push({ session, why: why2 });
+    add("In Possession Shape", `Teaches the ${system.ipName} shape and roles.`);
+    add("Out Of Possession Shape", `Teaches the ${system.oopName} shape and roles.`);
+    if (v.lineOfEngagement !== "Mid Block") add("Line of Engagement", `You use ${v.lineOfEngagement}.`);
+    if (v.triggerPress !== "Standard") add("Pressing Intensity", `Trigger Press is set to ${v.triggerPress}.`);
+    if (v.pressingTrap !== "Balanced") add("Pressing Trap", `You use ${v.pressingTrap}.`);
+    if (v.buildUpStrategy !== "Balanced") add("Build Up", `You ${v.buildUpStrategy === "Play Through Press" ? "play through the press" : "bypass the press"}.`);
+    if (v.passingDirectness !== "Standard") add("Passing Style", `Passing Directness is ${v.passingDirectness}.`);
+    if (v.patience !== "Standard" || v.crossingStyle !== "Balanced" || v.shotsFromDistance !== "Balanced") add("Chance Creation", "You changed how chances are created.");
+    const prep = [];
+    if (v.lineOfEngagement === "High Press") prep.push({ session: "Defensive Engagement", why: "Sharpens the press before matches." });
+    else if (v.lineOfEngagement === "Low Block") prep.push({ session: "Defensive Block", why: "Keeps the low block compact." });
+    else prep.push({ session: "Defensive Positioning", why: "Keeps the mid block organised." });
+    if (v.buildUpStrategy === "Play Through Press") prep.push({ session: "Press Avoidance", why: "Helps play out against teams that press you." });
+    if (v.playForSetPieces === "Play for Set Pieces") prep.push({ session: "Corners", why: "Set pieces are part of the plan." }, { session: "Free Kicks", why: "Set pieces are part of the plan." });
+    const physical = (v.lineOfEngagement === "High Press" || /More Often/.test(v.triggerPress)) && (profile.metrics.stamina?.delta ?? 0) < 0 ? "Stamina is below your team level and the tactic presses a lot: keep regular physical sessions in the schedule." : null;
+    const individual = system.lanes.map((l) => {
+      const p = l.player;
+      const keys = [.../* @__PURE__ */ new Set([...l.ipRole.key, ...l.oopRole.key])].filter((a) => p.attrs[a] && !HARD_TO_TRAIN.has(a));
+      const avg2 = keys.reduce((s, a) => s + p.attrs[a].v, 0) / Math.max(1, keys.length);
+      const weakest = keys.map((a) => ({ attr: a, value: p.attrs[a].v })).sort((a, b) => a.value - b.value).filter((x) => x.value <= avg2 - 1).slice(0, 2);
+      let note = "";
+      if (p.age != null && p.age >= 31 && weakest.some((w) => ["Pace", "Acceleration", "Stamina", "Agility"].includes(w.attr))) {
+        note = "At his age physical attributes rarely improve; focus on the technical or mental one.";
+      } else if (p.age != null && p.age <= 21) note = "Young enough to improve quickly.";
+      return { player: p, role: `${l.ipRole.name} / ${l.oopRole.name}`, weakest, note, general: generalLevel(p) };
+    });
+    return { team, prep, physical, individual };
+  }
+
+  // src/engine/alternatives.js
+  var ORDER2 = {
+    defensiveLine: ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"],
+    mentality: ["Very Defensive", "Defensive", "Cautious", "Balanced", "Positive", "Attacking", "Very Attacking"]
+  };
+  var step = (list, value, by) => list[Math.max(0, Math.min(list.length - 1, list.indexOf(value) + by))];
+  var floorAt = (value, min) => ORDER2.mentality.indexOf(value) < ORDER2.mentality.indexOf(min) ? min : value;
+  var capAt = (value, max) => ORDER2.mentality.indexOf(value) > ORDER2.mentality.indexOf(max) ? max : value;
+  function diffInstructions(main, alt) {
+    const out = [];
+    if (main.mentality.value !== alt.mentality.value) out.push({ name: "Mentality", from: main.mentality.value, to: alt.mentality.value, reason: alt.mentality.reason });
+    for (const key of ["ip", "oop"]) {
+      alt[key].forEach((item, i) => {
+        const before = main[key][i];
+        if (before.value !== item.value) out.push({ name: item.name, from: before.value, to: item.value, reason: item.reason });
+      });
+    }
+    return out;
+  }
+  function roleChanges(main, alt) {
+    const byPlayer = new Map(main.lanes.map((l) => [l.player, l]));
+    return alt.lanes.map((l) => {
+      const m = byPlayer.get(l.player);
+      return { lane: l, before: m || null, changed: !m || m.ipRole.id !== l.ipRole.id || m.oopRole.id !== l.oopRole.id || m.ip !== l.ip || m.oop !== l.oop };
+    });
+  }
+  function shapeKey(sys) {
+    const backs = sys.ipSlots.filter((s) => /^D/.test(s) && !/^DM/.test(s)).length;
+    const strikers = sys.ipSlots.filter((s) => /^ST/.test(s)).length;
+    return `${backs}-${strikers}`;
+  }
+  function buildAlternatives(main, players, docs, options) {
+    const cfg = docs.tuning.instructions;
+    const alts = [];
+    const strength = main.instructions.strength;
+    const run2 = (title, when, searchOptions, planOverride, strengthFor, situation, tweak) => {
+      const ctx = createContext(players, docs, { ...options, ...searchOptions, polishTop: 3 });
+      ctx.instructionsDoc = docs.instructions;
+      ctx.plan = derivePlan(main.profile, strengthFor, cfg, planOverride);
+      const search = searchSystems(ctx);
+      if (!search.best) return;
+      const profile = squadProfile(search.best, ctx);
+      const setPieces = setPiecePlan(search.best, profile, ctx);
+      const base = decideInstructions(profile, search.best, ctx, { strength: strengthFor, setPieces, planOverride, situation });
+      const { overrides, mentality, mentalityReason, extraReasons } = tweak(base);
+      const instructions = decideInstructions(profile, search.best, ctx, { strength: strengthFor, setPieces, planOverride, situation, overrides, mentality, mentalityReason, extraReasons });
+      const diffs = diffInstructions(main.instructions, instructions);
+      const roles = roleChanges(main.best, search.best);
+      const sameShape = search.best.ipName === main.best.ipName && search.best.oopName === main.best.oopName;
+      const similar = sameShape && diffs.length <= 2 && !roles.some((r) => r.changed);
+      alts.push({ title, when, system: search.best, profile, instructions, diffs, roles, ctx, similar });
+    };
+    run2(
+      "Away against stronger teams",
+      "Use when you expect less of the ball: away days and games against better sides.",
+      { ipWeight: 0.4, oopWeight: 0.6 },
+      { lineOfEngagement: "Low Block", attackingTransition: "Counter-Attack", pressCorrected: false },
+      Math.min(strength, 0) - 1,
+      "Against stronger opponents you will have less of the ball.",
+      (base) => ({
+        mentality: floorAt(step(ORDER2.mentality, main.instructions.mentality.value, -2), "Defensive"),
+        mentalityReason: "Two steps more careful than the main tactic: protect your goal first and hit them on the break.",
+        overrides: {
+          defensiveLine: step(ORDER2.defensiveLine, base.values.defensiveLine, -1),
+          defensiveTransition: "Regroup",
+          gkDistributionSpeed: "Distribute Quickly",
+          timeWasting: "More Often",
+          triggerPress: base.values.triggerPress.includes("More") ? "Standard" : base.values.triggerPress
+        },
+        extraReasons: {
+          defensiveLine: "One step deeper than usual, so faster opponents have less space to run into.",
+          defensiveTransition: "Get back into shape rather than press a better team on the ball.",
+          gkDistributionSpeed: "Start counter-attacks before they recover.",
+          timeWasting: "Run the clock down when you are ahead.",
+          triggerPress: "Save energy for counter-attacks."
+        }
+      })
+    );
+    const canPress = (main.profile.metrics.pressing?.delta ?? 0) >= -0.3 && (main.profile.metrics.cbPace?.delta ?? 0) >= -1;
+    run2(
+      "At home against weaker teams",
+      "Use when you expect to have most of the ball and the opponent sits deep.",
+      { ipWeight: 0.6, oopWeight: 0.4 },
+      { lineOfEngagement: canPress ? "High Press" : "Mid Block", attackingTransition: "Standard", pressCorrected: false },
+      Math.max(strength, 0) + 1,
+      "Against weaker opponents you will want to win the ball back quickly and keep it.",
+      (base) => ({
+        mentality: capAt(step(ORDER2.mentality, main.instructions.mentality.value, 1), "Attacking"),
+        mentalityReason: "One step more attacking than the main tactic: weaker sides sit deep, so commit more players forward.",
+        overrides: { patience: "Work Ball Into Box", timeWasting: "Less Often" },
+        extraReasons: {
+          patience: "Deep defences leave little space: be patient and work the ball into the box.",
+          timeWasting: "You want the game played at your pace and the ball in play."
+        }
+      })
+    );
+    const mainKey = shapeKey(main.best);
+    const other = main.search.ranking.find((s) => shapeKey(s) !== mainKey);
+    if (other) {
+      const ctx = main.ctx;
+      const profile = squadProfile(other, ctx);
+      const setPieces = setPiecePlan(other, profile, ctx);
+      const instructions = decideInstructions(profile, other, ctx, { strength, setPieces });
+      alts.push({
+        title: `Different shape: ${other.ipName}`,
+        when: `The best-scoring system with a different shape (${(main.best.score - other.score).toFixed(1)} points behind the main tactic). Useful as a Plan B or to change things during a match.`,
+        system: other,
+        profile,
+        instructions,
+        diffs: diffInstructions(main.instructions, instructions),
+        roles: roleChanges(main.best, other),
+        ctx
+      });
+    }
+    return alts;
   }
 
   // src/analyse.js
@@ -1135,21 +2080,47 @@
     if (players.length < 11) {
       return { ...base, ok: false, error: `Only ${players.length} players were found in the file; at least 11 are needed.` };
     }
-    const ctx = createContext(players, docs, options);
-    const search = searchSystems(ctx);
-    if (!search.best) {
+    const club = commonClub(players);
+    for (const p of players) p.onLoan = isOutOnLoan(p, club);
+    const strength = Math.max(-2, Math.min(2, Number(options.strength) || 0));
+    const searchOptions = { excludeInjured: options.excludeInjured };
+    if (options.excludeInjured === void 0) delete searchOptions.excludeInjured;
+    const ctx = createContext(players, docs, searchOptions);
+    ctx.instructionsDoc = docs.instructions;
+    const first = searchSystems(ctx, { polishTop: 0, quick: true });
+    if (!first.best) {
       return { ...base, ok: false, error: "No formation could be filled with the players in this file." };
     }
-    return {
+    ctx.plan = derivePlan(squadProfile(first.best, ctx), strength, docs.tuning.instructions);
+    const search = searchSystems(ctx);
+    const best = search.best;
+    const profile = squadProfile(best, ctx);
+    const setPieces = setPiecePlan(best, profile, ctx);
+    const instructions = decideInstructions(profile, best, ctx, { strength, setPieces });
+    const result = {
       ...base,
       ok: true,
-      club: commonClub(players),
+      club,
       players,
       ctx,
       search,
+      best,
+      profile,
+      instructions,
+      setPieces,
+      captain: captaincy(best),
+      playerInstructions: playerInstructions(best, profile, instructions, ctx),
+      depth: depthChart(best, ctx),
+      training: trainingFocus(instructions, profile, best, ctx),
       suitability: suitabilityTable(ctx),
       warnings: [...table.warnings, ...ctx.warnings]
     };
+    result.alternatives = options.alternatives === false ? [] : buildAlternatives(result, players, docs, searchOptions);
+    return result;
+  }
+  function isOutOnLoan(p, club) {
+    if (/out on loan/i.test(p.playingTime)) return true;
+    return !!(club && p.club && p.club !== club);
   }
   function commonClub(players) {
     const counts = /* @__PURE__ */ new Map();
@@ -2207,7 +3178,11 @@
 
   // data/columns.json
   var columns_default = {
-    _about: ["Columns the tool reads. 'headers' lists every column name accepted for a field (FM27 names first; FM24-style abbreviations also work).", "'menu' is where to find the column in FM27: in the squad table, right-click a column header (or open the view menu) > Insert Column > this path.", "importance: essential = needed for a useful tactic; recommended = improves it; optional = shown if present."],
+    _about: [
+      "Columns the tool reads. 'headers' lists every column name accepted for a field (FM27 names first; FM24-style abbreviations also work).",
+      "'menu' is where to find the column in FM27: in the squad table, right-click a column header (or open the view menu) > Insert Column > this path.",
+      "importance: essential = needed for a useful tactic; recommended = improves it; optional = shown if present."
+    ],
     fields: [
       {
         field: "id",
@@ -2297,8 +3272,8 @@
         field: "condition",
         headers: ["CON", "Condition", "Overall Physical Condition", "Cond"],
         menu: "Fitness and Injuries > Overall Physical Condition",
-        importance: "recommended",
-        why: "Fitness notes."
+        importance: "optional",
+        why: "Shown as an icon in FM27, so exports usually leave it empty."
       },
       {
         field: "sharpness",
@@ -2312,7 +3287,7 @@
         headers: ["Fatigue"],
         menu: "Fitness and Injuries > Fatigue",
         importance: "optional",
-        why: ""
+        why: "Shown as an icon in FM27, so exports usually leave it empty."
       },
       {
         field: "injury",
@@ -2371,11 +3346,46 @@
         why: ""
       },
       {
+        field: "playingTime",
+        headers: ["Playing Time", "Agreed Playing Time"],
+        menu: "Transfer > Agreed Playing Time",
+        importance: "recommended",
+        why: "Spots players who are out on loan."
+      },
+      {
+        field: "secondNation",
+        headers: ["2nd Nat", "Second Nationality"],
+        menu: "General > Second Nationality",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "mediaHandling",
+        headers: ["Media Handling", "Media Handling Style"],
+        menu: "General > Media Handling Style",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "wage",
+        headers: ["Wage"],
+        menu: "Contract > General > Wage",
+        importance: "optional",
+        why: ""
+      },
+      {
+        field: "transferValue",
+        headers: ["Transfer Value", "Value"],
+        menu: "Transfer > Transfer Value",
+        importance: "optional",
+        why: ""
+      },
+      {
         field: "club",
         headers: ["Club"],
         menu: "Club > Club",
-        importance: "optional",
-        why: ""
+        importance: "recommended",
+        why: "Spots players who are out on loan at other clubs."
       },
       {
         field: "squadNumber",
@@ -2821,13 +3831,35 @@
       ]
     },
     foot: {
-      strength: { "Very Weak": 0, Weak: 0.25, Reasonable: 0.5, "Fairly Strong": 0.7, Strong: 0.85, "Very Strong": 1 },
+      strength: {
+        "Very Weak": 0,
+        Weak: 0.25,
+        Reasonable: 0.5,
+        "Fairly Strong": 0.7,
+        Strong: 0.85,
+        "Very Strong": 1
+      },
       rules: {
-        same: { base: 0.88, span: 0.12 },
-        inverted: { base: 0.88, span: 0.12 },
-        sameMild: { base: 0.95, span: 0.05 },
-        invertedMild: { base: 0.95, span: 0.05 },
-        either: { base: 1, span: 0 }
+        same: {
+          base: 0.88,
+          span: 0.12
+        },
+        inverted: {
+          base: 0.88,
+          span: 0.12
+        },
+        sameMild: {
+          base: 0.95,
+          span: 0.05
+        },
+        invertedMild: {
+          base: 0.95,
+          span: 0.05
+        },
+        either: {
+          base: 1,
+          span: 0
+        }
       }
     },
     search: {
@@ -2839,7 +3871,8 @@
       complexityPenaltyPerCost: 0.06,
       refinePasses: 4,
       topSystems: 5,
-      excludeInjured: true
+      excludeInjured: true,
+      polishTop: 8
     },
     balance: {
       _about: "Points added to (or taken from) a system's 0-100 score. See src/engine/balance.js for what each rule checks.",
@@ -2860,11 +3893,99 @@
       twoStoppersNoCover: -2,
       noScreenOrHolder: -2,
       duplicateHalfBackOrDroppingEach: -3
+    },
+    instructions: {
+      _about: "Bands around the team's general level (attribute points, 1-20 scale). 'strong' = clearly better than the rest of the team.",
+      strong: 1,
+      veryStrong: 2,
+      strengthWeight: 0.5
+    },
+    plan: {
+      _about: "Points for systems that suit the game plan (pressing high, mid block, low block, build-up, counter-attacks). Points are on the team-average scale: 0.1 is worth about 2 role points for one player.",
+      shapeMatch: 1,
+      shapeMismatch: -1,
+      roleEach: 0.1,
+      roleCap: 0.4,
+      extraOutletEach: -0.3,
+      distributorEach: 0.2,
+      distributorCap: 0.4,
+      deepCreator: 0.2,
+      targetForBypass: 0.5
+    },
+    depth: {
+      _about: "When a position counts as a weak area (fit points, 0-100).",
+      weakStarterGap: 6,
+      weakStarterAbsolute: 55,
+      thinCoverGap: 12
+    }
+  };
+
+  // data/instructions.json
+  var instructions_default = {
+    _about: [
+      "FM27 tactic settings in the order the Tactics screens show them. Used to list every setting in the report.",
+      "Names and options follow FM27 as closely as public sources allow (in-game checks of 7 Nov 2026 and decoded FM27 tactic files).",
+      "If a label differs slightly in your game, pick the option with the same meaning. 'verified': false marks names not yet confirmed in an English FM27."
+    ],
+    mentalities: ["Very Defensive", "Defensive", "Cautious", "Balanced", "Positive", "Attacking", "Very Attacking"],
+    styles: [
+      "Control Possession",
+      "Gegenpress",
+      "Tiki-Taka",
+      "Vertical Tiki-Taka",
+      "Wing Play",
+      "Route One",
+      "Fluid Counter-Attack",
+      "Direct Counter-Attack",
+      "Catenaccio",
+      "Park the Bus",
+      "Clean Sheet"
+    ],
+    inPossession: [
+      { section: "Overview", id: "passingDirectness", name: "Passing Directness", options: ["Much Shorter", "Shorter", "Standard", "More Direct", "Much More Direct"], default: "Standard" },
+      { section: "Overview", id: "tempo", name: "Tempo", options: ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], default: "Standard" },
+      { section: "Overview", id: "attackingWidth", name: "Attacking Width", options: ["Much Narrower", "Narrower", "Standard", "Wider", "Much Wider"], default: "Standard" },
+      { section: "Overview", id: "attackingTransition", name: "Attacking Transition", options: ["Hold Shape", "Standard", "Counter-Attack"], default: "Standard" },
+      { section: "Overview", id: "creativeFreedom", name: "Creative Freedom", options: ["More Disciplined", "Balanced", "More Expressive"], default: "Balanced" },
+      { section: "Overview", id: "timeWasting", name: "Time Wasting", options: ["Less Often", "Standard", "More Often"], default: "Standard" },
+      { section: "Overview", id: "playForSetPieces", name: "Play for Set Pieces", options: ["Keep Ball in Play", "Play for Set Pieces"], default: "Keep Ball in Play" },
+      { section: "Final Third", id: "patience", name: "Patience", options: ["Hit Early Crosses", "Standard", "Work Ball Into Box"], default: "Standard" },
+      { section: "Final Third", id: "shotsFromDistance", name: "Shots from Distance", options: ["Discourage", "Balanced", "Encourage"], default: "Balanced" },
+      { section: "Final Third", id: "crossingStyle", name: "Crossing Style", options: ["Balanced", "Floated Crosses", "Whipped Crosses", "Low Crosses"], default: "Balanced" },
+      { section: "Final Third", id: "dribbling", name: "Dribbling", options: ["Discourage", "Balanced", "Encourage"], default: "Balanced", note: "Also shown on the Progression page; it is the same setting." },
+      { section: "Progression", id: "supportingRuns", name: "Supporting Runs", options: ["Balanced", "Left", "Right", "Both Flanks"], default: "Balanced", verified: false },
+      { section: "Progression", id: "progressThrough", name: "Progress Through", options: ["Balanced", "Left", "Middle", "Right", "Both Flanks"], default: "Balanced" },
+      { section: "Progression", id: "passReception", name: "Pass Reception", options: ["Pass To Feet", "Balanced", "Pass Into Space"], default: "Balanced" },
+      { section: "Build-Up", id: "buildUpStrategy", name: "Build-Up Strategy", options: ["Play Through Press", "Balanced", "Bypass Press"], default: "Balanced" },
+      { section: "Build-Up", id: "goalKicks", name: "Goal Kicks", options: ["Short", "Mixed", "Long"], default: "Mixed" },
+      { section: "Build-Up", id: "gkDistributionSpeed", name: "Goalkeeper Distribution Speed", options: ["Slow Pace Down", "Balanced", "Distribute Quickly"], default: "Balanced" },
+      { section: "Build-Up", id: "gkDistribution", name: "Goalkeeper Distribution", options: ["Balanced", "Centre-Backs", "Full-Backs", "Flanks", "Playmaker", "Target Forward", "Over Opposition Defence"], default: "Balanced" }
+    ],
+    outOfPossession: [
+      { section: "Out of Possession", id: "lineOfEngagement", name: "Line of Engagement", options: ["High Press", "Mid Block", "Low Block"], default: "Mid Block" },
+      { section: "Out of Possession", id: "defensiveLine", name: "Defensive Line", options: ["Much Lower", "Lower", "Standard", "Higher", "Much Higher"], default: "Standard" },
+      { section: "Out of Possession", id: "defensiveLineBehaviour", name: "Defensive Line Behaviour", options: ["Step Up More", "Balanced", "Drop Off More"], default: "Balanced" },
+      { section: "Out of Possession", id: "triggerPress", name: "Trigger Press", options: ["Much Less Often", "Less Often", "Standard", "More Often", "Much More Often"], default: "Standard" },
+      { section: "Out of Possession", id: "defensiveTransition", name: "Defensive Transition", options: ["Counter-Press", "Standard", "Regroup"], default: "Standard" },
+      { section: "Out of Possession", id: "tackling", name: "Tackling", options: ["Get Stuck In", "Standard", "Stay On Feet"], default: "Standard" },
+      { section: "Out of Possession", id: "pressingTrap", name: "Pressing Trap", options: ["Trap Inside", "Balanced", "Trap Outside"], default: "Balanced" },
+      { section: "Out of Possession", id: "crossEngagement", name: "Cross Engagement", options: ["Stop Crosses", "Balanced", "Invite Crosses"], default: "Balanced" },
+      { section: "Out of Possession", id: "preventShortGkDistribution", name: "Prevent Short GK Distribution", options: ["No", "Yes"], default: "No" }
+    ],
+    playerInstructions: {
+      _about: "Player instruction names seen in FM26/FM27 sources. These are the least certain labels: check them in the game's player instruction screen.",
+      inPossession: ["Shooting", "Dribbling Frequency", "Dribbling Direction", "Passing Risk", "Hold Up Ball", "Cross From", "Forward Runs", "Attacking Width"],
+      outOfPossession: ["Trigger Press", "Tackling", "Marking"]
+    },
+    training: {
+      _about: "FM27 training session names (Training > schedule). Tactical Understanding sessions match the tactic areas; Match Preparation sessions are separate.",
+      tacticalUnderstanding: ["Passing Style", "Build Up", "Chance Creation", "In Possession Shape", "Line of Engagement", "Pressing Intensity", "Pressing Trap", "Out Of Possession Shape"],
+      matchPreparation: ["Press Avoidance", "Defensive Block", "Defensive Positioning", "Defensive Engagement", "Corners", "Free Kicks", "Penalty"]
     }
   };
 
   // src/data.js
-  var DEFAULT_DOCS = { roles: roles_default, formations: formations_default, columns: columns_default, tuning: tuning_default };
+  var DEFAULT_DOCS = { roles: roles_default, formations: formations_default, columns: columns_default, tuning: tuning_default, instructions: instructions_default };
 
   // src/report/util.js
   function esc(s) {
@@ -2978,6 +4099,21 @@
 .report .legend { font-size: 12.5px; color: var(--muted); }
 .report .muted { color: var(--muted); }
 .report .small { font-size: 12.5px; }
+.report h4 { font-size: 14px; margin: 16px 0 4px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.report nav.toc { font-size: 13px; color: var(--muted); margin: 4px 0 8px; }
+.report nav.toc a { color: var(--accent); text-decoration: none; }
+.report table.settings td { vertical-align: top; }
+.report table.settings td:first-child { width: 22%; }
+.report table.settings td.setting { width: 20%; white-space: nowrap; }
+.report table.settings tr.unchanged td { color: var(--muted); }
+.report table.settings tr.unchanged td strong { color: var(--muted); font-weight: 600; }
+.report table.settings tr.changed td.setting strong { color: var(--accent); }
+.report td.why { font-size: 13px; }
+.report .pitches.small { grid-template-columns: repeat(auto-fit, minmax(220px, 300px)); }
+.report .pitches.small svg.pitch { max-width: 300px; }
+.report td.delta.up { color: var(--s-top); font-weight: 700; }
+.report td.delta.down { color: var(--s-low); font-weight: 700; }
+.report tr.muted td { color: var(--muted); }
 .report .next { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; margin-top: 18px; }
 @media print {
   .report { max-width: none; padding: 0; font-size: 12px; }
@@ -2987,6 +4123,8 @@
   .report .tablewrap { overflow: visible; }
   .report .score { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .report svg.pitch { max-width: 300px; }
+  .report nav.toc { display: none; }
+  .report table.settings td.setting { white-space: normal; }
 }
 `;
 
@@ -3002,9 +4140,7 @@
     { title: "Strikers", positions: ["ST (C)"] }
   ];
   var score = (v, extra = "") => `<span class="score ${scoreClass(v == null ? v : Math.round(v))}${extra}">${fmt(v)}</span>`;
-  function slotLabel(slots, code) {
-    return slots[code][3];
-  }
+  var slotLabel = (slots, code) => slots[code][3];
   function bySlotOrder(slots, key) {
     return (a, b) => {
       const [ax, ay] = slots[a[key]];
@@ -3026,34 +4162,54 @@
     if (lane.player.condition != null && lane.player.condition < 85) notes.push(`<span class="tag warn">Condition ${fmt(lane.player.condition)}%</span>`);
     return [...new Set(notes)].join(" ");
   }
+  function pitches(system, slots, small = false) {
+    const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score }));
+    const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score }));
+    return `<div class="pitches${small ? " small" : ""}">
+    <figure><figcaption class="phase-ip">In possession <span>· ${esc(system.ipName)}</span></figcaption>${pitchSVG(ipItems, slots, "In possession shape")}</figure>
+    <figure><figcaption class="phase-oop">Out of possession <span>· ${esc(system.oopName)}</span></figcaption>${pitchSVG(oopItems, slots, "Out of possession shape")}</figure>
+  </div>`;
+  }
   function overview(result) {
-    const best = result.search.best;
-    const slots = result.ctx.slots;
-    const ipItems = best.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score }));
-    const oopItems = best.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score }));
-    const balance = best.balance.points;
+    const { best, instructions: ins, ctx } = result;
     return `
 <section id="overview">
   <h2>1. The tactic at a glance</h2>
   <div class="kpis">
+    <div class="kpi"><div class="k">Style to start from</div><div class="v">${esc(ins.style.value || "Any (custom)")}</div></div>
+    <div class="kpi"><div class="k">Mentality</div><div class="v">${esc(ins.mentality.value)}</div></div>
     <div class="kpi"><div class="k">In possession</div><div class="v">${esc(best.ipName)}</div></div>
     <div class="kpi"><div class="k">Out of possession</div><div class="v">${esc(best.oopName)}</div></div>
+    <div class="kpi"><div class="k">Pressing</div><div class="v">${esc(ins.values.lineOfEngagement)}</div></div>
     <div class="kpi"><div class="k">Team fit (0–100)</div><div class="v">${fmt(best.fit, 1)}</div></div>
-    <div class="kpi"><div class="k">Balance</div><div class="v">${balance >= 0 ? "+" : ""}${fmt(balance, 1)} points</div></div>
   </div>
-  <div class="pitches">
-    <figure><figcaption class="phase-ip">In possession <span>· ${esc(best.ipName)}</span></figcaption>${pitchSVG(ipItems, slots, "In possession shape")}</figure>
-    <figure><figcaption class="phase-oop">Out of possession <span>· ${esc(best.oopName)}</span></figcaption>${pitchSVG(oopItems, slots, "Out of possession shape")}</figure>
-  </div>
+  ${pitches(best, ctx.slots)}
   <p class="legend">Each circle shows the role's FM27 abbreviation, the player's surname and his fit score for that role (0–100; ring colour:
   <span class="score s-top">75+</span> excellent, <span class="score s-good">65+</span> good, <span class="score s-ok">55+</span> usable, <span class="score s-low">&lt;55</span> weak).</p>
 </section>`;
   }
-  function setup(result) {
-    const best = result.search.best;
-    const slots = result.ctx.slots;
+  function settingsTable(items) {
+    const rows = items.map(
+      (i) => `<tr class="${i.changed ? "changed" : "unchanged"}">
+  <td><strong>${esc(i.name)}</strong>${i.verified === false ? ' <span class="tag">check label in-game</span>' : ""}</td>
+  <td class="setting">${i.changed ? `<strong>${esc(i.value)}</strong>` : esc(i.value)}${i.changed ? "" : ' <span class="muted small">(default)</span>'}</td>
+  <td class="why">${esc(i.reason)}${i.note ? ` <span class="muted">${esc(i.note)}</span>` : ""}</td>
+</tr>`
+    ).join("\n");
+    return `<div class="tablewrap"><table class="settings"><thead><tr><th>Setting</th><th>Set to</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  function swing(side, taker) {
+    if (!taker) return "";
+    const base = "Best corner delivery in the starting XI";
+    if (taker.foot === "right-footed") return `${base}; with his right foot it swings ${side === "left" ? "in towards goal (inswinger)" : "away from goal (outswinger)"}.`;
+    if (taker.foot === "left-footed") return `${base}; with his left foot it swings ${side === "right" ? "in towards goal (inswinger)" : "away from goal (outswinger)"}.`;
+    return `${base}.`;
+  }
+  function enterIt(result) {
+    const { best, instructions: ins, ctx, setPieces: sp, captain } = result;
+    const slots = ctx.slots;
     const lanes = best.lanes.slice().sort(bySlotOrder(slots, "ip"));
-    const rows = lanes.map(
+    const roleRows = lanes.map(
       (l) => `<tr>
   <td><strong>${esc(l.player.name)}</strong><div class="small muted">${esc(l.player.positionsText || [...l.player.positions].join(", "))}</div></td>
   <td>${esc(slotLabel(slots, l.ip))}</td>
@@ -3065,28 +4221,74 @@
   <td>${laneNotes(l)}</td>
 </tr>`
     ).join("\n");
+    const sections = ["Overview", "Final Third", "Progression", "Build-Up"];
+    const ipTables = sections.map((sec) => `<h4>In Possession › ${esc(sec)}</h4>${settingsTable(ins.ip.filter((i) => i.section === sec))}`).join("\n");
+    const piRows = result.playerInstructions.filter((x) => x.items.length).sort((a, b) => bySlotOrder(slots, "ip")(a.lane, b.lane)).map(
+      (x) => `<tr><td><strong>${esc(x.player.name)}</strong><div class="small muted">${esc(x.lane.ipRole.name)} / ${esc(x.lane.oopRole.name)}</div></td>
+<td>${x.items.map((i) => `<div><span class="${i.phase === "IP" ? "phase-ip" : "phase-oop"}">${esc(i.phase)}</span> ${esc(i.name)}: <strong>${esc(i.value)}</strong></div>`).join("")}</td>
+<td>${x.items.map((i) => `<div>${esc(i.reason)}</div>`).join("")}</td></tr>`
+    ).join("\n");
+    const who = (t) => t ? `<strong>${esc(t.name)}</strong>${t.foot ? ` <span class="muted small">(${esc(t.foot)})</span>` : ""}` : "–";
+    const changedCount = [...ins.ip, ...ins.oop].filter((i) => i.changed).length;
     return `
 <section id="setup">
   <h2>2. Enter it in FM27</h2>
+  <p>Work through these steps in order; they follow the FM27 tactics screens. ${changedCount} of the ${ins.ip.length + ins.oop.length} team
+  instructions differ from FM's defaults (shown in <strong>bold</strong>); leave the rest as they are.</p>
+
+  <h3>Step 1 · Style and mentality</h3>
+  <div class="tablewrap"><table class="settings"><tbody>
+    <tr class="changed"><td><strong>Style</strong></td><td class="setting"><strong>${esc(ins.style.value || "Any")}</strong></td><td class="why">${esc(ins.style.reason)}</td></tr>
+    <tr class="changed"><td><strong>Mentality</strong></td><td class="setting"><strong>${esc(ins.mentality.value)}</strong></td><td class="why">${esc(ins.mentality.reason)}</td></tr>
+  </tbody></table></div>
+
+  <h3>Step 2 · Formations, players and roles</h3>
   <ol class="steps">
-    <li>Open <strong>Tactics</strong>. Pick an empty tactic slot (or one you don't mind changing).</li>
-    <li>Switch the pitch to <strong>In Possession</strong> and choose the formation <strong>${esc(best.ipName)}</strong>
-      (or drag players until the shape matches the left-hand pitch above).</li>
-    <li>Put each player in the <em>In possession</em> spot below and give him the <span class="phase-ip">In possession role</span>.</li>
-    <li>Switch the pitch to <strong>Out of Possession</strong>, choose <strong>${esc(best.oopName)}</strong>, and set each player's spot and
-      <span class="phase-oop">Out of possession role</span> the same way.</li>
+    <li>Switch the pitch to <strong>In Possession</strong> and choose <strong>${esc(best.ipName)}</strong> (or drag players until it matches the left-hand pitch above).</li>
+    <li>Put each player in his <em>IP spot</em> below with his <span class="phase-ip">in-possession role</span>.</li>
+    <li>Switch to <strong>Out of Possession</strong>, choose <strong>${esc(best.oopName)}</strong> and set each player's <em>OOP spot</em> and <span class="phase-oop">out-of-possession role</span>.</li>
     <li>FM27 roles have no duties, so there is nothing else to pick per player.</li>
   </ol>
   <div class="tablewrap"><table>
     <thead><tr><th>Player</th><th>IP spot</th><th>In possession role</th><th class="num">Fit</th><th>OOP spot</th><th>Out of possession role</th><th class="num">Fit</th><th>Notes</th></tr></thead>
-    <tbody>${rows}</tbody>
+    <tbody>${roleRows}</tbody>
   </table></div>
+
+  <h3>Step 3 · Team Instructions › In Possession</h3>
+  ${ipTables}
+
+  <h3>Step 4 · Team Instructions › Out of Possession</h3>
+  ${settingsTable(ins.oop)}
+  <p class="legend">Setting names follow FM27 as closely as public sources allow. If a label in your game is worded slightly differently,
+  pick the option with the same meaning.</p>
+
+  <h3>Step 5 · Player instructions</h3>
+  ${piRows ? `<div class="tablewrap"><table><thead><tr><th>Player</th><th>Instruction</th><th>Why</th></tr></thead><tbody>${piRows}</tbody></table></div>` : "<p>None needed: the roles already cover what these players do.</p>"}
+  <p class="legend">Only where a player's attributes or traits clearly call for it. Player instruction names are the least certain labels in
+  FM27: if one isn't offered for that role, skip it.</p>
+
+  <h3>Step 6 · Set pieces and captain</h3>
+  <div class="tablewrap"><table class="settings"><tbody>
+    <tr><td><strong>Captain</strong></td><td>${who(captain.captain)}</td><td class="why">${esc(captain.captain?.why || "")}</td></tr>
+    <tr><td><strong>Vice-captain</strong></td><td>${who(captain.vice)}</td><td class="why">${esc(captain.vice?.why || "")}</td></tr>
+    <tr><td><strong>Corners (left)</strong></td><td>${who(sp.cornersLeft)}</td><td class="why">${esc(swing("left", sp.cornersLeft))}</td></tr>
+    <tr><td><strong>Corners (right)</strong></td><td>${who(sp.cornersRight)}</td><td class="why">${esc(swing("right", sp.cornersRight))}</td></tr>
+    <tr><td><strong>Free kicks (shots)</strong></td><td>${who(sp.directFreeKicks)}</td><td class="why">Free Kick Taking, Technique and Long Shots.</td></tr>
+    <tr><td><strong>Free kicks (crosses)</strong></td><td>${who(sp.indirectFreeKicks)}</td><td class="why">Free Kick Taking and Crossing.</td></tr>
+    <tr><td><strong>Penalties (in order)</strong></td><td colspan="2">${sp.penalties.map((p, i) => `${i + 1}. ${esc(p?.name || "")}`).join(" &nbsp; ")}</td></tr>
+    <tr><td><strong>Long throws</strong></td><td colspan="2">${sp.longThrows ? who(sp.longThrows) : "Nobody has a long throw worth using."}</td></tr>
+    <tr><td><strong>Attack the ball</strong></td><td colspan="2">${sp.aerialTargets.slice(0, 3).map((t) => `${esc(t.name)}${t.height ? ` <span class="muted small">(${t.height} cm)</span>` : ""}`).join(", ")}</td></tr>
+    <tr><td><strong>Stay back</strong></td><td colspan="2">${sp.stayBack.map((t) => esc(t?.name || "")).join(", ")} <span class="muted small">(quickest defenders who aren't aerial targets, to stop counter-attacks)</span></td></tr>
+  </tbody></table></div>
 </section>`;
   }
   function why(result) {
-    const { best, ranking, tested } = result.search;
-    const notes = best.balance.notes.length ? `<ul class="notes">${best.balance.notes.map((n) => `<li class="${n.points >= 0 ? "plus" : "minus"}">${esc(n.text)} <span class="muted small">(${n.points > 0 ? "+" : ""}${fmt(n.points, 1)})</span></li>`).join("")}</ul>` : "<p>No balance problems found.</p>";
-    const top = ranking.slice(0, result.ctx.search.topSystems);
+    const { search, best, profile, ctx } = result;
+    const { ranking, tested } = search;
+    const balanceNotes = best.balance.notes.filter((n) => !n.plan);
+    const planNotes = best.balance.notes.filter((n) => n.plan);
+    const noteList = (list) => list.length ? `<ul class="notes">${list.map((n) => `<li class="${n.points >= 0 ? "plus" : "minus"}">${esc(n.text)} <span class="muted small">(${n.points > 0 ? "+" : ""}${fmt(n.points, 1)})</span></li>`).join("")}</ul>` : '<p class="muted">Nothing to note.</p>';
+    const top = ranking.slice(0, ctx.search.topSystems);
     const rows = top.map(
       (r, i) => `<tr${i === 0 ? ' style="font-weight:700"' : ""}><td>${i + 1}</td><td>${esc(r.ipName)}</td><td>${esc(r.oopName)}</td>
   <td class="num">${fmt(r.fit, 1)}</td><td class="num">${r.balance.points >= 0 ? "+" : ""}${fmt(r.balance.points, 1)}</td>
@@ -3094,22 +4296,111 @@
     ).join("");
     const runnerUp = top[1];
     const gap = runnerUp ? best.score - runnerUp.score : 0;
+    const metricRows = Object.values(profile.metrics).filter((m) => m.value != null).map((m) => {
+      const cls = m.delta >= 1 ? "up" : m.delta <= -1 ? "down" : "";
+      return `<tr><td>${esc(m.label)}</td><td class="small muted">${esc(m.players.map(shortName).join(", "))}</td><td class="num">${fmt(m.value, 1)}</td><td class="num delta ${cls}">${m.delta >= 0 ? "+" : ""}${fmt(m.delta, 1)}</td></tr>`;
+    }).join("");
     return `
 <section id="why">
-  <h2>3. Why this system</h2>
-  <p>The tool tested <strong>${tested}</strong> combinations of in-possession and out-of-possession formations. For each one it chose the
-  best eleven with the Hungarian algorithm (an exact method, so no other line-up of your players fits that system better), then picked
-  each player's two roles for fit and team balance.</p>
-  ${runnerUp && gap < 1 ? `<p>The top systems are close (${fmt(gap, 1)} points apart), so any of them suits this squad. Pick the one you prefer to watch.</p>` : ""}
-  <h3>Team balance of the chosen system</h3>
-  ${notes}
+  <h2>3. Why this tactic</h2>
+  <p>The tool tested <strong>${tested}</strong> combinations of in-possession and out-of-possession formations. For each one it chose the best
+  eleven with the Hungarian algorithm (an exact method: no other line-up of your players fits that system better), then picked each player's
+  two roles for fit, team balance and the game plan below.</p>
+  ${runnerUp && gap < 1 ? `<p>The top systems are close (${fmt(gap, 1)} points apart), so the runners-up below would also suit this squad.</p>` : ""}
+  <h3>Game plan</h3>
+  <p>Pressing: <strong>${esc(result.instructions.values.lineOfEngagement)}</strong> · Build-up: <strong>${esc(result.instructions.values.buildUpStrategy)}</strong>
+  · On winning the ball: <strong>${esc(result.instructions.values.attackingTransition)}</strong>. The out-of-possession shape and roles were scored on how
+  well they suit this plan:</p>
+  ${noteList(planNotes)}
+  <h3>Team balance</h3>
+  ${noteList(balanceNotes)}
   <h3>Best systems tested</h3>
   <div class="tablewrap"><table>
-    <thead><tr><th>#</th><th>In possession</th><th>Out of possession</th><th class="num">Fit</th><th class="num">Balance</th><th class="num">Complexity</th><th class="num">Total</th></tr></thead>
+    <thead><tr><th>#</th><th>In possession</th><th>Out of possession</th><th class="num">Fit</th><th class="num">Balance + plan</th><th class="num">Complexity</th><th class="num">Total</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>
   <p class="legend">Fit = average of the eleven players' role scores (half in possession, half out of possession). Complexity = a small
-  deduction when players move a long way between the two shapes, because FM27 rates complex tactics as harder to learn.</p>
+  deduction when players move a long way between the two shapes, because FM27 makes complex tactics harder to learn.</p>
+  <h3>Squad profile</h3>
+  <p>Each line is the average of those attributes for the players named, compared with your team's general level of
+  <strong>${fmt(profile.level, 1)}</strong> (the average of all their outfield attributes). Comparing with your own level means the advice suits
+  your league, whatever its standard.</p>
+  <div class="tablewrap"><table class="profile"><thead><tr><th>Area</th><th>Players</th><th class="num">Average</th><th class="num">vs level</th></tr></thead><tbody>${metricRows}</tbody></table></div>
+</section>`;
+  }
+  function depth(result) {
+    const { depth: dc, ctx } = result;
+    const slots = ctx.slots;
+    const rows = dc.lanes.slice().sort((a, b) => bySlotOrder(slots, "ip")(a.lane, b.lane)).map((d) => {
+      const others = d.options.filter((o) => o.player !== d.secondChoice?.player).slice(0, 2).map((o) => `${esc(o.player.name)} ${score(o.value)}${o.injured ? ' <span class="tag warn">injured</span>' : ""}`).join("<br>");
+      const loan = d.loanOptions.map((o) => `${esc(o.player.name)} ${score(o.value)} <span class="muted small">on loan at ${esc(o.player.club || "?")}</span>`).join("<br>");
+      return `<tr><td><strong>${esc(slotLabel(slots, d.lane.ip))}</strong><div class="small muted">${esc(d.lane.ipRole.abbr)} / ${esc(d.lane.oopRole.abbr)}</div></td>
+<td>${esc(d.starter.name)} ${score(d.starterValue)}</td>
+<td>${d.secondChoice ? `${esc(d.secondChoice.player.name)} ${score(d.secondChoice.value)}` : '<span class="tag warn">nobody</span>'}</td>
+<td>${others || "–"}</td><td>${loan || ""}</td></tr>`;
+    }).join("\n");
+    const weak = dc.weakAreas.length ? `<ol>${dc.weakAreas.map(
+      (w) => `<li><strong>${esc(slotLabel(slots, w.lane.ip))} – ${esc(w.lane.ipRole.name)} / ${esc(w.lane.oopRole.name)}:</strong> ${esc(w.reasons.join("; "))}.
+<div class="small">Look for: ${w.lookFor.map((a) => `${esc(a.attr)}${a.starter != null ? ` <span class="muted">(${esc(w.lane.player.name.split(" ").pop())} ${a.starter})</span>` : ""}`).join(", ")}</div></li>`
+    ).join("")}</ol>` : "<p>No weak areas: every position has a good starter and reasonable cover.</p>";
+    return `
+<section id="depth">
+  <h2>4. Depth chart and transfer targets</h2>
+  <p>The second choice in each position is an exact "second XI" for the same system and roles (fit players only), so nobody is listed twice.
+  Fit scores use the roles of the main tactic.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Position</th><th>Starter</th><th>Second choice</th><th>Also</th><th>Better than cover, out on loan</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>
+  <h3>Weak areas worth strengthening</h3>
+  ${weak}
+  <p class="legend">"Look for" lists the key attributes of the two roles, weakest first for your current starter: a signing should beat him on these.</p>
+</section>`;
+  }
+  function alternatives(result) {
+    if (!result.alternatives?.length) return "";
+    const slots = result.ctx.slots;
+    const blocks = result.alternatives.map((a, i) => {
+      if (a.similar) {
+        return `<h3>${String.fromCharCode(65 + i)}. ${esc(a.title)}</h3><p>${esc(a.when)} Your main tactic already suits this: keep it${a.diffs.length ? `, with ${a.diffs.map((d) => `${esc(d.name)} → <strong>${esc(d.to)}</strong>`).join(", ")}` : ""}.</p>`;
+      }
+      const changedRoles = a.roles.filter((r) => r.changed);
+      const roleList2 = changedRoles.length ? `<ul class="small">${changedRoles.map((r) => `<li><strong>${esc(r.lane.player.name)}</strong>: ${esc(slotLabel(slots, r.lane.ip))} <span class="phase-ip">${esc(r.lane.ipRole.name)}</span> / ${esc(slotLabel(slots, r.lane.oop))} <span class="phase-oop">${esc(r.lane.oopRole.name)}</span>${r.before ? "" : ' <span class="tag">comes in</span>'}</li>`).join("")}</ul>` : '<p class="small">Same players and roles as the main tactic.</p>';
+      const diffRows = a.diffs.map((d) => `<tr><td><strong>${esc(d.name)}</strong></td><td class="muted">${esc(d.from)}</td><td><strong>${esc(d.to)}</strong></td><td class="why">${esc(d.reason)}</td></tr>`).join("");
+      return `<h3>${String.fromCharCode(65 + i)}. ${esc(a.title)}</h3>
+<p>${esc(a.when)} Mentality <strong>${esc(a.instructions.mentality.value)}</strong>, ${esc(a.system.ipName)} in possession, ${esc(a.system.oopName)} out of possession (fit ${fmt(a.system.fit, 1)}).</p>
+${pitches(a.system, slots, true)}
+<h4>Players and roles that change</h4>${roleList2}
+<h4>Settings that change from the main tactic</h4>
+${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th>Setting</th><th>Main</th><th>This tactic</th><th>Why</th></tr></thead><tbody>${diffRows}</tbody></table></div>` : '<p class="small">No team instruction changes.</p>'}`;
+    }).join("\n");
+    return `
+<section id="alternatives">
+  <h2>5. Alternative tactics</h2>
+  <p>Save these in FM27's other tactic slots. Each one is built the same way as the main tactic, with a different aim.</p>
+  ${blocks}
+</section>`;
+  }
+  function training(result) {
+    const t = result.training;
+    const team = t.team.map((x) => `<li><strong>${esc(x.session)}</strong> – ${esc(x.why)}</li>`).join("");
+    const prep = t.prep.map((x) => `<li><strong>${esc(x.session)}</strong> – ${esc(x.why)}</li>`).join("");
+    const ind = t.individual.filter((x) => x.weakest.length).map(
+      (x) => `<tr><td><strong>${esc(x.player.name)}</strong>${x.player.age != null ? ` <span class="muted small">${x.player.age}</span>` : ""}</td><td class="small">${esc(x.role)}</td>
+<td>${x.weakest.map((w) => `${esc(w.attr)} <span class="muted">(${fmt(w.value)})</span>`).join(", ")}</td><td class="small muted">${esc(x.note)}</td></tr>`
+    ).join("");
+    return `
+<section id="training">
+  <h2>6. Training focus</h2>
+  <h3>Tactical Understanding sessions</h3>
+  <p class="small">These teach the tactic, so FM27's Tactical Effectiveness rises faster. Put them in the weekly schedule.</p>
+  <ul>${team}</ul>
+  <h3>Match preparation</h3>
+  <ul>${prep}</ul>
+  ${t.physical ? `<p><strong>Physical:</strong> ${esc(t.physical)}</p>` : ""}
+  <h3>Individual focus for the starting XI</h3>
+  <p class="small">The weakest key attributes for each player's two roles. FM27 renamed some individual training focuses, so pick the one that trains that attribute.</p>
+  ${ind ? `<div class="tablewrap"><table><thead><tr><th>Player</th><th>Roles</th><th>Work on</th><th></th></tr></thead><tbody>${ind}</tbody></table></div>` : "<p>No clear weak spots in the starters' key attributes.</p>"}
 </section>`;
   }
   function groupScore(ctx, player, role, positions) {
@@ -3124,23 +4415,27 @@
   function suitability(result) {
     const { ctx, players } = result;
     const roles = ctx.roles.roles;
-    const xiIds = new Set(result.search.best.lanes.map((l) => l.player.id));
-    const bestRows = players.map((p) => {
+    const xiIds = new Set(result.best.lanes.map((l) => l.player.id));
+    const fmRoleName = (abbr) => roles.find((r) => r.phase === "IP" && r.abbr === abbr)?.name;
+    const ordered = players.slice().sort((a, b) => Number(a.onLoan) - Number(b.onLoan));
+    const bestRows = ordered.map((p) => {
       const scored = result.suitability.find((s) => s.player === p).scores;
       const top = (phase) => roles.filter((r) => r.phase === phase && scored[r.id]).map((r) => ({ r, s: scored[r.id] })).sort((a, b) => b.s.score - a.s.score).slice(0, 3).map(({ r, s }) => `${score(s.score)} ${esc(r.name)}`).join("<br>");
       const flags = [];
       if (xiIds.has(p.id)) flags.push('<span class="tag">Starting XI</span>');
+      if (p.onLoan) flags.push(`<span class="tag warn">On loan${p.club ? " at " + esc(p.club) : ""}</span>`);
       if (p.injured) flags.push(`<span class="tag warn">Injured${p.injury ? ": " + esc(p.injury) : ""}</span>`);
       if (p.uncertainAttrs.length) flags.push(`<span class="tag warn">${p.uncertainAttrs.length} attributes are scouting ranges</span>`);
       if (p.unknownAttrs.length > 3) flags.push(`<span class="tag warn">${p.unknownAttrs.length} attributes unknown</span>`);
-      return `<tr><td><strong>${esc(p.name)}</strong><div class="small muted">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}</div></td>
-<td>${top("IP")}</td><td>${top("OOP")}</td><td>${esc(p.fmBestRole || "–")}</td><td>${flags.join(" ")}</td></tr>`;
+      const fm = p.fmBestRole ? `${esc(fmRoleName(p.fmBestRole) || p.fmBestRole)} <span class="muted small">(${esc(p.fmBestRole)})</span>` : "–";
+      return `<tr${p.onLoan ? ' class="muted"' : ""}><td><strong>${esc(p.name)}</strong><div class="small muted">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}</div></td>
+<td>${top("IP")}</td><td>${top("OOP")}</td><td>${fm}</td><td>${flags.join(" ")}</td></tr>`;
     }).join("\n");
     const matrices = GROUPS.map((g) => {
       const groupRoles = roles.filter((r) => r.positions.some((pos) => g.positions.includes(pos)));
       const ipRoles = groupRoles.filter((r) => r.phase === "IP");
       const oopRoles = groupRoles.filter((r) => r.phase === "OOP");
-      const members = players.filter((p) => g.positions.some((pos) => p.positions.has(pos)));
+      const members = ordered.filter((p) => g.positions.some((pos) => p.positions.has(pos)));
       if (!members.length) return `<h3>${esc(g.title)}</h3><p class="muted">Nobody in the squad lists these positions.</p>`;
       const head = [...ipRoles, ...oopRoles].map((r) => `<th class="${r.phase === "IP" ? "phase-ip" : "phase-oop"}" title="${esc(r.name)}">${esc(r.abbr)}</th>`).join("");
       const body = members.map((p) => {
@@ -3149,7 +4444,8 @@
           const max = Math.max(...vals.map((v) => v ? v.score : -1));
           return vals.map((v) => `<td>${v ? score(v.score, v.score === max ? " best" : "") : ""}</td>`).join("");
         });
-        return `<tr><td>${esc(p.name)}${p.injured ? ' <span class="tag warn">inj</span>' : ""}</td>${cells.join("")}</tr>`;
+        const tag = p.onLoan ? ' <span class="tag">loan</span>' : p.injured ? ' <span class="tag warn">inj</span>' : "";
+        return `<tr><td>${esc(p.name)}${tag}</td>${cells.join("")}</tr>`;
       }).join("");
       const legend = [...ipRoles, ...oopRoles].map((r) => `<strong>${esc(r.abbr)}</strong> ${esc(r.name)}`).join(" · ");
       return `<h3>${esc(g.title)}</h3>
@@ -3158,7 +4454,7 @@
     }).join("\n");
     return `
 <section id="suitability">
-  <h2>4. Role suitability for the whole squad</h2>
+  <h2>7. Role suitability for the whole squad</h2>
   <p>Every player scored for every FM27 role. A score weighs the role's key attributes three times and its preferred attributes 1.5 times
   (the same attributes FM27 highlights for that role), adds the attributes the match engine rewards in every role (pace, acceleration,
   anticipation, decisions…), then adjusts for position familiarity and, on the wings, for the stronger foot.</p>
@@ -3167,7 +4463,7 @@
     <thead><tr><th>Player</th><th>Best in possession</th><th>Best out of possession</th><th>FM's best role</th><th>Notes</th></tr></thead>
     <tbody>${bestRows}</tbody>
   </table></div>
-  <p class="legend">"FM's best role" is the assistant manager's opinion from your export (if the column was included), for comparison.</p>
+  <p class="legend">"FM's best role" is the assistant manager's opinion from your export, for comparison.</p>
   ${matrices}
 </section>`;
   }
@@ -3180,8 +4476,10 @@
     if (columns.missingEssential.length) {
       items.push(`<strong>Missing columns that matter</strong> (scores use the attributes that are present; add these for better results):${menuList(columns.missingEssential)}`);
     }
-    if (columns.missingRecommended.length) {
-      items.push(`Missing columns that would improve the report:${menuList(columns.missingRecommended)}`);
+    if (columns.missingRecommended.length) items.push(`Missing columns that would improve the report:${menuList(columns.missingRecommended)}`);
+    const loaned = players.filter((p) => p.onLoan);
+    if (loaned.length) {
+      items.push(`${loaned.length} player(s) are out on loan, so they were left out of the tactic and the depth chart (they appear in the suitability tables, marked "loan"): ${loaned.map((p) => `${esc(p.name)}${p.club ? ` (${esc(p.club)})` : ""}`).join(", ")}.`);
     }
     const ranged = players.filter((p) => p.uncertainAttrs.length);
     if (ranged.length) {
@@ -3189,16 +4487,17 @@
     }
     const unknown = players.filter((p) => p.unknownAttrs.length > 3);
     if (unknown.length) items.push(`Some attributes are unknown ("-") for: ${unknown.map((p) => esc(p.name)).join(", ")}. Their scores use only the known attributes.`);
-    const injured = players.filter((p) => p.injured);
+    const injured = players.filter((p) => p.injured && !p.onLoan);
     if (injured.length) {
       const left = result.ctx.search.excludeInjured;
       items.push(`${left ? "Left out of the starting XI because injured" : "Injured (still considered for the XI)"}: ${injured.map((p) => `${esc(p.name)}${p.injury ? ` (${esc(p.injury)})` : ""}`).join(", ")}.`);
     }
+    items.push(`Team strength used for mentality and pressing: <strong>${esc(result.instructions.strengthLabel)}</strong> (your answer in the app).`);
     items.push('Position familiarity: FM27 only shows it as coloured dots, which no export contains. The tool treats <em>Best Pos</em> as Natural, other positions in the <em>Position</em> column as Accomplished, and neighbouring positions as Competent or Unconvincing (marked "estimated").');
     for (const w of result.warnings) items.push(esc(w));
     return `
 <section id="data">
-  <h2>5. About your data</h2>
+  <h2>8. About your data</h2>
   <ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>
 </section>`;
   }
@@ -3208,17 +4507,21 @@
     return `<article class="report">
 <header>
   <div class="eyebrow">FM27 Tactic Builder</div>
-  <h1>${club}suggested tactic</h1>
-  <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · made ${esc(when)}</p>
+  <h1>${club}your tactic</h1>
+  <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · team strength: ${esc(result.instructions.strengthLabel)} · made ${esc(when)}</p>
 </header>
 <aside class="notice"><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your export file and never touches the
 game or your save. Enter the settings by hand, in the order shown in section 2.</aside>
+<nav class="toc"><a href="#overview">At a glance</a> · <a href="#setup">Enter it in FM27</a> · <a href="#why">Why</a> · <a href="#depth">Depth</a> ·
+<a href="#alternatives">Alternatives</a> · <a href="#training">Training</a> · <a href="#suitability">Role suitability</a> · <a href="#data">Your data</a></nav>
 ${overview(result)}
-${setup(result)}
+${enterIt(result)}
 ${why(result)}
+${depth(result)}
+${alternatives(result)}
+${training(result)}
 ${suitability(result)}
 ${dataNotes(result)}
-${opts.stageNote ? `<div class="next"><strong>Coming in the next version:</strong> team instructions (mentality, pressing, defensive line, passing and the rest, in FM27's screen order, with reasons), player instructions, a depth chart with second choices and weak areas, set-piece takers, captain, training focus and 2–3 alternative tactics.</div>` : ""}
 </article>`;
   }
   function standaloneReport(result, opts = {}) {
@@ -3231,7 +4534,7 @@ ${opts.stageNote ? `<div class="next"><strong>Coming in the next version:</stron
   }
 
   // samples/squad_20261108_201500.csv
-  var squad_20261108_201500_default = 'Unique ID,Player,Position,Best Pos,Age,Club,Nation,Height,Preferred Foot,Left Foot,Right Foot,Personality,Rating,Inf,Best Role,Ability,Potential,Aerial Reach,Command Of Area,Communication,Eccentricity,Handling,Kicking,One On Ones,Punching,Reflexes,Rushing Out (Tendency),Throwing,Aggression,Anticipation,Bravery,Composure,Concentration,Decisions,Determination,Flair,Leadership,Off The Ball,Positioning,Team Work,Vision,Work Rate,Acceleration,Agility,Balance,Jumping Reach,Natural Fitness,Pace,Stamina,Strength,Crossing,Dribbling,Finishing,First Touch,Heading,Long Shots,Marking,Passing,Tackling,Technique,Corners,Free Kick Taking,Long Throws,Penalty Taking,Player Trait,CON,Injury,Fatigue\r\n91000000,Callum Ashdown,GK,GK,29,Harbour City,ENG,191 cm,Right,Very Weak,Very Strong,Model Professional,7.18,,,3.5,3.5,19,17,16,13,16,14,18,14,19,15,16,12,13,13,16,18,16,12,12,11,10,17,12,13,11,11,17,11,11,10,13,12,11,6,7,7,7,8,8,9,13,8,6,13,14,13,11,Tries To Play Way Out Of Trouble,93%,,Tired\r\n91000137,Rafael Holloway,GK,GK,33,Harbour City,SCO,194 cm,Right,Very Weak,Very Strong,Resolute,7.16,,,2.5,2.5,14,14,12,11,15,6,14,10,13,7,9,10,8,10,7,16,11,9,9,9,9,14,10,10,11,10,11,10,11,9,10,9,9,6,3,6,5,5,6,5,8,4,4,11,11,10,9,,98%,,Fresh\r\n91000274,Tomas Okafor,GK,GK,19,Harbour City,IRL,188 cm,Left,Very Strong,Reasonable,Fairly Determined,6.82,,,0.5,1.5,10,12,12,6,12,10,13,7,10,11,11,9,9,9,9,10,11,7,6,6,6,14,5,9,6,6,13,7,7,7,6,8,8,4,2,2,1,1,2,1,12,2,2,8,7,9,6,,96%,,Fresh\r\n91000411,Elias Vantongeren,D (C),D (C),27,Harbour City,WAL,188 cm,Left,Very Strong,Reasonable,Model Citizen,6.77,,BCB,3.5,3.5,3,5,5,6,2,3,5,4,4,3,3,12,17,14,17,12,15,12,11,10,11,19,13,12,13,13,11,13,16,14,11,12,14,12,11,11,15,17,11,16,16,18,15,9,9,9,9,"Brings Ball Out Of Defence, Tries Long Range Passes",91%,,Fresh\r\n91000548,Kofi Draycott,D (C),D (C),30,Harbour City,NED,192 cm,Right,Weak,Very Strong,Born Leader,6.90,,SCB,3.0,3.0,1,3,4,2,3,2,2,4,1,4,2,15,14,15,11,15,13,11,8,17,12,14,9,9,10,8,10,11,17,11,7,10,16,10,7,10,11,15,9,18,9,14,7,7,10,9,9,"Dives Into Tackles, Marks Opponent Tightly",97%,,Fresh\r\n91000685,Mateo Falkner,"D (RC), DM",D (C),24,Harbour City,POR,184 cm,Right,Reasonable,Very Strong,Determined,7.16,,CCB,3.0,3.0,5,2,4,3,4,4,3,1,3,1,3,12,14,9,13,13,15,13,11,10,11,16,12,12,10,16,15,9,8,11,14,13,7,12,11,12,12,13,12,14,9,17,9,7,11,10,8,,91%,,Fresh\r\n91000822,Jonah Marlowe,D (C),D (C),21,Harbour City,GHA,190 cm,Left,Very Strong,Weak,Balanced,6.80,,,1.5,2.5,1,1,1,1,1,1,2,1,1,1,1,13,11,14,10,9,10,8,5,9,7,11,7,7,8,4,8,8,14,6,4,7,13,9,6,8,6,12,8,14,5,13,5,5,7,5,4,,97%,,Fresh\r\n91000959,Luca Thackeray,D/WB (L),D (L),25,Harbour City,SWE,176 cm,Left,Very Strong,Reasonable,Driven,7.05,,WB,3.0,3.0,5,4,4,3,2,1,4,1,1,2,4,13,11,10,12,10,11,12,13,12,17,10,13,11,15,17,12,11,10,10,15,16,7,18,13,11,10,7,12,15,10,15,13,9,10,11,8,"Gets Forward Whenever Possible, Runs With Ball Down Left",93%,,Fresh\r\n91001096,Andre Bellweather,D (L),D (L),28,Harbour City,ENG,180 cm,Left,Very Strong,Very Weak,Professional,6.69,,,2.0,2.0,3,1,1,1,1,2,1,2,2,1,1,11,12,9,9,15,13,10,5,8,7,14,13,10,12,12,8,9,10,9,7,9,13,6,5,8,11,8,10,13,10,14,10,7,5,7,5,,97%,,Fresh\r\n91001233,Niklas Dunmore,D/WB (R),D (R),26,Harbour City,SCO,178 cm,Right,Weak,Very Strong,Perfectionist,6.83,,IWB,3.0,3.0,1,3,3,5,3,5,2,2,2,2,4,9,16,13,18,11,15,11,11,10,10,13,15,13,11,14,10,11,10,10,10,11,10,13,13,11,16,11,10,11,14,17,15,9,7,9,10,Likes To Switch Ball To Other Flank,98%,,Fresh\r\n91001370,Oskar Kerrigan,"D/WB (R), M (R)",D (R),20,Harbour City,IRL,175 cm,Right,Weak,Very Strong,Fairly Ambitious,7.07,,,1.5,2.5,3,3,1,2,2,1,1,3,1,2,1,9,10,8,10,10,10,9,9,9,13,9,13,8,13,15,10,8,10,9,12,13,6,13,10,10,10,6,7,10,10,11,11,8,8,7,6,,96%,,Fresh\r\n91001507,Theo Radley,DM,DM,29,Harbour City,WAL,183 cm,Right,Very Weak,Very Strong,Resolute,6.73,,SDM,3.5,3.5,5,5,5,4,3,6,2,2,2,3,3,14,15,15,12,16,16,12,8,14,14,18,16,14,18,13,13,13,13,14,12,13,12,11,11,11,12,11,12,18,15,16,10,10,10,11,12,Marks Opponent Tightly,99%,,Fresh\r\n91001644,Malik Zelenko,"DM, M (C)",DM,31,Harbour City,NED,177 cm,Right,Very Weak,Very Strong,Model Professional,7.15,,DLP,3.5,3.5,3,3,6,2,4,2,4,2,4,5,4,13,14,12,16,16,19,14,13,12,11,14,15,18,11,12,11,14,11,13,9,12,9,13,12,11,16,9,15,13,16,13,17,18,20,8,8,"Likes To Switch Ball To Other Flank, Tries Long Range Passes",94%,,Fresh\r\n91001781,Dario Brennan,M (C),M (C),26,Harbour City,POR,181 cm,Right,Weak,Very Strong,Driven,6.74,,BBM,3.0,3.0,1,4,2,2,3,5,3,2,3,1,5,15,12,12,12,11,14,14,12,12,17,10,16,11,17,14,10,10,13,10,13,17,12,11,12,11,14,10,14,10,14,18,12,10,10,10,10,Gets Into Opposition Area,90%,,Fresh\r\n91001918,Ruben Iverson,"DM, M (C)",M (C),23,Harbour City,GHA,179 cm,Left,Very Strong,Very Weak,Determined,7.19,,,2.0,2.0,1,1,2,1,1,3,3,1,2,1,1,11,10,8,8,10,11,13,9,8,13,7,12,11,12,14,8,11,9,8,12,15,8,9,7,9,13,10,10,11,16,14,7,6,6,6,7,,98%,,Fresh\r\n91002055,Sami Pemberton,M/AM (C),M (C),24,Harbour City,SWE,174 cm,Left,Very Strong,Weak,Fairly Professional,7.13,,MPM,3.0,3.0,3,1,4,3,3,2,5,5,3,1,1,10,16,12,18,9,17,12,15,11,14,12,14,16,11,10,12,12,12,11,13,9,6,13,15,12,15,13,15,7,17,9,17,20,20,11,7,Plays One-Twos,98%,,Fresh\r\n91002192,Yannick Whitlock,M (C),M (C),18,Harbour City,ENG,172 cm,Right,Very Weak,Very Strong,Light-Hearted,6.96,,,1.0,2.0,1,1,2,2,2,1,1,1,1,1,1,7,10,6,13,6,15,9,11,7,8,6,10,14,7,9,8,9,8,8,8,8,4,9,9,9,11,9,10,7,13,4,14,5,5,7,7,,97%,,Fresh\r\n91002329,Bram Ellacombe,AM (C),AM (C),27,Harbour City,SCO,175 cm,Right,Weak,Very Strong,Balanced,7.08,,AP,3.5,3.5,5,6,6,4,3,5,2,4,4,3,4,14,13,12,17,11,14,13,15,13,15,12,12,16,11,13,15,13,13,13,12,12,11,13,14,13,16,8,12,11,18,11,17,8,20,8,20,"Tries Killer Balls Often, Shoots From Distance",90%,,Fresh\r\n91002466,Felix Garrow,M/AM (L),AM (L),22,Harbour City,IRL,173 cm,Left,Very Strong,Weak,Driven,6.98,,W,3.0,4.0,1,4,2,2,3,1,4,3,3,1,5,11,9,11,12,9,10,10,15,9,14,10,11,10,12,15,17,10,12,9,18,11,8,15,17,13,14,9,12,6,9,7,12,19,8,11,9,"Hugs Line, Runs With Ball Down Left",92%,,Fresh\r\n91002603,Idris Northcott,AM (RL),AM (L),25,Harbour City,WAL,178 cm,Right,Weak,Very Strong,Ambitious,7.09,,IF,3.5,3.5,5,4,4,6,5,2,6,3,5,4,6,13,12,13,14,11,12,12,15,10,16,14,10,10,12,15,18,13,11,14,14,10,12,10,17,16,16,10,12,8,10,10,19,11,12,9,20,"Cuts Inside From Left Wing, Curls Ball",96%,,Fresh\r\n91002740,Marco Ulloa,M/AM (R),AM (R),24,Harbour City,NED,176 cm,Left,Very Strong,Reasonable,Fairly Determined,7.14,,IF,3.0,3.0,2,5,2,4,4,2,4,2,1,4,4,10,16,10,13,12,11,10,15,12,18,10,12,9,10,16,16,13,12,9,16,10,13,9,17,16,16,8,13,7,12,8,17,10,7,10,9,Cuts Inside From Right Wing,96%,,Fresh\r\n91002877,Leon Corrigan,M/AM (R),M (R),21,Harbour City,POR,171 cm,Right,Reasonable,Very Strong,Unambitious,6.86,,,2.0,3.0,2,1,2,1,2,2,1,1,1,2,1,9,9,8,10,8,10,10,13,8,12,10,8,8,14,15,16,7,7,7,16,14,6,13,15,9,12,4,8,5,11,8,12,7,7,5,6,,95%,,Fresh\r\n91003014,Ivo Everly,ST (C),ST (C),28,Harbour City,GHA,182 cm,Right,Weak,Very Strong,Driven,6.99,Inj,P,3.5,3.5,5,5,3,4,5,5,3,3,4,5,6,13,16,14,16,13,13,13,13,11,18,10,11,8,11,18,16,13,11,12,13,13,11,14,14,19,13,11,11,8,7,9,11,9,12,9,20,"Gets Into Opposition Area, Moves Into Channels",61%,Hamstring Strain,Fresh\r\n91003151,Caleb Lindqvist,ST (C),ST (C),30,Harbour City,SWE,193 cm,Right,Very Weak,Very Strong,Resolute,6.67,,TF,3.0,3.0,3,3,2,4,2,1,2,3,4,4,4,13,11,17,14,12,13,9,12,9,14,13,9,12,9,7,6,15,15,10,10,10,16,11,9,15,12,15,10,10,9,13,9,7,10,7,8,Wins Aerial Balls,91%,,Fresh\r\n91003288,Tariq Stroud,"AM (C), ST (C)",ST (C),26,Harbour City,ENG,183 cm,Left,Very Strong,Reasonable,Professional,7.15,,DLF,3.0,3.0,2,4,5,2,2,1,4,5,4,2,4,9,10,10,16,12,12,10,9,10,16,11,16,15,9,10,11,14,12,12,12,11,14,11,13,18,17,13,11,12,14,12,16,10,10,9,9,Comes Deep To Get Ball,97%,,Fresh\r\n91003425,Emil Ambrose,ST (C),ST (C),19,Harbour City,SCO,179 cm,Right,Weak,Very Strong,Light-Hearted,6.66,,,1.5,2.5,1,2,1,2,1,1,1,1,2,1,1,8,13,7,12,12,9,6,8,10,14,8,10,6,6,13,9,6,7,8,10,7,9,7,10,14,10,8,9,6,6,5,9,7,7,8,6,,90%,,Fresh\r\n';
+  var squad_20261108_201500_default = 'Unique ID,Position,Best Pos,Player,Age,Club,Nation,2nd Nat,Height,Preferred Foot,Left Foot,Right Foot,Personality,Media Handling,Playing Time,Wage,Transfer Value,Rating,Inf,Best Role,Ability,Potential,Aerial Reach,Command Of Area,Communication,Eccentricity,Handling,Kicking,One On Ones,Punching,Reflexes,Rushing Out (Tendency),Throwing,Aggression,Anticipation,Bravery,Composure,Concentration,Decisions,Determination,Flair,Leadership,Off The Ball,Positioning,Team Work,Vision,Work Rate,Acceleration,Agility,Balance,Jumping Reach,Natural Fitness,Pace,Stamina,Strength,Corners,Crossing,Dribbling,Finishing,First Touch,Free Kick Taking,Heading,Long Shots,Player Trait,CON,Injury,Fatigue,Long Throws,Marking,Passing,Penalty Taking,Tackling,Technique\r\n91000000,GK,GK,Callum Ashdown,29,Harbour City,England,England,191 cm,Right-Footed Only,Very Weak,Very Strong,Model Professional,Media-friendly,Star Player,£4.0K p/w,£1M - £3M,-,,,3.5,3.5,19,17,16,13,16,14,18,14,19,15,16,12,13,13,16,18,16,12,12,11,10,17,12,13,11,11,17,11,11,10,13,12,11,13,6,7,7,7,14,8,8,Tries To Play Way Out Of Trouble,,-,,13,9,13,11,8,6\r\n91000137,GK,GK,Rafael Holloway,33,Harbour City,Scotland,,194 cm,Right-Footed,Reasonable,Very Strong,Resolute,Level-headed,Important Player,£11.0K p/w,£4M - £6M,-,Wnt,,2.5,2.5,17,15,11,10,14,6,13,11,14,8,10,8,10,8,7,13,10,10,11,11,9,14,9,9,9,10,13,11,10,8,10,11,9,11,5,4,4,6,9,3,6,-,,-,,9,5,8,11,6,5\r\n91000274,GK,GK,Tomas Okafor,19,Harbour City,Ireland,,188 cm,Left-Footed,Very Strong,Weak,Fairly Determined,Reserved,Squad Player,£18.0K p/w,£7M - £9M,-,,,0.5,1.5,12,11,10,10,13,11,10,8,12,8,10,7,11,6,8,13,11,9,6,9,6,10,8,7,6,6,11,9,5,9,6,6,8,6,2,2,2,1,7,3,3,-,,-,,6,4,12,6,2,1\r\n91000411,D (C),D (C),Elias Vantongeren,27,Harbour City,Wales,,188 cm,Left-Footed Only,Very Strong,Very Weak,Model Citizen,"Outspoken, Volatile",Fringe Player,£25.0K p/w,£10M - £12M,-,Bid,BCB,3.5,3.5,4,5,4,6,3,5,3,5,3,3,5,13,19,10,16,15,14,12,11,11,12,17,14,14,10,13,12,11,12,11,14,13,12,9,13,13,11,15,9,19,14,"Brings Ball Out Of Defence, Tries Long Range Passes",,-,,11,16,17,10,17,14\r\n91000548,D (C),D (C),Kofi Draycott,30,Harbour City,Netherlands,,192 cm,Right-Footed Only,Very Weak,Very Strong,Born Leader,Media-friendly,Star Player,£32.0K p/w,£13M - £15M,-,,SCB,3.0,3.0,2,2,4,4,2,2,2,2,4,2,2,16,12,16,12,13,11,10,7,18,9,15,10,10,11,7,11,12,18,11,8,11,17,8,11,6,9,10,9,16,10,"Dives Into Tackles, Marks Opponent Tightly",,-,,8,16,9,8,16,7\r\n91000685,"D (RC), DM",D (C),Mateo Falkner,24,Harbour City,Portugal,England,184 cm,Right-Footed Only,Very Weak,Very Strong,Determined,Level-headed,Important Player,£9.0K p/w,£16M - £18M,-,,CCB,3.0,3.0,3,2,1,5,4,1,2,1,4,3,3,11,16,12,10,15,12,12,11,12,12,16,9,11,9,16,14,9,6,13,16,13,10,9,11,10,11,11,9,14,12,-,,-,,7,15,11,11,18,9\r\n91000822,D (C),D (C),Jonah Marlowe,21,Harbour City,Ghana,,190 cm,Left-Footed Only,Very Strong,Very Weak,Balanced,Reserved,Squad Player,£16.0K p/w,£19M - £21M,-,Wnt,,1.5,2.5,1,1,1,1,1,1,1,1,1,1,1,15,12,12,9,13,7,7,6,6,9,10,9,8,10,6,6,6,14,8,5,9,15,5,6,7,8,8,6,14,7,-,,-,,6,13,4,7,12,5\r\n91000959,D/WB (L),D (L),Luca Thackeray,25,Harbour City,Sweden,,176 cm,Left-Footed Only,Very Strong,Very Weak,Driven,"Outspoken, Volatile",Fringe Player,£23.0K p/w,£2M - £4M,-,,WB,3.0,3.0,2,2,3,4,4,3,1,2,3,4,3,11,11,10,12,10,9,10,10,12,17,13,15,12,16,15,12,12,9,9,15,17,10,8,16,13,12,10,9,8,12,"Gets Forward Whenever Possible, Runs With Ball Down Left",,-,,8,16,12,10,15,13\r\n91001096,D (L),D (L),Andre Bellweather,28,Harbour City,England,,180 cm,Left-Footed,Very Strong,Reasonable,Professional,Media-friendly,Star Player,£30.0K p/w,£5M - £7M,-,Bid,,2.0,2.0,1,1,1,1,1,1,3,1,1,1,1,10,15,8,10,13,12,10,8,8,11,15,12,9,14,12,9,9,9,10,9,10,13,6,5,6,11,7,5,9,9,-,,-,,7,15,10,8,15,8\r\n91001233,D/WB (R),D (R),Niklas Dunmore,26,Harbour City,Scotland,,178 cm,Right-Footed Only,Very Weak,Very Strong,Perfectionist,Level-headed,Important Player,£7.0K p/w,£8M - £10M,-,,IWB,3.0,3.0,3,3,2,3,4,3,1,3,4,3,2,10,16,10,17,10,17,11,12,11,9,14,12,13,10,15,12,9,11,11,13,11,13,8,10,10,10,15,9,12,9,Likes To Switch Ball To Other Flank,,-,,9,13,18,8,18,16\r\n91001370,"D/WB (R), M (R)",D (R),Oskar Kerrigan,20,Harbour City,Ireland,England,175 cm,Right-Footed,Weak,Very Strong,Fairly Ambitious,Reserved,Squad Player,£14.0K p/w,£11M - £13M,-,,,1.5,2.5,1,2,1,1,1,1,1,1,1,1,1,8,11,11,9,9,9,8,9,7,15,8,11,7,14,15,11,9,10,9,16,16,5,6,15,12,7,8,8,8,9,-,,-,,8,12,7,8,11,12\r\n91001507,DM,DM,Theo Radley,29,Harbour City,Wales,,183 cm,Right-Footed,Weak,Very Strong,Resolute,"Outspoken, Volatile",Fringe Player,£21.0K p/w,£14M - £16M,-,Wnt,SDM,3.5,3.5,4,4,3,4,6,3,3,5,3,3,5,14,15,13,12,16,13,13,10,16,10,16,18,12,17,13,13,12,11,12,13,15,15,9,13,10,10,12,10,11,14,Marks Opponent Tightly,,-,,8,15,12,11,15,11\r\n91001644,"DM, M (C)",DM,Malik Zelenko,31,Harbour City,Netherlands,,177 cm,Right-Footed,Reasonable,Very Strong,Model Professional,Media-friendly,Star Player,£28.0K p/w,£17M - £19M,-,,DLP,3.5,3.5,3,6,4,3,2,6,5,3,6,5,5,13,15,13,19,14,16,10,11,14,14,14,13,17,13,13,11,10,12,12,10,14,7,18,11,14,13,16,20,8,16,"Likes To Switch Ball To Other Flank, Tries Long Range Passes",,-,,11,10,17,10,10,17\r\n91001781,M (C),M (C),Dario Brennan,26,Harbour City,Portugal,,181 cm,Right-Footed,Weak,Very Strong,Driven,Level-headed,Important Player,£5.0K p/w,£20M - £22M,-,Bid,BBM,3.0,3.0,3,3,2,5,5,5,4,3,2,3,4,15,10,11,10,13,13,15,11,11,16,12,16,10,15,14,12,12,10,12,14,14,10,9,9,9,10,16,11,11,13,Gets Into Opposition Area,,-,,9,9,17,8,15,10\r\n91001918,"DM, M (C)",M (C),Ruben Iverson,23,Harbour City,Ghana,,179 cm,Left-Footed,Very Strong,Reasonable,Determined,Reserved,Squad Player,£12.0K p/w,£3M - £5M,-,,,2.0,2.0,1,3,2,2,2,2,1,1,1,2,2,13,8,9,9,10,12,11,8,11,13,8,15,10,14,13,9,9,8,9,11,12,11,6,10,10,10,13,8,10,12,-,,-,,6,8,13,7,14,9\r\n91002055,M/AM (C),M (C),Sami Pemberton,24,Harbour City,Sweden,England,174 cm,Left-Footed,Very Strong,Reasonable,Fairly Professional,"Outspoken, Volatile",Fringe Player,£19.0K p/w,£6M - £8M,-,,MPM,3.0,3.0,5,2,4,2,2,2,4,2,2,4,2,12,14,10,15,9,14,13,12,13,13,13,14,15,11,12,10,11,9,11,12,12,6,20,13,16,11,14,20,10,13,Plays One-Twos,,-,,9,7,16,7,6,18\r\n91002192,M (C),M (C),Yannick Whitlock,18,Harbour City,England,,172 cm,Right-Footed,Weak,Very Strong,Light-Hearted,Media-friendly,Star Player,£26.0K p/w,£9M - £11M,-,Wnt,,1.0,2.0,1,1,1,2,2,1,1,1,1,2,1,10,8,9,14,9,13,8,11,8,10,8,9,14,9,9,8,10,6,6,10,9,6,4,7,12,9,12,6,9,11,-,,-,,8,6,13,8,6,15\r\n91002329,AM (C),AM (C),Bram Ellacombe,27,Harbour City,Scotland,,175 cm,Right-Footed Only,Very Weak,Very Strong,Balanced,Level-headed,Important Player,£33.0K p/w,£12M - £14M,-,,AP,3.5,3.5,2,3,6,6,6,2,4,5,3,5,4,11,12,10,17,10,16,13,18,11,15,10,12,18,11,13,14,13,12,12,12,12,8,9,13,13,15,15,20,10,14,"Tries Killer Balls Often, Shoots From Distance",,-,,11,11,17,20,8,18\r\n91002466,M/AM (L),AM (L),Felix Garrow,22,Harbour City,Ireland,,173 cm,Left-Footed,Very Strong,Reasonable,Driven,Reserved,Squad Player,£10.0K p/w,£15M - £17M,-,Bid,W,3.0,4.0,3,4,3,4,5,5,3,2,4,1,3,11,10,11,13,12,11,11,12,11,14,9,12,9,13,16,15,10,12,12,17,14,9,19,16,16,13,14,11,8,10,"Hugs Line, Runs With Ball Down Left",,-,,9,7,10,7,6,15\r\n91002603,AM (RL),AM (L),Idris Northcott,25,Harbour City,Wales,,178 cm,Right-Footed Only,Very Weak,Very Strong,Ambitious,"Outspoken, Volatile",Fringe Player,£17.0K p/w,£18M - £20M,-,,IF,3.5,3.5,2,3,4,5,3,6,2,5,3,3,4,10,15,12,14,10,14,12,12,12,18,10,11,11,14,15,18,13,12,11,13,11,13,11,8,18,15,19,11,7,14,"Cuts Inside From Left Wing, Curls Ball",,-,,8,8,13,18,11,18\r\n91002740,M/AM (R),AM (R),Marco Ulloa,24,Harbour City,Netherlands,England,176 cm,Left-Footed Only,Very Strong,Very Weak,Fairly Determined,Media-friendly,Star Player,£24.0K p/w,£1M - £3M,-,,IF,3.0,3.0,2,4,2,5,3,3,4,3,5,4,3,11,16,12,12,13,10,12,14,13,17,9,12,11,10,16,16,15,9,10,16,9,9,9,8,14,17,15,8,7,16,Cuts Inside From Right Wing,,-,,8,8,9,10,8,17\r\n91002877,M/AM (R),M (R),Leon Corrigan,21,Harbour City,Portugal,,171 cm,Right-Footed,Weak,Very Strong,Unambitious,Level-headed,Important Player,£31.0K p/w,£4M - £6M,-,Wnt,,2.0,3.0,1,1,2,3,2,3,1,2,1,2,2,11,8,11,8,10,10,8,13,8,10,10,10,8,14,13,13,10,9,8,15,13,8,6,13,15,7,11,9,6,9,-,,-,,8,5,10,8,4,14\r\n91003014,ST (C),ST (C),Ivo Everly,28,Harbour City,Ghana,,182 cm,Right-Footed,Weak,Very Strong,Driven,Reserved,Squad Player,£8.0K p/w,£7M - £9M,-,Inj,P,3.5,3.5,4,4,3,3,5,4,5,5,2,5,4,14,19,13,16,15,11,13,10,13,18,11,11,9,13,17,14,12,11,13,13,13,13,8,13,13,17,15,8,11,11,"Gets Into Opposition Area, Moves Into Channels",,Hamstring Strain,,12,11,10,20,11,10\r\n91003151,ST (C),ST (C),Caleb Lindqvist,30,Harbour City,Sweden,,193 cm,Right-Footed,Weak,Very Strong,Resolute,"Outspoken, Volatile",Fringe Player,£15.0K p/w,£10M - £12M,-,Bid,TF,3.0,3.0,2,4,3,3,1,2,2,5,5,3,3,13,9,15,14,11,12,13,12,12,12,11,12,12,10,7,8,17,18,12,7,13,15,10,10,9,17,14,11,15,12,Wins Aerial Balls,,-,,10,9,10,8,10,10\r\n91003288,"AM (C), ST (C)",ST (C),Tariq Stroud,26,Harbour City,England,,183 cm,Left-Footed Only,Very Strong,Very Weak,Professional,Media-friendly,Star Player,£22.0K p/w,£13M - £15M,-,,DLF,3.0,3.0,2,4,2,5,3,5,2,2,2,2,1,11,10,10,18,10,12,10,12,12,16,11,13,15,10,9,10,14,12,12,12,11,14,10,12,15,17,18,7,9,12,Comes Deep To Get Ball,,-,,8,9,17,7,13,14\r\n91003425,ST (C),ST (C),Emil Ambrose,19,Harbour City,Scotland,England,179 cm,Right-Footed Only,Very Weak,Very Strong,Light-Hearted,Level-headed,Important Player,£29.0K p/w,£16M - £18M,-,,,1.5,2.5,1,1,2,1,1,1,1,1,1,1,1,7,11,10,11,9,9,6,7,6,11,7,10,4,9,15,10,7,6,9,13,9,7,6,9,9,12,10,6,8,9,-,,-,,8,3,4,7,3,7\r\n91003562,D (C),D (C),Jasper Castell,22,Bramley Town,Ireland,,190 cm,Right-Footed,Weak,Very Strong,Professional,Reserved,Out On Loan,£6.0K p/w,£19M - £21M,-,Wnt,,4.5,5.0,4,5,5,6,6,6,5,5,5,4,7,14,20,13,19,14,17,13,14,14,13,18,14,18,14,14,12,15,17,15,11,13,16,9,14,15,13,17,11,18,13,-,,-,,13,17,17,12,19,17\r\n91003699,AM (RL),AM (R),Nuno Jessop,20,Port Ellis,Wales,,175 cm,Right-Footed,Weak,Very Strong,Driven,"Outspoken, Volatile",Out On Loan,£13.0K p/w,£2M - £4M,-,,,3.5,4.5,6,5,2,4,2,2,3,4,3,3,5,11,11,13,11,12,13,13,16,12,16,13,13,14,15,17,15,11,12,12,17,14,9,11,16,19,11,16,10,7,12,-,,-,,10,9,13,11,11,15\r\n91003836,GK,GK,Ollie Quayle,18,Kestrel Rovers,Netherlands,,189 cm,Right-Footed,Weak,Very Strong,Balanced,Media-friendly,Out On Loan,£20.0K p/w,£5M - £7M,-,Bid,,1.5,2.5,14,13,11,7,14,6,13,10,13,5,8,7,10,8,6,14,7,8,9,8,8,13,9,6,6,9,10,7,7,7,6,7,6,8,3,3,5,4,9,2,4,-,,-,,10,4,8,9,2,4\r\n';
 
   // src/app/main.js
   var STORE_KEY = "fm27-tactic-builder.custom-docs";
@@ -3275,11 +4578,11 @@ ${opts.stageNote ? `<div class="next"><strong>Coming in the next version:</stron
     setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
   }
   function run(text, filename) {
-    setStatus("Working out your tactic…");
+    setStatus("Working out your tactic… (this takes a few seconds)");
     setTimeout(() => {
       let result;
       try {
-        result = analyse(text, filename, currentDocs(), { excludeInjured: $("opt-injured").checked });
+        result = analyse(text, filename, currentDocs(), { excludeInjured: $("opt-injured").checked, strength: Number($("opt-strength").value) });
       } catch (err) {
         console.error(err);
         setStatus(`<strong>Something went wrong while reading the file.</strong> ${esc(err.message)}. If this keeps happening, see "Common problems" in the README.`, true);
@@ -3290,7 +4593,7 @@ ${opts.stageNote ? `<div class="next"><strong>Coming in the next version:</stron
         return;
       }
       lastResult = result;
-      $("report-holder").innerHTML = renderReport(result, { stageNote: true });
+      $("report-holder").innerHTML = renderReport(result);
       $("start").classList.add("hidden");
       $("result").classList.remove("hidden");
       setStatus("");
@@ -3352,7 +4655,7 @@ ${opts.stageNote ? `<div class="next"><strong>Coming in the next version:</stron
       if (!lastResult) return;
       const date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
       const club = safeName(lastResult.club);
-      download(`FM27 tactic${club ? " - " + club : ""} - ${date}.html`, standaloneReport(lastResult, { stageNote: true }), "text/html");
+      download(`FM27 tactic${club ? " - " + club : ""} - ${date}.html`, standaloneReport(lastResult), "text/html");
     });
     $("again").addEventListener("click", () => {
       $("result").classList.add("hidden");
@@ -3392,6 +4695,18 @@ ${opts.stageNote ? `<div class="next"><strong>Coming in the next version:</stron
       jsonInput.value = "";
     });
     showJsonStatus();
+    const strength = $("opt-strength");
+    try {
+      const saved = localStorage.getItem("fm27-tactic-builder.strength");
+      if (saved != null && [...strength.options].some((o) => o.value === saved)) strength.value = saved;
+    } catch {
+    }
+    strength.addEventListener("change", () => {
+      try {
+        localStorage.setItem("fm27-tactic-builder.strength", strength.value);
+      } catch {
+      }
+    });
   }
   init();
 })();

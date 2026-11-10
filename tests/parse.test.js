@@ -62,15 +62,15 @@ function load(name) {
   return { t, map, players: parsePlayers(t, map, docs.columns, docs.tuning), check: checkColumns(map, docs.columns) };
 }
 
-test('every sample file gives the same 26 players', () => {
+test('every sample file gives the same 29 players', () => {
   for (const f of SAMPLE_FILES) {
     const { players } = load(f);
-    assert.equal(players.length, 26, f);
+    assert.equal(players.length, 29, f);
     assert.equal(players[0].name, 'Callum Ashdown', f);
   }
 });
 
-test('player fields: feet, height, traits, injury, condition', () => {
+test('player fields: feet, height, traits, injury, playing time (real FM27 export layout)', () => {
   const { players } = load('squad_20261108_201500.csv');
   const injured = players.filter((p) => p.injured);
   assert.equal(injured.length, 1);
@@ -79,8 +79,20 @@ test('player fields: feet, height, traits, injury, condition', () => {
   assert.equal(leftBack.leftFoot, 1);
   assert.ok(leftBack.traits.includes('Gets Forward Whenever Possible'));
   assert.equal(typeof leftBack.heightCm, 'number');
-  assert.ok(leftBack.condition >= 80 && leftBack.condition <= 100);
+  assert.equal(leftBack.condition, null, 'FM27 exports leave the CON column empty (it is an icon)');
   assert.ok(leftBack.positions.has('WB (L)'));
+  assert.deepEqual(players.find((p) => p.name === 'Callum Ashdown').traits, ['Tries To Play Way Out Of Trouble']);
+  assert.deepEqual(players[2].traits, [], 'a "-" trait means none');
+  assert.equal(players.filter((p) => p.playingTime === 'Out On Loan').length, 3);
+});
+
+test('"Right-Footed Only" style preferred foot is understood when foot columns are missing', () => {
+  const csv = 'Player,Position,Preferred Foot,Pace,Acceleration,Passing,Tackling,Marking,Finishing,Heading,Crossing,Dribbling,Technique,Vision\n' +
+    'A,GK,Right-Footed Only,1,1,1,1,1,1,1,1,1,1,1\nB,ST (C),Left-Footed,1,1,1,1,1,1,1,1,1,1,1\n';
+  const t = readExport(csv, 'x.csv');
+  const ps = parsePlayers(t, buildHeaderMap(t.headers, docs.columns), docs.columns, docs.tuning);
+  assert.deepEqual([ps[0].leftFoot, ps[0].rightFoot], [0, 1]);
+  assert.deepEqual([ps[1].leftFoot, ps[1].rightFoot], [1, 0.25]);
 });
 
 test('scouting ranges are flagged as uncertain', () => {

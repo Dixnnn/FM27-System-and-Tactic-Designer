@@ -26,6 +26,8 @@
   .btn.small { padding: 5px 11px; font-size: 13.5px; }
   .btn:focus-visible { outline: 3px solid #8cc7ab; outline-offset: 2px; }
   .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .strength { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 2px 0; }
+  .strength select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
   details { margin-top: 10px; }
   summary { cursor: pointer; font-weight: 600; }
   .opts label { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
@@ -66,6 +68,17 @@
           <button class="btn secondary" id="sample">Try the sample squad</button>
         </div>
         <input type="file" id="file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
+      </div>
+      <div class="strength">
+        <label for="opt-strength"><strong>How strong is your team in its league?</strong></label>
+        <select id="opt-strength">
+          <option value="2">Title favourites</option>
+          <option value="1">Top half</option>
+          <option value="0" selected>Mid-table</option>
+          <option value="-1">Lower half</option>
+          <option value="-2">Underdogs / relegation fight</option>
+        </select>
+        <span class="small muted">Sets the mentality and how high to press.</span>
       </div>
       <div id="status" class="status" role="status" aria-live="polite"></div>
 

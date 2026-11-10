@@ -55,6 +55,21 @@ export const REPORT_CSS = `
 .report .legend { font-size: 12.5px; color: var(--muted); }
 .report .muted { color: var(--muted); }
 .report .small { font-size: 12.5px; }
+.report h4 { font-size: 14px; margin: 16px 0 4px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.report nav.toc { font-size: 13px; color: var(--muted); margin: 4px 0 8px; }
+.report nav.toc a { color: var(--accent); text-decoration: none; }
+.report table.settings td { vertical-align: top; }
+.report table.settings td:first-child { width: 22%; }
+.report table.settings td.setting { width: 20%; white-space: nowrap; }
+.report table.settings tr.unchanged td { color: var(--muted); }
+.report table.settings tr.unchanged td strong { color: var(--muted); font-weight: 600; }
+.report table.settings tr.changed td.setting strong { color: var(--accent); }
+.report td.why { font-size: 13px; }
+.report .pitches.small { grid-template-columns: repeat(auto-fit, minmax(220px, 300px)); }
+.report .pitches.small svg.pitch { max-width: 300px; }
+.report td.delta.up { color: var(--s-top); font-weight: 700; }
+.report td.delta.down { color: var(--s-low); font-weight: 700; }
+.report tr.muted td { color: var(--muted); }
 .report .next { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; margin-top: 18px; }
 @media print {
   .report { max-width: none; padding: 0; font-size: 12px; }
@@ -64,5 +79,7 @@ export const REPORT_CSS = `
   .report .tablewrap { overflow: visible; }
   .report .score { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .report svg.pitch { max-width: 300px; }
+  .report nav.toc { display: none; }
+  .report table.settings td.setting { white-space: normal; }
 }
 `;

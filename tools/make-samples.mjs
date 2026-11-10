@@ -102,6 +102,10 @@ const SQUAD = [
   ['ST (C)', 'ST (C)', 'stTarget', 0.5, 'R', 193, 30, { personality: 'Resolute', traits: 'Wins Aerial Balls', bestRole: 'TF' }],
   ['AM (C), ST (C)', 'ST (C)', 'stLink', 1, 'L', 183, 26, { personality: 'Professional', traits: 'Comes Deep To Get Ball', bestRole: 'DLF' }],
   ['ST (C)', 'ST (C)', 'stPoacher', -2, 'R', 179, 19, { personality: 'Light-Hearted' }],
+  // Out on loan at other clubs: they must not be picked
+  ['D (C)', 'D (C)', 'cbBallPlayer', 3, 'R', 190, 22, { personality: 'Professional', loanClub: 'Bramley Town' }],
+  ['AM (RL)', 'AM (R)', 'wingClassic', 2, 'R', 175, 20, { personality: 'Driven', loanClub: 'Port Ellis' }],
+  ['GK', 'GK', 'gkClassic', -2, 'R', 189, 18, { personality: 'Balanced', loanClub: 'Kestrel Rovers' }],
 ];
 
 const FOOT_WORDS = ['Very Weak', 'Weak', 'Reasonable', 'Fairly Strong', 'Strong', 'Very Strong'];
@@ -121,30 +125,37 @@ function buildRows(seed) {
     const right = foot === 'R' ? 'Very Strong' : weak;
     const name = `${FIRST[i % FIRST.length]} ${LAST[(i * 7) % LAST.length]}`;
     const stars = Math.max(0.5, Math.min(5, Math.round((2.5 + quality * 0.6) * 2) / 2));
-    return {
+    const footWord = foot === 'L' ? (weak === 'Very Weak' ? 'Left-Footed Only' : 'Left-Footed') : weak === 'Very Weak' ? 'Right-Footed Only' : 'Right-Footed';
+    const row = {
       'Unique ID': String(91000000 + i * 137),
-      Player: name,
       Position: pos,
       'Best Pos': best,
+      Player: name,
       Age: String(age),
-      Club: 'Harbour City',
-      Nation: ['ENG', 'SCO', 'IRL', 'WAL', 'NED', 'POR', 'GHA', 'SWE'][i % 8],
+      Club: x.loanClub || 'Harbour City',
+      Nation: ['England', 'Scotland', 'Ireland', 'Wales', 'Netherlands', 'Portugal', 'Ghana', 'Sweden'][i % 8],
+      '2nd Nat': i % 5 === 0 ? 'England' : '',
       Height: `${height} cm`,
-      'Preferred Foot': foot === 'L' ? 'Left' : 'Right',
+      'Preferred Foot': footWord,
       'Left Foot': left,
       'Right Foot': right,
       Personality: x.personality || 'Balanced',
-      Rating: (6.6 + rand() * 0.6).toFixed(2),
-      Inf: x.info || '',
+      'Media Handling': ['Media-friendly', 'Level-headed', 'Reserved', 'Outspoken, Volatile'][i % 4],
+      'Playing Time': x.loanClub ? 'Out On Loan' : ['Star Player', 'Important Player', 'Squad Player', 'Fringe Player'][i % 4],
+      Wage: `£${(4 + (i * 7) % 30).toFixed(1)}K p/w`,
+      'Transfer Value': `£${(1 + (i * 3) % 20)}M - £${(3 + (i * 3) % 20)}M`,
+      Rating: '-',
+      Inf: x.info || ['', 'Wnt', '', 'Bid', ''][i % 5],
       'Best Role': x.bestRole || '',
       Ability: stars.toFixed(1),
       Potential: Math.min(5, stars + (age < 23 ? 1 : 0)).toFixed(1),
       ...Object.fromEntries(ATTRS.map((a) => [a, String(attrs[a])])),
-      'Player Trait': x.traits || '',
-      CON: `${x.injury ? 61 : 88 + Math.floor(rand() * 12)}%`,
-      Injury: x.injury || '',
-      Fatigue: rand() < 0.15 ? 'Tired' : 'Fresh',
+      'Player Trait': x.traits || '-',
+      CON: '',
+      Injury: x.injury || '-',
+      Fatigue: '',
     };
+    return row;
   });
 }
 
@@ -170,7 +181,16 @@ function toHTML(rows, headers, title) {
 }
 
 const rows = buildRows(2027);
-const headers = Object.keys(rows[0]);
+// Same column order as a real FM View Exporter file made with the recommended view (extra columns inserted mid-way)
+const headers = [
+  'Unique ID', 'Position', 'Best Pos', 'Player', 'Age', 'Club', 'Nation', '2nd Nat', 'Height', 'Preferred Foot', 'Left Foot', 'Right Foot',
+  'Personality', 'Media Handling', 'Playing Time', 'Wage', 'Transfer Value', 'Rating', 'Inf', 'Best Role', 'Ability', 'Potential',
+  ...GK_ATTRS, ...MENTAL, ...PHYSICAL,
+  'Corners', 'Crossing', 'Dribbling', 'Finishing', 'First Touch', 'Free Kick Taking', 'Heading', 'Long Shots',
+  'Player Trait', 'CON', 'Injury', 'Fatigue',
+  'Long Throws', 'Marking', 'Passing', 'Penalty Taking', 'Tackling', 'Technique',
+];
+if (headers.length !== new Set(headers).size || headers.length !== Object.keys(rows[0]).length) throw new Error('header list out of sync');
 
 writeFileSync(join(OUT, 'squad_20261108_201500.csv'), toCSV(rows, headers));
 writeFileSync(join(OUT, 'squad_20261108_201500.html'), toHTML(rows, headers, 'Squad - FM View Exporter'));
@@ -200,7 +220,7 @@ const rangeRows = rows.map((r, i) => {
 writeFileSync(join(OUT, 'scouted-ranges.csv'), toCSV(rangeRows, headers));
 
 // A file missing several columns, to show the "add these columns" message
-const dropped = new Set(['Left Foot', 'Right Foot', 'Height', 'Personality', 'Player Trait', 'Marking', 'Off The Ball', 'Work Rate', 'Best Pos']);
+const dropped = new Set(['Left Foot', 'Right Foot', 'Height', 'Personality', 'Player Trait', 'Marking', 'Off The Ball', 'Work Rate', 'Best Pos', 'Playing Time']);
 writeFileSync(join(OUT, 'missing-columns.csv'), toCSV(rows, headers.filter((h) => !dropped.has(h))));
 
 console.log(`Wrote ${rows.length} players x ${headers.length} columns to samples/`);

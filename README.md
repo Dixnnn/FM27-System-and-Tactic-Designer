@@ -2,15 +2,21 @@
 
 Designs a complete Football Manager 27 tactic around **your** squad.
 
-Drop your squad export onto one HTML page and get a printable report. It covers:
+Drop your squad export onto one HTML page and get a printable report with everything you need to enter in FM27, in the order
+the tactics screens show it:
 
-- **Shapes:** the in-possession and out-of-possession formations, as pitch diagrams.
-- **Roles:** the best eleven, each with an FM27 in-possession and out-of-possession role.
-- **Reasons:** why that system won.
+- **Style and mentality:** the closest FM27 style to start from, and a mentality based on how strong your team is.
+- **Shapes and roles:** the in-possession and out-of-possession formations as pitch diagrams, and the best eleven, each with an
+  FM27 in-possession and out-of-possession role.
+- **Team instructions:** all 27 (18 in possession, 9 out of possession), each with a short reason. Examples: pressing, defensive
+  line, line of engagement, width, tempo, passing, counter-press or regroup.
+- **Player instructions:** only where a player's attributes or traits call for one.
+- **Set pieces and captain:** set-piece takers, aerial targets, who stays back, and a captain and vice-captain.
+- **Squad depth:** a depth chart with a second choice for every position, and the weak areas worth strengthening, with the
+  attributes to look for.
+- **Alternatives and training:** three alternative tactics (away against stronger teams, at home against weaker teams, and a
+  different shape), plus training sessions and an individual focus for each starter.
 - **Suitability:** every player scored for every FM27 role.
-
-> **Status: version 0.1 (first working version).** Coming next: team instructions, player instructions, depth chart, set
-> pieces, captain, training focus and alternative tactics.
 
 **What it can't do:** it can't put the tactic into FM27 for you. You copy the settings in by hand; the report lists them in
 order. It only ever *reads* your export file. It never touches the game, your saves or the game's memory, and it works
@@ -53,7 +59,7 @@ semicolon-separated files.*
 ## Step 3: set up the squad view (one time)
 
 The plugin exports the columns you can see, so the squad table needs to show all player attributes plus a few extras.
-**Follow [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md).** The quickest way is to import the plugin's ready-made view and add 4
+**Follow [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md).** The quickest way is to import the plugin's ready-made view and add 2
 columns.
 
 ## Step 4: export your squad
@@ -66,20 +72,27 @@ columns.
 ## Step 5: make your tactic
 
 1. Open `FM27-Tactic-Builder.html`.
-2. Drag the `squad_….csv` file onto the box, or click **Choose file…**.
-3. The report appears in a few seconds. Use **Print / Save as PDF** or **Save report as HTML** to keep it.
+2. Answer **"How strong is your team in its league?"** (title favourites … underdogs). It sets the mentality and how high to
+   press, and is remembered for next time.
+3. Drag the `squad_….csv` file onto the box, or click **Choose file…**.
+4. The report appears in a few seconds. Use **Print / Save as PDF** or **Save report as HTML** to keep it.
 
 Want to see it first? Click **Try the sample squad**. It uses a made-up club.
 
 ## Step 6: put it into FM27
 
-Section 2 of the report, "Enter it in FM27", walks you through it:
+Section 2 of the report, "Enter it in FM27", has six steps in the order of FM27's screens:
 
-1. In **Tactics**, switch the pitch to **In Possession**, choose the formation, place each player and set his
-   *in-possession* role.
-2. Switch to **Out of Possession** and do the same with the out-of-possession formation and roles.
+1. **Style and mentality.**
+2. **Formations, players and roles:** the in-possession shape and roles, then the out-of-possession shape and roles. FM27
+   roles have no duties, so there's nothing else to choose per player.
+3. **Team Instructions › In Possession:** Overview, Final Third, Progression, Build-Up.
+4. **Team Instructions › Out of Possession.**
+5. **Player instructions.**
+6. **Set pieces and captain.**
 
-FM27 roles have no duties, so there's nothing else to choose per player.
+Settings that differ from FM's defaults are in **bold**; leave the rest alone. Save the alternative tactics (section 5) in FM27's
+other tactic slots.
 
 ---
 
@@ -97,6 +110,16 @@ FM27 roles have no duties, so there's nothing else to choose per player.
   Natural, other listed positions as Accomplished, and neighbouring positions as Competent/Unconvincing. The report marks
   these "estimated".
 - **Scouting ranges** like `11-14` are scored at the middle (12.5). The report shows the possible spread as **±**.
+- **Team instructions compare each part of your team with its own general level** (the average of all their outfield
+  attributes), not with fixed numbers. So the advice suits your league, whatever its standard. For example, centre-backs
+  whose pace is well below your team's level get a deeper defensive line, and a squad whose work rate and stamina are well
+  above it gets a high press.
+- **The game plan shapes the formation.** A team that should press high is steered towards shapes that keep three players
+  forward out of possession. A team that should sit in a mid or low block is steered towards a compact midfield line of four
+  or five. It doesn't change shape for its own sake, because FM27 makes complex tactics slower to learn.
+- **Players out on loan are never picked.** They are recognised by a different club or "Out On Loan" playing time. **Injured
+  players are left out of the starting XI** (you can switch that off under Options), but they still count as cover in the depth
+  chart.
 - **The best eleven** is worked out exactly with the Hungarian algorithm, not by picking the best player for each spot in
   turn. Every pair of formations is tested, and balance rules are applied, for example:
   - cover behind attacking full-backs
@@ -116,6 +139,9 @@ FM27 roles have no duties, so there's nothing else to choose per player.
 | **FM27 won't start, or acts oddly, after installing the plugin** | Delete or rename `winhttp.dll` in the FM27 game folder. The game then starts without mods. |
 | **The HTML file opens as text / in Notepad** | Right-click it › Open with › Microsoft Edge (or Chrome). |
 | **Strange characters in player names** | Re-export with the plugin's default settings (UTF-8). The tool also reads UTF-16 and older Windows encodings. |
+| **A player out on loan was picked** | Your view needs the *Club* column (or *Playing Time*): see [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md). |
+| **The CON or Fatigue column is empty** | Normal: FM27 shows these as icons, so exports leave them empty. The tool doesn't need them. |
+| **The mentality or pressing feels wrong for my team** | Check your answer to "How strong is your team in its league?". The report's first lines show the answer used. |
 | **My game is in another language** | The tool expects English column names. Switch FM27 to English for the export (Preferences › Language). |
 | **After an FM27 patch a role's attributes changed** | In the tool open **Advanced**, click **Download roles.json**, edit the role's `key`/`preferred` lists in Notepad, then **Load my own roles.json…**. It's remembered in that browser. |
 | **The printout is cut off at the side** | Print in landscape, or use **Save report as HTML** and print from there. |
@@ -145,10 +171,10 @@ Layout: each layer can be swapped or fixed on its own after a patch.
 | --- | --- |
 | `src/input/` | Readers for CSV/HTML and one adapter per export route |
 | `src/parse/` | Column mapping, players, positions, missing-column check |
-| `src/engine/` | Role scoring, Hungarian algorithm, formation search, balance rules |
+| `src/engine/` | Role scoring, Hungarian algorithm, formation search, balance and game-plan rules, squad profile, team and player instructions, depth chart, set pieces, captain, training, alternatives |
 | `src/report/` | The HTML report |
 | `src/app/` | The page you open |
-| `data/` | Editable JSON: `roles.json` (79 FM27 roles), `formations.json`, `columns.json` (column names + FM27 menu paths), `tuning.json` (all the engine's numbers) |
+| `data/` | Editable JSON: `roles.json` (79 FM27 roles), `formations.json`, `instructions.json` (FM27's tactic settings in screen order), `columns.json` (column names + FM27 menu paths), `tuning.json` (all the engine's numbers) |
 
 ## Credits and sources
 

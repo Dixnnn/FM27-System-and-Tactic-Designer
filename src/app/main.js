@@ -56,11 +56,11 @@ function showError(result) {
 }
 
 function run(text, filename) {
-  setStatus('Working out your tactic…');
+  setStatus('Working out your tactic… (this takes a few seconds)');
   setTimeout(() => {
     let result;
     try {
-      result = analyse(text, filename, currentDocs(), { excludeInjured: $('opt-injured').checked });
+      result = analyse(text, filename, currentDocs(), { excludeInjured: $('opt-injured').checked, strength: Number($('opt-strength').value) });
     } catch (err) {
       console.error(err);
       setStatus(`<strong>Something went wrong while reading the file.</strong> ${esc(err.message)}. If this keeps happening, see "Common problems" in the README.`, true);
@@ -71,7 +71,7 @@ function run(text, filename) {
       return;
     }
     lastResult = result;
-    $('report-holder').innerHTML = renderReport(result, { stageNote: true });
+    $('report-holder').innerHTML = renderReport(result);
     $('start').classList.add('hidden');
     $('result').classList.remove('hidden');
     setStatus('');
@@ -140,7 +140,7 @@ function init() {
     if (!lastResult) return;
     const date = new Date().toISOString().slice(0, 10);
     const club = safeName(lastResult.club);
-    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult, { stageNote: true }), 'text/html');
+    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult), 'text/html');
   });
   $('again').addEventListener('click', () => {
     $('result').classList.add('hidden');
@@ -182,6 +182,22 @@ function init() {
     jsonInput.value = '';
   });
   showJsonStatus();
+
+  // Remember the team-strength answer between visits (only in this browser).
+  const strength = $('opt-strength');
+  try {
+    const saved = localStorage.getItem('fm27-tactic-builder.strength');
+    if (saved != null && [...strength.options].some((o) => o.value === saved)) strength.value = saved;
+  } catch {
+    /* storage unavailable: keep the default */
+  }
+  strength.addEventListener('change', () => {
+    try {
+      localStorage.setItem('fm27-tactic-builder.strength', strength.value);
+    } catch {
+      /* ignore */
+    }
+  });
 }
 
 init();

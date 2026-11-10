@@ -1,5 +1,9 @@
 {
-  "_about": ["Columns the tool reads. 'headers' lists every column name accepted for a field (FM27 names first; FM24-style abbreviations also work).", "'menu' is where to find the column in FM27: in the squad table, right-click a column header (or open the view menu) > Insert Column > this path.", "importance: essential = needed for a useful tactic; recommended = improves it; optional = shown if present."],
+  "_about": [
+    "Columns the tool reads. 'headers' lists every column name accepted for a field (FM27 names first; FM24-style abbreviations also work).",
+    "'menu' is where to find the column in FM27: in the squad table, right-click a column header (or open the view menu) > Insert Column > this path.",
+    "importance: essential = needed for a useful tactic; recommended = improves it; optional = shown if present."
+  ],
   "fields": [
     {
       "field": "id",
@@ -89,8 +93,8 @@
       "field": "condition",
       "headers": ["CON", "Condition", "Overall Physical Condition", "Cond"],
       "menu": "Fitness and Injuries > Overall Physical Condition",
-      "importance": "recommended",
-      "why": "Fitness notes."
+      "importance": "optional",
+      "why": "Shown as an icon in FM27, so exports usually leave it empty."
     },
     {
       "field": "sharpness",
@@ -104,7 +108,7 @@
       "headers": ["Fatigue"],
       "menu": "Fitness and Injuries > Fatigue",
       "importance": "optional",
-      "why": ""
+      "why": "Shown as an icon in FM27, so exports usually leave it empty."
     },
     {
       "field": "injury",
@@ -163,11 +167,46 @@
       "why": ""
     },
     {
+      "field": "playingTime",
+      "headers": ["Playing Time", "Agreed Playing Time"],
+      "menu": "Transfer > Agreed Playing Time",
+      "importance": "recommended",
+      "why": "Spots players who are out on loan."
+    },
+    {
+      "field": "secondNation",
+      "headers": ["2nd Nat", "Second Nationality"],
+      "menu": "General > Second Nationality",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "mediaHandling",
+      "headers": ["Media Handling", "Media Handling Style"],
+      "menu": "General > Media Handling Style",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "wage",
+      "headers": ["Wage"],
+      "menu": "Contract > General > Wage",
+      "importance": "optional",
+      "why": ""
+    },
+    {
+      "field": "transferValue",
+      "headers": ["Transfer Value", "Value"],
+      "menu": "Transfer > Transfer Value",
+      "importance": "optional",
+      "why": ""
+    },
+    {
       "field": "club",
       "headers": ["Club"],
       "menu": "Club > Club",
-      "importance": "optional",
-      "why": ""
+      "importance": "recommended",
+      "why": "Spots players who are out on loan at other clubs."
     },
     {
       "field": "squadNumber",

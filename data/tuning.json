@@ -12,16 +12,42 @@
     "lowConfidenceMissingShare": 0.35,
     "specialisationWeight": 0.5,
     "generalWeights": {
-      "Acceleration": 1.0, "Pace": 1.0, "Agility": 0.6, "Anticipation": 0.6, "Decisions": 0.6,
-      "Balance": 0.4, "Concentration": 0.4, "Composure": 0.4, "Stamina": 0.4, "Work Rate": 0.4,
-      "Strength": 0.35, "Jumping Reach": 0.35, "First Touch": 0.3, "Positioning": 0.3, "Passing": 0.3,
-      "Dribbling": 0.25, "Vision": 0.25, "Off the Ball": 0.25, "Technique": 0.2, "Teamwork": 0.2,
-      "Determination": 0.2, "Bravery": 0.15
+      "Acceleration": 1.0,
+      "Pace": 1.0,
+      "Agility": 0.6,
+      "Anticipation": 0.6,
+      "Decisions": 0.6,
+      "Balance": 0.4,
+      "Concentration": 0.4,
+      "Composure": 0.4,
+      "Stamina": 0.4,
+      "Work Rate": 0.4,
+      "Strength": 0.35,
+      "Jumping Reach": 0.35,
+      "First Touch": 0.3,
+      "Positioning": 0.3,
+      "Passing": 0.3,
+      "Dribbling": 0.25,
+      "Vision": 0.25,
+      "Off the Ball": 0.25,
+      "Technique": 0.2,
+      "Teamwork": 0.2,
+      "Determination": 0.2,
+      "Bravery": 0.15
     },
     "goalkeeperGeneralWeights": {
-      "Reflexes": 1.0, "Handling": 0.8, "Positioning": 0.8, "Agility": 0.8, "One on Ones": 0.6,
-      "Aerial Reach": 0.6, "Command of Area": 0.5, "Concentration": 0.5, "Anticipation": 0.5, "Decisions": 0.5,
-      "Kicking": 0.3, "Composure": 0.3
+      "Reflexes": 1.0,
+      "Handling": 0.8,
+      "Positioning": 0.8,
+      "Agility": 0.8,
+      "One on Ones": 0.6,
+      "Aerial Reach": 0.6,
+      "Command of Area": 0.5,
+      "Concentration": 0.5,
+      "Anticipation": 0.5,
+      "Decisions": 0.5,
+      "Kicking": 0.3,
+      "Composure": 0.3
     },
     "height": {
       "appliesWhenKeyIncludes": ["Heading", "Jumping Reach"],
@@ -40,27 +66,62 @@
     },
     "allowInStartingXI": ["Natural", "Accomplished", "Competent", "Unconvincing"],
     "adjacent": [
-      ["D (L)", "WB (L)", "Competent"], ["D (R)", "WB (R)", "Competent"],
-      ["WB (L)", "M (L)", "Unconvincing"], ["WB (R)", "M (R)", "Unconvincing"],
-      ["D (C)", "DM", "Unconvincing"], ["D (C)", "D (L)", "Unconvincing"], ["D (C)", "D (R)", "Unconvincing"],
-      ["DM", "M (C)", "Competent"], ["M (C)", "AM (C)", "Competent"],
-      ["M (L)", "AM (L)", "Competent"], ["M (R)", "AM (R)", "Competent"],
-      ["AM (L)", "AM (R)", "Unconvincing"], ["M (L)", "M (R)", "Unconvincing"],
-      ["AM (C)", "ST (C)", "Unconvincing"], ["AM (L)", "ST (C)", "Unconvincing"], ["AM (R)", "ST (C)", "Unconvincing"],
-      ["D (L)", "D (R)", "Unconvincing"], ["WB (L)", "WB (R)", "Unconvincing"],
-      ["M (C)", "M (L)", "Unconvincing"], ["M (C)", "M (R)", "Unconvincing"],
-      ["AM (C)", "AM (L)", "Unconvincing"], ["AM (C)", "AM (R)", "Unconvincing"],
-      ["DM", "D (L)", "Unconvincing"], ["DM", "D (R)", "Unconvincing"]
+      ["D (L)", "WB (L)", "Competent"],
+      ["D (R)", "WB (R)", "Competent"],
+      ["WB (L)", "M (L)", "Unconvincing"],
+      ["WB (R)", "M (R)", "Unconvincing"],
+      ["D (C)", "DM", "Unconvincing"],
+      ["D (C)", "D (L)", "Unconvincing"],
+      ["D (C)", "D (R)", "Unconvincing"],
+      ["DM", "M (C)", "Competent"],
+      ["M (C)", "AM (C)", "Competent"],
+      ["M (L)", "AM (L)", "Competent"],
+      ["M (R)", "AM (R)", "Competent"],
+      ["AM (L)", "AM (R)", "Unconvincing"],
+      ["M (L)", "M (R)", "Unconvincing"],
+      ["AM (C)", "ST (C)", "Unconvincing"],
+      ["AM (L)", "ST (C)", "Unconvincing"],
+      ["AM (R)", "ST (C)", "Unconvincing"],
+      ["D (L)", "D (R)", "Unconvincing"],
+      ["WB (L)", "WB (R)", "Unconvincing"],
+      ["M (C)", "M (L)", "Unconvincing"],
+      ["M (C)", "M (R)", "Unconvincing"],
+      ["AM (C)", "AM (L)", "Unconvincing"],
+      ["AM (C)", "AM (R)", "Unconvincing"],
+      ["DM", "D (L)", "Unconvincing"],
+      ["DM", "D (R)", "Unconvincing"]
     ]
   },
   "foot": {
-    "strength": { "Very Weak": 0.0, "Weak": 0.25, "Reasonable": 0.5, "Fairly Strong": 0.7, "Strong": 0.85, "Very Strong": 1.0 },
+    "strength": {
+      "Very Weak": 0.0,
+      "Weak": 0.25,
+      "Reasonable": 0.5,
+      "Fairly Strong": 0.7,
+      "Strong": 0.85,
+      "Very Strong": 1.0
+    },
     "rules": {
-      "same": { "base": 0.88, "span": 0.12 },
-      "inverted": { "base": 0.88, "span": 0.12 },
-      "sameMild": { "base": 0.95, "span": 0.05 },
-      "invertedMild": { "base": 0.95, "span": 0.05 },
-      "either": { "base": 1.0, "span": 0.0 }
+      "same": {
+        "base": 0.88,
+        "span": 0.12
+      },
+      "inverted": {
+        "base": 0.88,
+        "span": 0.12
+      },
+      "sameMild": {
+        "base": 0.95,
+        "span": 0.05
+      },
+      "invertedMild": {
+        "base": 0.95,
+        "span": 0.05
+      },
+      "either": {
+        "base": 1.0,
+        "span": 0.0
+      }
     }
   },
   "search": {
@@ -72,7 +133,8 @@
     "complexityPenaltyPerCost": 0.06,
     "refinePasses": 4,
     "topSystems": 5,
-    "excludeInjured": true
+    "excludeInjured": true,
+    "polishTop": 8
   },
   "balance": {
     "_about": "Points added to (or taken from) a system's 0-100 score. See src/engine/balance.js for what each rule checks.",
@@ -93,5 +155,29 @@
     "twoStoppersNoCover": -2,
     "noScreenOrHolder": -2,
     "duplicateHalfBackOrDroppingEach": -3
+  },
+  "instructions": {
+    "_about": "Bands around the team's general level (attribute points, 1-20 scale). 'strong' = clearly better than the rest of the team.",
+    "strong": 1.0,
+    "veryStrong": 2.0,
+    "strengthWeight": 0.5
+  },
+  "plan": {
+    "_about": "Points for systems that suit the game plan (pressing high, mid block, low block, build-up, counter-attacks). Points are on the team-average scale: 0.1 is worth about 2 role points for one player.",
+    "shapeMatch": 1.0,
+    "shapeMismatch": -1.0,
+    "roleEach": 0.1,
+    "roleCap": 0.4,
+    "extraOutletEach": -0.3,
+    "distributorEach": 0.2,
+    "distributorCap": 0.4,
+    "deepCreator": 0.2,
+    "targetForBypass": 0.5
+  },
+  "depth": {
+    "_about": "When a position counts as a weak area (fit points, 0-100).",
+    "weakStarterGap": 6,
+    "weakStarterAbsolute": 55,
+    "thinCoverGap": 12
   }
 }

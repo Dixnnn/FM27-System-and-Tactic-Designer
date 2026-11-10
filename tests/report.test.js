@@ -8,10 +8,12 @@ for (const file of SAMPLE_FILES) {
   test(`report for ${file} has every section`, () => {
     const result = analyse(sample(file), file, docs);
     const html = renderReport(result);
-    for (const id of ['overview', 'setup', 'why', 'suitability', 'data']) assert.ok(html.includes(`id="${id}"`), id);
+    for (const id of ['overview', 'setup', 'why', 'depth', 'alternatives', 'training', 'suitability', 'data']) assert.ok(html.includes(`id="${id}"`), id);
     assert.ok(html.includes("can't put the tactic into FM27"), 'says clearly it cannot write into the game');
-    assert.equal((html.match(/<svg class="pitch"/g) || []).length, 2, 'two pitch diagrams');
-    assert.equal((html.match(/class="pl /g) || []).length, 22, '11 players on each pitch');
+    const overview = html.slice(html.indexOf('id="overview"'), html.indexOf('id="setup"'));
+    assert.equal((overview.match(/<svg class="pitch"/g) || []).length, 2, 'two pitch diagrams for the main tactic');
+    assert.equal((overview.match(/class="pl /g) || []).length, 22, '11 players on each pitch');
+    for (const h of ['Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Step 6']) assert.ok(html.includes(h), h);
   });
 }
 

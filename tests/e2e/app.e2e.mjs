@@ -28,15 +28,26 @@ for (const file of SAMPLE_FILES) {
   await page.setInputFiles('#file', join(ROOT, 'samples', file));
   await page.waitForSelector('#result:not(.hidden) .report', { timeout: 15000 });
   const sections = await page.$$eval('.report section', (els) => els.map((e) => e.id));
-  assert.deepEqual(sections, ['overview', 'setup', 'why', 'suitability', 'data'], file);
-  assert.equal(await page.$$eval('svg.pitch', (els) => els.length), 2, file);
+  assert.deepEqual(sections, ['overview', 'setup', 'why', 'depth', 'alternatives', 'training', 'suitability', 'data'], file);
+  assert.equal(await page.$$eval('#overview svg.pitch', (els) => els.length), 2, file);
   console.log(`ok  ${file}`);
   await page.click('#again');
 }
 
+// Team strength changes the mentality (and is remembered)
+await page.selectOption('#opt-strength', '-2');
 await page.click('#sample');
 await page.waitForSelector('#result:not(.hidden) .report');
-console.log('ok  sample button');
+const under = await page.textContent('#overview .kpis');
+assert.match(under, /Defensive|Cautious/);
+assert.match(await page.textContent('.report .meta'), /underdogs/);
+console.log('ok  sample button + team strength (underdogs)');
+await page.click('#again');
+await page.reload();
+assert.equal(await page.inputValue('#opt-strength'), '-2', 'strength answer remembered');
+await page.selectOption('#opt-strength', '0');
+await page.click('#sample');
+await page.waitForSelector('#result:not(.hidden) .report');
 
 const [download] = await Promise.all([page.waitForEvent('download'), page.click('#save')]);
 assert.match(download.suggestedFilename(), /^FM27 tactic - Harbour City - \d{4}-\d{2}-\d{2}\.html$/);

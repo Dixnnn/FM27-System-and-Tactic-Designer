@@ -6,12 +6,12 @@ show every column the Tactic Builder uses. You only do this once: FM27 remembers
 FM27 can't produce a view file for you to download from here (its `.fmf` view format is the game's own), so there are two ways
 to get the view:
 
-- **Option A (quickest):** import the free ready-made view that comes with FM View Exporter, then add 4 extra columns.
+- **Option A (quickest):** import the free ready-made view that comes with FM View Exporter, then add 2 extra columns.
 - **Option B:** build the view yourself from the list below (about 10 minutes).
 
 ---
 
-## Option A: import the ready-made view, then add 4 columns
+## Option A: import the ready-made view, then add 2 columns
 
 1. Download **`FM27-PlayerAnalyzer-Squad-Standard.fmf`** from the FM View Exporter project
    (github.com/ElectroHugin/FM-View-Exporter → folder `views/fm27`). The exporter's setup can also copy it into
@@ -19,15 +19,15 @@ to get the view:
 2. In FM27 go to **Squad**. Open the view menu of the player table (the views drop-down at its top-left; custom views
    are grouped under *Custom Views*) and choose **Import View…**, then pick that file. It is called
    *Player Analyzer – Squad Standard* in the game. It already has all 47 attributes, positions, best position, best role,
-   feet, height, personality and the player status column.
-3. Add these 4 columns. **Right-click any column header › Insert Column**, then follow the path:
+   feet, height, personality, club, agreed playing time and the player status column.
+3. Add these 2 columns. **Right-click any column header › Insert Column**, then follow the path:
 
    | Column | Menu path (after *Insert Column*) | Why the tool wants it |
    | --- | --- | --- |
-   | Player Trait | Training › Player Trait | Player instructions and role choice |
-   | CON | Fitness and Injuries › Overall Physical Condition | Fitness notes |
+   | Player Trait | Training › Player Trait | Player instructions and trait clashes |
    | Injury | Fitness and Injuries › Injury | Injured players are left out of the XI |
-   | Fatigue | Fitness and Injuries › Fatigue | Fitness notes |
+
+   Don't bother with *CON* (condition) or *Fatigue*: FM27 shows them as icons, so the export leaves them empty.
 
 4. Keep it as your own custom view (FM27 saves changes to a custom view; use the view menu's create/rename options if you
    want a separate copy called *Tactic Builder*). *Export Current View…* in the same menu saves it as a file as well.
@@ -40,6 +40,10 @@ The order of the columns doesn't matter: the tool finds them by name.
 
 **General**
 Unique ID · Position · Age · Height · Preferred Foot · Left Foot · Right Foot · Personality · Player Status (shows as `Inf`)
+
+**Club** and **Transfer**
+Club (Club › Club) · Agreed Playing Time (Transfer › Agreed Playing Time, shows as `Playing Time`). Together these tell the
+tool which players are out on loan, so it never picks them.
 
 **Ability and Roles**
 Assistant manager's opinion of this player's best position (`Best Pos`) · Assistant manager's opinion of this player's best tactical role (`Best Role`)
@@ -60,7 +64,7 @@ Aerial Reach · Command Of Area · Communication · Eccentricity · Handling · 
 Reflexes · Rushing out (Tendency) · Throwing
 
 **Fitness and Injuries**
-Overall Physical Condition (`CON`) · Injury · Fatigue
+Injury
 
 **Training**
 Player Trait

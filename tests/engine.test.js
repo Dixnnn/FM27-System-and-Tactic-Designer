@@ -185,6 +185,7 @@ for (const file of SAMPLE_FILES) {
       assert.ok(l.ipScore.score > 0 && l.ipScore.score <= 100);
     }
     assert.equal(best.lanes.filter((l) => l.ip === 'GK').length, 1);
+    assert.ok(best.lanes.every((l) => !l.player.onLoan), 'nobody who is out on loan');
     assert.ok(result.search.ranking[0].score >= result.search.ranking[1].score, 'ranked best first');
   });
 }
@@ -192,6 +193,7 @@ for (const file of SAMPLE_FILES) {
 test('injured players can be included when asked', () => {
   const result = analyse(sample('squad_20261108_201500.csv'), 'squad.csv', docs, { excludeInjured: false });
   assert.ok(result.search.best.lanes.some((l) => l.player.injured), 'the injured poacher is good enough to start');
+  assert.ok(result.search.best.lanes.every((l) => !l.player.onLoan), 'still nobody who is out on loan');
 });
 
 test('the XI is the best possible for the chosen system (no swap improves it)', () => {

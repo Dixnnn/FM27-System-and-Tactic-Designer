@@ -7,7 +7,7 @@
 
 import { assignMax, hungarianMin } from './hungarian.js';
 import { prepareRoles, roleFitsSlot, slotRoleScore, bestRoleScore, baseRoleScore } from './roles.js';
-import { evaluateBalance } from './balance.js';
+import { evaluateBalance, evaluatePlan } from './balance.js';
 import { buildAdjacency, familiarity } from '../parse/positions.js';
 
 const FORBIDDEN = -1000;
@@ -37,10 +37,11 @@ export function createContext(players, docs, options = {}) {
     allowedFam: new Set(tuning.familiarity.allowInStartingXI),
     warnings: [],
   };
-  let available = players.filter((p) => !(search.excludeInjured && p.injured));
+  const atClub = players.filter((p) => !p.onLoan);
+  let available = atClub.filter((p) => !(search.excludeInjured && p.injured));
   if (available.length < 11) {
     ctx.warnings.push('Fewer than 11 fit players, so injured players were included.');
-    available = players.slice();
+    available = atClub.length >= 11 ? atClub : players.slice();
   }
   ctx.available = available;
   return ctx;
@@ -146,6 +147,11 @@ function objective(ctx, lanes, xi, roles) {
   fit /= lanes.length;
   choice /= lanes.length;
   const balance = evaluateBalance(full, ctx.slots, ctx.tuning.balance);
+  if (ctx.plan) {
+    const plan = evaluatePlan(full, ctx.slots, ctx.plan, ctx.tuning.plan);
+    balance.points += plan.points;
+    balance.notes.push(...plan.notes);
+  }
   return { fit, balance, total: choice + balance.points };
 }
 
@@ -176,8 +182,59 @@ function refineRoles(ctx, lanes, xi, roles) {
   return roles;
 }
 
-/** Evaluate one IP x OOP formation pair. Returns null if the shapes can't be linked sensibly. */
-export function evaluateSystem(ctx, ipF, oopF) {
+/**
+ * Try changing the roles of two players at once (same phase). Catches cases a one-at-a-time search
+ * misses, e.g. turning a Playmaking Winger into a Winger so a Deep-Lying Playmaker fits the
+ * "two playmakers at most" rule.
+ */
+function pairMoves(ctx, lanes, xi, roles) {
+  roles = roles.map((r) => ({ ...r }));
+  let best = objective(ctx, lanes, xi, roles).total;
+  let improved = false;
+  for (const [key, listKey] of [['ipRole', 'ipRoles'], ['oopRole', 'oopRoles']]) {
+    for (let i = 0; i < lanes.length; i++) {
+      for (let j = i + 1; j < lanes.length; j++) {
+        const ci = roles[i][key];
+        const cj = roles[j][key];
+        let bi = ci;
+        let bj = cj;
+        for (const ri of lanes[i][listKey]) {
+          if (ri === ci) continue;
+          for (const rj of lanes[j][listKey]) {
+            if (rj === cj) continue;
+            roles[i][key] = ri;
+            roles[j][key] = rj;
+            const t = objective(ctx, lanes, xi, roles).total;
+            if (t > best + 1e-9) {
+              best = t;
+              bi = ri;
+              bj = rj;
+              improved = true;
+            }
+          }
+        }
+        roles[i][key] = bi;
+        roles[j][key] = bj;
+      }
+    }
+  }
+  return { roles, improved };
+}
+
+function deepRefine(ctx, lanes, xi, roles) {
+  for (let round = 0; round < 3; round++) {
+    const pm = pairMoves(ctx, lanes, xi, roles);
+    if (!pm.improved) break;
+    roles = refineRoles(ctx, lanes, xi, pm.roles);
+  }
+  return roles;
+}
+
+/**
+ * Evaluate one IP x OOP formation pair. Returns null if the shapes can't be linked sensibly.
+ * deep = also try two-role changes (slower; used for the best systems).
+ */
+export function evaluateSystem(ctx, ipF, oopF, deep = false) {
   const match = laneMatching(ipF.slots, oopF.slots, ctx);
   if (!match.valid) return null;
   const lanes = match.lanes.map((l) => ({
@@ -193,12 +250,14 @@ export function evaluateSystem(ctx, ipF, oopF) {
     oopRole: bestOf(ctx, p, lanes[i].oopRoles, lanes[i].oop, true).role,
   }));
   roles = refineRoles(ctx, lanes, xi, roles);
+  if (deep) roles = deepRefine(ctx, lanes, xi, roles);
   let best = { xi, roles, obj: objective(ctx, lanes, xi, roles) };
   for (let iter = 0; iter < 3; iter++) {
     const xi2 = pickXI(ctx, lanes, roles);
     if (xi2.every((p, i) => p === xi[i])) break;
     xi = xi2;
     roles = refineRoles(ctx, lanes, xi, roles);
+    if (deep) roles = deepRefine(ctx, lanes, xi, roles);
     const obj = objective(ctx, lanes, xi, roles);
     if (obj.total > best.obj.total) best = { xi, roles, obj };
     else break;
@@ -231,6 +290,8 @@ export function evaluateSystem(ctx, ipF, oopF) {
   return {
     ipName: ipF.name,
     oopName: oopF.name,
+    ipFormation: ipF,
+    oopFormation: oopF,
     ipSlots: ipF.slots,
     oopSlots: oopF.slots,
     lanes: resultLanes,
@@ -242,15 +303,32 @@ export function evaluateSystem(ctx, ipF, oopF) {
   };
 }
 
-/** Test every formation pair and rank them. */
-export function searchSystems(ctx) {
-  const results = [];
+function closestPartner(ctx, ipF) {
+  let best = null;
+  for (const oopF of ctx.formations.outOfPossession) {
+    const m = laneMatching(ipF.slots, oopF.slots, ctx);
+    if (m.valid && (!best || m.meanCost < best.cost)) best = { oopF, cost: m.meanCost };
+  }
+  return best?.oopF;
+}
+
+/** Test every formation pair and rank them; the best few get a deeper role search. */
+export function searchSystems(ctx, { polishTop = ctx.search.polishTop, quick = false } = {}) {
+  let results = [];
   for (const ipF of ctx.formations.inPossession) {
-    for (const oopF of ctx.formations.outOfPossession) {
+    // quick: only pair each in-possession shape with the out-of-possession shape closest to it
+    const partners = quick ? [closestPartner(ctx, ipF)].filter(Boolean) : ctx.formations.outOfPossession;
+    for (const oopF of partners) {
       const r = evaluateSystem(ctx, ipF, oopF);
       if (r) results.push(r);
     }
   }
+  results.sort((a, b) => b.score - a.score);
+  const top = results.slice(0, polishTop).map((r) => {
+    const deep = evaluateSystem(ctx, r.ipFormation, r.oopFormation, true);
+    return deep && deep.score > r.score ? deep : r;
+  });
+  results = [...top, ...results.slice(polishTop)];
   const valid = results.filter((r) => r.valid);
   const ranked = (valid.length ? valid : results).sort((a, b) => b.score - a.score);
   if (!valid.length && results.length) ctx.warnings.push('No formation could be filled without playing someone out of position.');
