@@ -31,6 +31,8 @@ cp "$STAGE/build/$NAME.dll" "$PLUGIN/"
 cp "$REPO/LICENSE" "$PLUGIN/LICENSE.txt"
 cp "$ROOT/packaging/README.txt" "$PLUGIN/"
 cp "$ROOT/packaging/THIRD-PARTY-NOTICES.txt" "$PLUGIN/"
+mkdir -p "$PLUGIN/licenses"
+cp "$ROOT/packaging/licenses/OFL-1.1.txt" "$PLUGIN/licenses/"
 (cd "$STAGE/plugin" && zip -qr "$DIST/$NAME-$VERSION-plugin.zip" .)
 
 if [ "$MODE" != "--plugin-only" ]; then

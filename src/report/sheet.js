@@ -3,6 +3,7 @@
 
 import { pitchSVG } from './pitch.js';
 import { esc, shortName } from './util.js';
+import { crestSVG } from './crest.js';
 
 /**
  * @param {object} result  analyse() result
@@ -35,7 +36,7 @@ export function cheatSheet(result) {
     .join('');
   const name = (t) => (t ? esc(shortName(t.name)) : '–');
   return `<div class="sheet">
-  <header><div><div class="eyebrow">FM27 Tactic Builder · cheat sheet</div><h1>${esc(result.club || 'Your tactic')}</h1></div>
+  <header><div class="sh-brand">${crestSVG({ cls: 'sh-crest' })}<div><div class="eyebrow">FM27 Tactic Builder · cheat sheet</div><h1>${esc(result.club || 'Your tactic')}</h1></div></div>
   <div class="sh-kpis"><span>Style <b>${esc(ins.style.value || 'Any')}</b></span><span>Mentality <b>${esc(ins.mentality.value)}</b></span>
   <span>In possession <b>${esc(best.ipName)}</b></span><span>Out of possession <b>${esc(best.oopName)}</b></span></div></header>
   <div class="sh-grid">

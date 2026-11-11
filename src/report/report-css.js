@@ -3,15 +3,25 @@
 export const REPORT_CSS = `
 .report { max-width: 1180px; margin: 0 auto; padding: 4px 0 56px; color: var(--ink); font: 15px/1.55 var(--font); }
 .report * { box-sizing: border-box; }
-.report h1 { font-size: 30px; line-height: 1.15; margin: 2px 0 6px; letter-spacing: -.01em; font-weight: 700; }
-.report h2 { font-size: 20px; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; letter-spacing: -.005em; }
-.report h2 .num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 700; }
-.report h3 { font-size: 15.5px; margin: 26px 0 10px; display: flex; align-items: center; gap: 8px; }
+.report h1 { font-family: var(--font-display); font-size: 46px; line-height: 1.04; margin: 8px 0 10px; letter-spacing: -.025em; font-weight: 500; text-wrap: balance; }
+.report h2 { font-family: var(--font-display); font-size: 23px; font-weight: 500; margin: 0 0 16px; display: flex; align-items: center; gap: 12px; letter-spacing: -.012em; }
+.report h2 .num { font-family: var(--font-numbers); font-weight: 400; font-size: 44px; line-height: .8; color: transparent; -webkit-text-stroke: 1.3px var(--accent); paint-order: stroke; min-width: .5em; text-align: center; }
+.report h3 { font-family: var(--font-display); font-weight: 500; font-size: 16.5px; margin: 26px 0 10px; display: flex; align-items: center; gap: 8px; letter-spacing: -.005em; }
 .report h3 .step { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px; background: var(--surface-3); color: var(--ink-2); font-size: 12px; font-weight: 700; }
 .report h4 { font-size: 12px; margin: 18px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 650; }
 .report p { margin: 6px 0; }
 .report a { color: var(--accent); }
 .report .eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: 11.5px; font-weight: 700; color: var(--accent); }
+.report .masthead { display: flex; align-items: center; gap: 12px; }
+.report .masthead .crest { width: 30px; height: 35px; flex: none; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .35)); }
+.report .masthead .eyebrow { letter-spacing: .3em; font-size: 11px; }
+.report .live { display: inline-flex; align-items: center; gap: 7px; color: var(--live); margin-right: 12px; }
+.report .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--live); animation: tb-live 2s ease-out infinite; }
+@keyframes tb-live { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 65%, transparent); } 70%, 100% { box-shadow: 0 0 0 7px transparent; } }
+.report .pundit { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin: 0 0 10px; color: var(--ink-2); font-size: 15.5px; max-width: 80ch; }
+.report .pundit q { font-style: italic; quotes: "“" "”"; }
+.report .pundit .who { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; white-space: nowrap; }
+.report .pundit .who svg { width: 13px; height: 13px; color: var(--accent); }
 .report .meta { color: var(--muted); font-size: 13px; margin: 0; }
 .report .muted { color: var(--muted); }
 .report .small { font-size: 12.5px; }
@@ -31,17 +41,22 @@ export const REPORT_CSS = `
 .report .hint-line strong { color: var(--ink-2); }
 
 .report h3[id] { scroll-margin-top: var(--scroll-offset, 64px); }
-.report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: var(--scroll-offset, 64px); }
+.report section.card { position: relative; background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px 26px; margin: 16px 0; box-shadow: var(--shadow); scroll-margin-top: var(--scroll-offset, 64px); }
 .report .lede { color: var(--ink-2); max-width: 78ch; }
 
 /* stat tiles */
 .report .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 10px; margin: 4px 0 20px; }
-.report .kpi { background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line); border-radius: 11px; padding: 11px 13px 12px; }
-.report .kpi .k { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-.report .kpi .k .ki { width: 13px; height: 13px; color: var(--ink-2); flex: none; }
+/* the scoreboard: dot-matrix panels with glowing LED values (dark in both themes; plain when printed) */
+.report .kpi { background: var(--sb-bg) radial-gradient(circle, var(--sb-dots) 1px, transparent 1.4px) 0 0 / 5px 5px; border: 1px solid var(--sb-line); border-radius: 9px;
+  padding: 11px 13px 13px; color: var(--sb-ink); box-shadow: inset 0 -20px 30px rgba(0, 0, 0, .35), 0 1px 0 rgba(255, 255, 255, .03); }
+.report .kpi .k { font-size: 10.5px; color: var(--sb-label); display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: .14em; line-height: 1.35; }
+.report .kpi .k .ki { width: 13px; height: 13px; color: var(--sb-label); flex: none; }
 .report .kpi .k .key { width: 8px; height: 8px; margin: 0 2px; }
-.report .kpi .v { font-size: 17px; font-weight: 650; line-height: 1.25; margin-top: 3px; text-wrap: balance; }
-.report .kpi .meter { height: 4px; border-radius: 2px; background: var(--line); margin-top: 9px; overflow: hidden; }
+.report .kpi .v { font-family: var(--font-board); font-weight: 400; font-size: 31px; line-height: .98; margin-top: 8px; color: var(--sb-amber); text-shadow: 0 0 8px var(--sb-amber-glow); letter-spacing: .01em; text-wrap: balance; }
+.report .kpi .v .muted, .report .kpi .v .unit { font-family: var(--font); font-size: 11.5px; letter-spacing: .04em; color: var(--sb-label); text-shadow: none; }
+.report .kpi.lime .v { color: var(--sb-lime); text-shadow: 0 0 8px var(--sb-lime-glow); }
+.report .kpi .muted, .report .kpi .small { color: var(--sb-label); }
+.report .kpi .meter { height: 4px; border-radius: 2px; background: var(--sb-line); margin-top: 10px; overflow: hidden; }
 .report .kpi .meter i { display: block; height: 100%; border-radius: 2px; background: var(--fit-3); }
 .report .kpi .meter.f1 i { background: var(--fit-1); } .report .kpi .meter.f2 i { background: var(--fit-2); } .report .kpi .meter.f4 i { background: var(--fit-4); }
 
@@ -57,14 +72,14 @@ export const REPORT_CSS = `
 .report .pitches.small svg.pitch { max-width: 300px; }
 .report .pl { outline: none; cursor: default; }
 .report .pl .hit { fill: transparent; }
-.report .pl .dot { fill: var(--token); stroke: var(--line); stroke-width: 1; }
+.report .pl .dot { fill: var(--kit-1, var(--token)); stroke: var(--kit-2, var(--line)); stroke-width: var(--kit-ring, 1); }
 .report .pl .trk { fill: none; stroke: var(--line-2); stroke-width: 3.2; opacity: .55; }
-.report .pl .arc { fill: none; stroke: var(--fit-2); stroke-width: 3.2; stroke-linecap: round; transition: stroke-width .12s; }
+.report .pl .arc { fill: none; stroke: var(--fit-2); stroke-width: 3.2; stroke-linecap: round; transition: stroke-width .12s; filter: var(--arc-glow); }
 .report .pl.f1 .arc { stroke: var(--fit-1); } .report .pl.f3 .arc { stroke: var(--fit-3); } .report .pl.f4 .arc { stroke: var(--fit-4); }
 .report .pl:hover .arc, .report .pl:focus .arc { stroke-width: 4.6; }
 .report .pl:focus-visible .dot { stroke: var(--accent); stroke-width: 2; }
 .report .pitch text { text-anchor: middle; font-family: var(--font); }
-.report .pl .abbr { font-size: 9px; font-weight: 750; fill: var(--ink); letter-spacing: .02em; }
+.report .pl .abbr { font-size: 9px; font-weight: 750; fill: var(--kit-ink, var(--ink)); letter-spacing: .02em; }
 .report .pl .pill { fill: var(--pill); stroke: var(--pill-line); stroke-width: 1; }
 .report .pitch .nm { font-size: 10.5px; font-weight: 650; fill: var(--ink); }
 .report .pl .sc { font-size: 9.5px; font-weight: 600; fill: var(--muted); font-variant-numeric: tabular-nums; }
@@ -85,6 +100,19 @@ export const REPORT_CSS = `
 .report .oopdot { fill: var(--pitch); stroke: var(--oop); stroke-width: 2.5; }
 .report .ipdot { fill: var(--ip); stroke: var(--pitch); stroke-width: 2; }
 .report .mvg:hover .mv, .report .mvg:focus .mv { opacity: 1; stroke-width: 2; }
+
+/* players walk out: on opening, tokens come out of the tunnel (halfway line, left touchline) to their spots and the
+   movement arrows draw themselves. Only in the app's overview, never in print, and off for reduced motion. */
+.walkout #overview svg.pitch:not(.move) .pl { transform-box: fill-box; transform-origin: center; animation: tb-walk .95s cubic-bezier(.2, .75, .25, 1) both; animation-delay: calc(var(--wi, 0) * 55ms + 100ms); }
+@keyframes tb-walk { 0% { transform: translate(var(--wx, 0px), var(--wy, 0px)) scale(.55); opacity: 0; } 18% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+.walkout #overview svg.move .mv { stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: tb-draw .75s ease-out forwards; animation-delay: calc(var(--wi, 0) * 45ms + 950ms); }
+.walkout #overview svg.move .oopdot, .walkout #overview svg.move .ipdot { animation: tb-fade .4s ease-out both; animation-delay: calc(var(--wi, 0) * 45ms + 800ms); }
+@keyframes tb-draw { to { stroke-dashoffset: 0; } }
+@keyframes tb-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .walkout #overview .pl, .walkout #overview .mv, .walkout #overview .oopdot, .walkout #overview .ipdot { animation: none !important; stroke-dashoffset: 0 !important; }
+  .report .live::before { animation: none; }
+}
 
 /* keys and legends */
 .report .key { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; vertical-align: 0; }
@@ -245,6 +273,17 @@ export const REPORT_CSS = `
 .report .checkbar .cb-track { flex: 0 1 240px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .report .checkbar .cb-track i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .2s; }
 .report .checkbar.complete .cb-text { color: var(--accent); }
+.report .cb-lock { font-weight: 650; }
+/* "Tactic locked in": a rubber stamp when every box is ticked */
+.report .stamp { display: none; position: absolute; top: 14px; right: 22px; z-index: 3; pointer-events: none; flex-direction: column; align-items: center;
+  padding: 6px 16px 3px; border: 3px solid var(--accent); outline: 1.5px solid var(--accent); outline-offset: 3px; border-radius: 6px; color: var(--accent);
+  font-family: var(--font-numbers); text-transform: uppercase; line-height: .92; transform: rotate(-8deg);
+  background: color-mix(in srgb, var(--surface) 78%, transparent); box-shadow: 0 0 26px var(--accent-glow); }
+.report .stamp small { font-size: 14px; letter-spacing: .34em; margin-right: -.34em; }
+.report .stamp b { font-size: 36px; font-weight: 400; letter-spacing: .05em; }
+.in-app .report #setup.locked .stamp { display: flex; animation: tb-stamp .5s cubic-bezier(.3, 1.5, .5, 1) both; }
+@keyframes tb-stamp { 0% { transform: rotate(-8deg) scale(2.4); opacity: 0; } 100% { transform: rotate(-8deg) scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .in-app .report #setup.locked .stamp { animation: none; } }
 .report .linkbtn { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .report .linkbtn:hover { color: var(--ink); }
 
@@ -335,7 +374,9 @@ export const REPORT_CSS = `
 /* one-page cheat sheet (printed on its own) */
 .sheet { font: 9.5px/1.35 var(--font); color: #111; }
 .sheet header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; border-bottom: 1.5px solid #111; padding-bottom: 4px; margin-bottom: 6px; }
-.sheet h1 { font-size: 17px; margin: 0; }
+.sheet h1 { font-family: var(--font-display); font-weight: 500; font-size: 18px; margin: 0; letter-spacing: -.01em; }
+.sheet .sh-brand { display: flex; align-items: center; gap: 8px; }
+.sheet .sh-crest { width: 22px; height: 26px; flex: none; }
 .sheet .eyebrow { font-size: 8px; text-transform: uppercase; letter-spacing: .1em; color: #555; font-weight: 700; }
 .sheet .sh-kpis { display: flex; flex-wrap: wrap; gap: 3px 12px; justify-content: flex-end; font-size: 9px; color: #444; }
 .sheet .sh-kpis b { color: #111; }
@@ -358,7 +399,12 @@ export const REPORT_CSS = `
 }
 @media (max-width: 640px) {
   .report section.card { padding: 18px 14px; }
-  .report h1 { font-size: 24px; }
+  .report h1 { font-size: 31px; }
+  .report h2 { font-size: 20px; }
+  .report h2 .num { font-size: 36px; }
+  .report .kpi .v { font-size: 25px; }
+  .report .stamp { top: 10px; right: 10px; padding: 4px 10px 2px; }
+  .report .stamp b { font-size: 26px; } .report .stamp small { font-size: 11px; }
   .report .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .report table.settings thead { display: none; }
   .report table.settings tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; border-bottom: 1px solid var(--line); padding: 6px 0; }
@@ -382,6 +428,13 @@ export const REPORT_CSS = `
   .report .profile { grid-template-columns: 1fr 1fr; gap: 4px 20px; }
   .report .pf-row, .report .pf-axis { grid-template-columns: minmax(110px, 1.1fr) 1.6fr 36px 30px; }
   .report section.card#overview { break-before: auto; }
+  .report h1 { font-size: 30px; }
+  .report h2 .num { color: #111; -webkit-text-stroke: 0; font-size: 30px; }
+  .report .live, .report .stamp { display: none !important; }
+  .report .kpi { background: none; border: 1px solid #c9c9c9; box-shadow: none; color: #111; }
+  .report .kpi .v, .report .kpi.lime .v { color: #111; text-shadow: none; font-size: 22px; }
+  .report .kpi .k, .report .kpi .k .ki, .report .kpi .muted, .report .kpi .small, .report .kpi .v .unit { color: #555; }
+  .report .kpi .meter { background: #ddd; }
   .report nav.toc, .report .tip { display: none !important; }
   .report .app-only, .report .sfilter { display: none !important; }
   .report .tick input { border-color: #777; background: #fff; }

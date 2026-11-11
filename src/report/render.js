@@ -6,6 +6,9 @@ import { THEME_CSS } from './theme.js';
 import { esc, fmt, shortName, fitChip, phaseKey, pickTags, ICON, scoreClass as scoreClassOf } from './util.js';
 import { slotRoleScore } from '../engine/roles.js';
 import { matchPlan, OPPONENT } from '../engine/matchPlan.js';
+import { crestSVG, crestFavicon } from './crest.js';
+import { punditLine } from './pundit.js';
+import { kitStyle } from './kit.js';
 
 const GROUPS = [
   { title: 'Goalkeepers', positions: ['GK'] },
@@ -85,7 +88,7 @@ const KPI_ICON = {
   fit: '<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/>',
 };
 const kpiIcon = (name) => `<svg class="ki" viewBox="0 0 16 16" aria-hidden="true">${KPI_ICON[name]}</svg>`;
-const kpi = (icon, label, value, extra = '') => `<div class="kpi"><div class="k">${icon}${label}</div><div class="v">${value}</div>${extra}</div>`;
+const kpi = (icon, label, value, extra = '', cls = '') => `<div class="kpi${cls ? ` ${cls}` : ''}"><div class="k">${icon}${label}</div><div class="v">${value}</div>${extra}</div>`;
 
 function pitches(system, slots, small = false, captain = null) {
   const mark = (p) => p.label || (p.mustStart ? 'start' : null);
@@ -116,7 +119,7 @@ function overview(result) {
     ${kpi(phaseKey('IP'), 'In possession', esc(best.ipName))}
     ${kpi(phaseKey('OOP'), 'Out of possession', esc(best.oopName))}
     ${kpi(kpiIcon('press'), 'Pressing', esc(ins.values.lineOfEngagement))}
-    ${kpi(kpiIcon('fit'), 'Team fit', `${fmt(best.fit, 1)} <span class="muted small">/ 100 · ${FIT_WORD(best.fit)}</span>`, `<div class="meter ${scoreClassOf(best.fit)}"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div>`)}
+    ${kpi(kpiIcon('fit'), 'Team fit', `${fmt(best.fit, 1)} <span class="unit">/ 100 · ${FIT_WORD(best.fit)}</span>`, `<div class="meter ${scoreClassOf(best.fit)}"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div>`, 'lime')}
   </div>
   ${ideaBlock(result)}
   ${formationNote(result)}
@@ -295,7 +298,8 @@ function enterIt(result) {
   <h2><span class="num">2</span>Enter it in FM27</h2>
   <p class="lede">Work through these steps in order; they follow the FM27 tactics screens. <strong>${changedCount}</strong> of the
   ${ins.ip.length + ins.oop.length} team instructions differ from FM's defaults (with a tick box); leave the rest as they are.</p>
-  <div class="checkbar app-only" id="checkbar"><span class="cb-text"><strong id="cb-done">0</strong> of <span id="cb-total">0</span> done</span><span class="cb-track"><i id="cb-fill"></i></span><button type="button" class="linkbtn" id="cb-clear">Clear ticks</button></div>
+  <div class="checkbar app-only" id="checkbar"><span class="cb-text"><strong id="cb-done">0</strong> of <span id="cb-total">0</span> done<span class="cb-lock" id="cb-lock"></span></span><span class="cb-track"><i id="cb-fill"></i></span><button type="button" class="linkbtn" id="cb-clear">Clear ticks</button></div>
+  <div class="stamp" aria-hidden="true"><small>Tactic</small><b>Locked in</b></div>
 
   <h3><span class="step">1</span>Style and mentality</h3>
   <div class="tablewrap"><table class="settings checklist"><tbody>
@@ -881,6 +885,8 @@ function dataNotes(result) {
 </section>`;
 }
 
+const MIC = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="1.5" width="5" height="8" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+
 /** Report sections in order: id and short label (also used by the app's section bar). */
 export const SECTIONS = [
   ['overview', 'Overview'], ['setup', 'Enter it'], ['why', 'Why'], ['depth', 'Depth & signings'],
@@ -889,15 +895,17 @@ export const SECTIONS = [
 
 /**
  * @param {object} result  from analyse()
- * @param {{generatedAt?: Date}} [opts]
+ * @param {{generatedAt?: Date, match?: object, kit?: {shirt: string, trim: string}, fontCss?: string}} [opts]  kit = club colours for the tokens; fontCss = embedded fonts for a saved report
  */
 export function renderReport(result, opts = {}) {
   const when = (opts.generatedAt || new Date()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   const club = result.club ? `${esc(result.club)}: ` : '';
-  return `<article class="report">
+  const kit = kitStyle(opts.kit);
+  return `<article class="report"${kit ? ` style="${kit}"` : ''}>
 <header class="top">
-  <div class="eyebrow">FM27 Tactic Builder</div>
+  <div class="masthead">${crestSVG({ cls: 'crest' })}<div class="eyebrow"><span class="live">Live</span>FM27 Tactic Builder</div><div class="kit-slot app-only" id="kit-slot"></div></div>
   <h1>${club}your tactic</h1>
+  <p class="pundit"><q>${esc(punditLine(result))}</q><span class="who">${MIC}the studio pundit</span></p>
   <p class="meta">From ${esc(result.filename)} · ${result.players.length} players · team strength: ${esc(result.instructions.strengthLabel)} · made ${esc(when)}</p>
   <aside class="notice">${ICON.info}<span><strong>This tool can't put the tactic into FM27 for you.</strong> It only reads your squad and never
   changes the game or your save. Enter the settings by hand, in the order shown in section 2.</span></aside>
@@ -921,7 +929,7 @@ export function standaloneReport(result, opts = {}) {
   const theme = opts.theme === 'light' ? 'light' : 'dark';
   return `<!doctype html>
 <html lang="en" data-theme="${theme}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title><style>${THEME_CSS}body{padding:0 16px}${REPORT_CSS}</style></head>
+<title>${esc(title)}</title><link rel="icon" href="${crestFavicon()}"><style>${opts.fontCss || ''}${THEME_CSS}body{padding:0 16px}${REPORT_CSS}</style></head>
 <body>${renderReport(result, opts)}</body></html>
 `;
 }

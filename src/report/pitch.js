@@ -73,6 +73,7 @@ function pickMark(mark, x, y) {
 }
 
 const RING = 18.5;
+const TUNNEL = [-8, H / 2];
 const ARC = 2 * Math.PI * RING;
 
 /** Rough text width for the name pill (no layout engine in an SVG string). */
@@ -86,7 +87,7 @@ const textWidth = (t, size) => [...t].reduce((w, c) => w + (/[ilj.,'’\s]/.test
  */
 export function pitchSVG(items, slots, title) {
   const players = items
-    .map((it) => {
+    .map((it, i) => {
       const [x, y] = slots[it.slot];
       const cx = +px(x).toFixed(1);
       const cy = +py(y).toFixed(1);
@@ -98,7 +99,9 @@ export function pitchSVG(items, slots, title) {
       const captain = it.captain
         ? `<g class="cpt"><circle cx="${(cx - 14).toFixed(1)}" cy="${(cy - 14).toFixed(1)}" r="6.2" /><text x="${(cx - 14).toFixed(1)}" y="${(cy - 11.2).toFixed(1)}">C</text></g>`
         : '';
-      return `<g class="pl ${scoreClass(it.score)}" tabindex="0"${it.pid ? ` data-pid="${esc(it.pid)}" role="button"` : ''}>
+      // walk-out animation: where the token starts (the tunnel, just off the left touchline at halfway) and its turn
+      const walk = `--wx:${(TUNNEL[0] - cx).toFixed(0)}px;--wy:${(TUNNEL[1] - cy).toFixed(0)}px;--wi:${i}`;
+      return `<g class="pl ${scoreClass(it.score)}" tabindex="0" style="${walk}"${it.pid ? ` data-pid="${esc(it.pid)}" role="button"` : ''}>
   <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}${it.captain ? ' · captain' : ''}</title>
   <circle cx="${cx}" cy="${cy}" r="24" class="hit" />
   <circle cx="${cx}" cy="${cy}" r="${RING}" class="trk" />
@@ -120,7 +123,7 @@ export function pitchSVG(items, slots, title) {
  */
 export function movementSVG(lanes, slots, title) {
   const marks = lanes
-    .map((l) => {
+    .map((l, i) => {
       const [x1, y1] = slots[l.oop];
       const [x2, y2] = slots[l.ip];
       const a = [px(x1), py(y1)];
@@ -136,10 +139,10 @@ export function movementSVG(lanes, slots, title) {
         const e = [b[0] - ux * 9, b[1] - uy * 9];
         const h1 = [e[0] - ux * 6 - uy * 3.5, e[1] - uy * 6 + ux * 3.5];
         const h2 = [e[0] - ux * 6 + uy * 3.5, e[1] - uy * 6 - ux * 3.5];
-        path = `<line x1="${s[0].toFixed(1)}" y1="${s[1].toFixed(1)}" x2="${e[0].toFixed(1)}" y2="${e[1].toFixed(1)}" class="mv" />
-  <path d="M ${h1[0].toFixed(1)} ${h1[1].toFixed(1)} L ${e[0].toFixed(1)} ${e[1].toFixed(1)} L ${h2[0].toFixed(1)} ${h2[1].toFixed(1)}" class="mv" />`;
+        path = `<line x1="${s[0].toFixed(1)}" y1="${s[1].toFixed(1)}" x2="${e[0].toFixed(1)}" y2="${e[1].toFixed(1)}" class="mv" pathLength="1" />
+  <path d="M ${h1[0].toFixed(1)} ${h1[1].toFixed(1)} L ${e[0].toFixed(1)} ${e[1].toFixed(1)} L ${h2[0].toFixed(1)} ${h2[1].toFixed(1)}" class="mv" pathLength="1" />`;
       }
-      return `<g class="mvg" tabindex="0"><title>${esc(l.player.name)}: ${esc(slots[l.oop][3])} out of possession → ${esc(slots[l.ip][3])} in possession</title>
+      return `<g class="mvg" tabindex="0" style="--wi:${i}"><title>${esc(l.player.name)}: ${esc(slots[l.oop][3])} out of possession → ${esc(slots[l.ip][3])} in possession</title>
   ${path}
   <circle cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="6" class="oopdot" />
   <circle cx="${b[0].toFixed(1)}" cy="${b[1].toFixed(1)}" r="6" class="ipdot" />

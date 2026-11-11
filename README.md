@@ -1,3 +1,5 @@
+<img src="docs/crest.svg" width="64" align="right" alt="FM27 Tactic Builder crest">
+
 # FM27 Tactic Builder
 
 Designs a complete Football Manager 27 tactic around **your** squad.
@@ -161,6 +163,11 @@ exactly what it picked up before you build. "Don't press" is ignored rather than
 | **Role filter** (section 8) | Search by name, filter by position, show only the starting XI or hide players on loan. |
 | **Cheat sheet** (Export menu) | Prints a single A4 page with both shapes and every setting that differs from FM's defaults, to keep next to you. |
 | **Image** (Export menu) | Saves a picture of the tactic (both shapes, key instructions, set pieces) to share on Discord or Reddit. |
+| **Club colours** (report header) | Your players wear your kit on the pitches: pick one of twelve kits or your own shirt and trim colours. The fit rings keep their colours. Remembered per club, and used in the saved report and the shared picture. |
+
+Just for fun: the players walk out of the tunnel onto the pitch when a tactic opens (switched off if your system asks for
+reduced motion), a studio pundit has one line to say about every tactic, and ticking off the whole checklist gets the
+tactic stamped **Locked in**.
 
 ## Put it into FM27
 
@@ -262,17 +269,18 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 ## For developers
 
 ```
-npm install          # one dev tool: esbuild
+npm install          # dev tools: esbuild and three fonts (embedded in the page)
 npm test             # unit tests (Node 20+)
 npm run build        # rebuilds FM27-Tactic-Builder.html from src/ and data/
 npm run test:e2e     # builds, then checks the page in Chromium (needs Playwright)
 npm run samples      # regenerates the made-up sample squads in samples/
 npm run report -- samples/squad_20261108_201500.csv out/report.html
+node tools/make-icons.mjs  # after changing the crest: setup icon, setup header, docs/crest.svg (needs Playwright)
 
 # The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
 dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
 dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
-plugin/packaging/package.sh 0.8.0                         # plugin zip, full package (downloads BepInEx), setup.exe
+plugin/packaging/package.sh 0.9.0                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
 
 GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the
@@ -306,4 +314,7 @@ source. No warranty.
   (ElectroHugin). This tool uses those game facts in its own format.
 - FM27 tactics screen research (instruction names and screen order) from the community projects *FM27-apka* and
   *fm-ai-assistent*.
+- Fonts embedded in the page, all under the **SIL Open Font License 1.1** (`plugin/packaging/licenses/OFL-1.1.txt`):
+  **Space Grotesk** (headings), **Bebas Neue** (section numbers, wordmark) and **VT323** (the scoreboard).
+- The crest is this project's own artwork.
 - Not affiliated with or endorsed by Sports Interactive or SEGA. Football Manager is a trademark of Sports Interactive.

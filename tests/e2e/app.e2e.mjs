@@ -100,9 +100,40 @@ await page.reload();
 await page.click('#sample');
 await page.waitForSelector('#result:not(.hidden) .report');
 assert.equal(await page.textContent('#cb-done'), '2', 'ticks remembered for this tactic');
+await page.evaluate(() => { for (const b of document.querySelectorAll('#setup .tick input')) if (!b.checked) b.click(); });
+assert.ok(await page.$eval('#setup', (e) => e.classList.contains('locked')), 'every box ticked: locked in');
+assert.ok(await page.isVisible('#setup .stamp'), 'the "Locked in" stamp shows');
+assert.match(await page.textContent('#checkbar'), /tactic locked in/);
 await page.click('#cb-clear');
 assert.equal(await page.textContent('#cb-done'), '0');
-console.log('ok  checklist mode');
+assert.ok(!(await page.isVisible('#setup .stamp')), 'stamp gone after clearing');
+console.log('ok  checklist mode, locked-in stamp');
+
+// Floodlights look: embedded fonts load (no internet), crest favicon, pundit line, players walk out
+await page.evaluate(() => document.fonts.ready);
+const fonts = await page.evaluate(() => [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')));
+for (const f of ['TB Display', 'TB Numbers', 'TB Scoreboard']) assert.ok(fonts.includes(f), `font ${f} loaded`);
+assert.match(await page.getAttribute('link[rel="icon"]', 'href'), /^data:image\/svg\+xml,/);
+assert.ok((await page.textContent('.report .pundit q')).length > 10, 'the pundit has something to say');
+assert.match(await page.getAttribute('#overview .pl >> nth=0', 'style'), /--wx:/);
+console.log('ok  fonts, crest, pundit line, walk-out data');
+
+// Club colours: pick a kit, the tokens wear it, remembered after a reload; plain tokens again
+await page.click('#kit-menu > summary');
+await page.click('.kit-presets button[title="Yellow and black"]');
+const kitVars = () => page.$eval('#report-holder .report', (e) => [e.style.getPropertyValue('--kit-1'), e.style.getPropertyValue('--kit-ink')]);
+assert.deepEqual(await kitVars(), ['#f5d000', '#151515']);
+assert.equal(await page.$eval('#overview .pl .dot', (e) => getComputedStyle(e).fill), 'rgb(245, 208, 0)');
+await page.reload();
+await page.click('#sample');
+await page.waitForSelector('#result:not(.hidden) .report');
+assert.deepEqual(await kitVars(), ['#f5d000', '#151515'], 'kit remembered for this club');
+await page.click('#kit-menu > summary');
+await page.click('#kit-reset');
+assert.deepEqual(await kitVars(), ['', '']);
+await page.click('#report-holder h1');
+assert.ok(!(await page.$eval('#kit-menu', (e) => e.open)), 'menu closes on a click elsewhere');
+console.log('ok  club colours');
 
 // Player card from the pitch
 await page.click('#overview .pl[data-pid] >> nth=0');
@@ -176,6 +207,8 @@ console.log('ok  cheat sheet ready, image saved');
 
 const [download] = await Promise.all([page.waitForEvent('download'), page.click('#export-menu > summary').then(() => page.click('#save'))]);
 assert.match(download.suggestedFilename(), /^FM27 tactic - Harbour City - \d{4}-\d{2}-\d{2}\.html$/);
+const saved = readFileSync(await download.path(), 'utf8');
+assert.ok(saved.includes('@font-face') && saved.includes('font-family:"TB Display"'), 'saved report keeps the fonts');
 console.log('ok  save report');
 
 // Opened by the FM27 plugin (F8): the squad sits in the page's slot and the tactic appears without a click.

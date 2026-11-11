@@ -10,6 +10,7 @@ import { renderIdeaPanel } from './idea.js';
 import { saveTacticImage } from './share.js';
 import { playerCard } from '../report/card.js';
 import { cheatSheet } from '../report/sheet.js';
+import { renderKitPicker, applyKit } from './kit.js';
 import sampleCsv from '../../samples/squad_20261108_201500.csv';
 
 const STORE_KEY = 'fm27-tactic-builder.custom-docs';
@@ -20,11 +21,13 @@ const FORMATION_KEY = 'fm27-tactic-builder.formation';
 const CHECK_KEY = 'fm27-tactic-builder.checklist';
 const MATCH_KEY = 'fm27-tactic-builder.match';
 const IDEA_KEY = 'fm27-tactic-builder.idea';
+const KIT_KEY = 'fm27-tactic-builder.kit';
 const $ = (id) => document.getElementById(id);
 
 let lastResult = null;
 let lastSignature = '';
 let lastInput = null;
+let walkTimer = 0;
 
 // Picks are saved per club, so a new export of the same squad keeps them.
 const clubKey = (club) => club || '(no club)';
@@ -170,7 +173,10 @@ function updateChecklist() {
   $('cb-done').textContent = String(done);
   $('cb-total').textContent = String(boxes.length);
   $('cb-fill').style.width = `${boxes.length ? (done / boxes.length) * 100 : 0}%`;
-  $('checkbar').classList.toggle('complete', boxes.length > 0 && done === boxes.length);
+  const complete = boxes.length > 0 && done === boxes.length;
+  $('checkbar').classList.toggle('complete', complete);
+  $('cb-lock').textContent = complete ? ' · tactic locked in' : '';
+  $('setup').classList.toggle('locked', complete);
 }
 function setupChecklist(result) {
   const sig = tacticSignature(result);
@@ -193,6 +199,26 @@ function saveIdea(club, idea) {
   if (idea.text) all[clubKey(club)] = idea;
   else delete all[clubKey(club)];
   remember(IDEA_KEY, JSON.stringify(all));
+}
+
+// ---- club colours, remembered per club
+function loadKit(club) {
+  try {
+    return JSON.parse(localStorage.getItem(KIT_KEY) || '{}')[clubKey(club)] || null;
+  } catch {
+    return null;
+  }
+}
+function saveKit(club, kit) {
+  let all = {};
+  try {
+    all = JSON.parse(localStorage.getItem(KIT_KEY) || '{}');
+  } catch {
+    /* start again */
+  }
+  if (kit) all[clubKey(club)] = kit;
+  else delete all[clubKey(club)];
+  remember(KIT_KEY, JSON.stringify(all));
 }
 
 // ---- match plan: the next opponent, remembered per club
@@ -293,8 +319,19 @@ function buildSectionNav() {
 
 function showResult(result, note = '') {
   lastResult = result;
-  $('report-holder').innerHTML = renderReport(result, { match: loadMatch(result.club) });
-  $('report-holder').classList.add('in-app');
+  const holder = $('report-holder');
+  holder.innerHTML = renderReport(result, { match: loadMatch(result.club), kit: loadKit(result.club) });
+  holder.classList.add('in-app');
+  renderKitPicker($('kit-slot'), loadKit(result.club), (kit) => {
+    saveKit(result.club, kit);
+    applyKit(holder.querySelector('.report'), kit);
+  });
+  // players walk out onto the pitch (CSS animation; switched off for reduced motion)
+  clearTimeout(walkTimer);
+  holder.classList.remove('walkout');
+  void holder.offsetWidth;
+  holder.classList.add('walkout');
+  walkTimer = setTimeout(() => holder.classList.remove('walkout'), 2600);
   $('sheet-holder').innerHTML = cheatSheet(result);
   buildSectionNav();
   lastSignature = setupChecklist(result);
@@ -633,7 +670,7 @@ function init() {
   $('share-image').addEventListener('click', () => {
     if (!lastResult) return;
     const club = safeName(lastResult.club);
-    saveTacticImage(lastResult, `FM27 tactic${club ? ' - ' + club : ''}.png`);
+    saveTacticImage(lastResult, `FM27 tactic${club ? ' - ' + club : ''}.png`, loadKit(lastResult.club));
   });
   // Change the team strength on the report itself (the plugin opens the page straight on the tactic).
   $('strength-quick').addEventListener('change', (e) => {
@@ -649,7 +686,9 @@ function init() {
     if (!lastResult) return;
     const date = new Date().toISOString().slice(0, 10);
     const club = safeName(lastResult.club);
-    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult, { theme: currentTheme(), match: loadMatch(lastResult.club) }), 'text/html');
+    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult, {
+      theme: currentTheme(), match: loadMatch(lastResult.club), kit: loadKit(lastResult.club), fontCss: $('tb-fonts')?.textContent || '',
+    }), 'text/html');
   });
   $('again').addEventListener('click', () => {
     $('result').classList.add('hidden');
