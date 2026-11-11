@@ -2,18 +2,26 @@
 
 import { analyse } from '../analyse.js';
 import { DEFAULT_DOCS } from '../data.js';
-import { renderReport, standaloneReport, SECTIONS } from '../report/render.js';
+import { renderReport, standaloneReport, SECTIONS, matchPlanBody } from '../report/render.js';
 import { esc, ICON } from '../report/util.js';
 import { renderPicker, pickCount } from './picker.js';
+import { renderFormationPanel } from './formation.js';
+import { saveTacticImage } from './share.js';
+import { playerCard } from '../report/card.js';
+import { cheatSheet } from '../report/sheet.js';
 import sampleCsv from '../../samples/squad_20261108_201500.csv';
 
 const STORE_KEY = 'fm27-tactic-builder.custom-docs';
 const THEME_KEY = 'fm27-tactic-builder.theme';
 const STRENGTH_KEY = 'fm27-tactic-builder.strength';
 const PICKS_KEY = 'fm27-tactic-builder.picks';
+const FORMATION_KEY = 'fm27-tactic-builder.formation';
+const CHECK_KEY = 'fm27-tactic-builder.checklist';
+const MATCH_KEY = 'fm27-tactic-builder.match';
 const $ = (id) => document.getElementById(id);
 
 let lastResult = null;
+let lastSignature = '';
 let lastInput = null;
 
 // Picks are saved per club, so a new export of the same squad keeps them.
@@ -30,6 +38,21 @@ function savePicks(club, picks) {
   if (pickCount(picks)) all[clubKey(club)] = picks;
   else delete all[clubKey(club)];
   remember(PICKS_KEY, JSON.stringify(all));
+}
+
+// Your own formation, also per club: {ip, oop} (null = the tool chooses).
+function loadFormations() {
+  try {
+    return JSON.parse(localStorage.getItem(FORMATION_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+function saveFormation(club, choice) {
+  const all = loadFormations();
+  if (choice.ip || choice.oop) all[clubKey(club)] = choice;
+  else delete all[clubKey(club)];
+  remember(FORMATION_KEY, JSON.stringify(all));
 }
 
 function store(read, value) {
@@ -96,16 +119,131 @@ function showError(result) {
   setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
 }
 
-function analyseNow(text, filename, picks) {
+function analyseNow(text, filename, picks, formation) {
   const saved = loadPicks();
+  const savedFormation = loadFormations();
   return analyse(text, filename, currentDocs(), {
     excludeInjured: $('opt-injured').checked,
     strength: strengthValue(),
     picks: picks ?? ((club) => saved[clubKey(club)] || {}),
+    formation: formation ?? ((club) => savedFormation[clubKey(club)] || {}),
+    exportedAt: lastInput?.exportedAt || undefined,
+    scouting: lastInput?.scouting || undefined,
+    history: lastInput?.history?.length ? lastInput.history : undefined,
   });
 }
 
 let spy = null;
+
+// ---- checklist mode: ticks are saved per tactic, so a new or changed tactic starts with a clean list
+function tacticSignature(r) {
+  const parts = [r.club, r.best.ipName, r.best.oopName, JSON.stringify(r.instructions.values), r.instructions.mentality.value,
+    ...r.best.lanes.map((l) => `${l.player.id}:${l.ip}:${l.ipRole.id}:${l.oop}:${l.oopRole.id}`)];
+  let h = 5381;
+  for (const ch of parts.join('|')) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0;
+  return h.toString(36);
+}
+function loadChecks() {
+  try {
+    return JSON.parse(localStorage.getItem(CHECK_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+function saveChecks(sig, keys) {
+  const all = loadChecks();
+  if (keys.length) all[sig] = keys;
+  else delete all[sig];
+  const sigs = Object.keys(all);
+  if (sigs.length > 20) for (const old of sigs.slice(0, sigs.length - 20)) delete all[old]; // keep the last 20 tactics
+  remember(CHECK_KEY, JSON.stringify(all));
+}
+function updateChecklist() {
+  const boxes = [...$('setup')?.querySelectorAll('.tick input') || []];
+  const done = boxes.filter((b) => b.checked).length;
+  for (const b of boxes) b.closest('tr')?.classList.toggle('done', b.checked);
+  if (!$('cb-done')) return;
+  $('cb-done').textContent = String(done);
+  $('cb-total').textContent = String(boxes.length);
+  $('cb-fill').style.width = `${boxes.length ? (done / boxes.length) * 100 : 0}%`;
+  $('checkbar').classList.toggle('complete', boxes.length > 0 && done === boxes.length);
+}
+function setupChecklist(result) {
+  const sig = tacticSignature(result);
+  const saved = new Set(loadChecks()[sig] || []);
+  for (const b of $('setup')?.querySelectorAll('.tick input') || []) b.checked = saved.has(b.dataset.k);
+  updateChecklist();
+  return sig;
+}
+
+// ---- match plan: the next opponent, remembered per club
+function loadMatch(club) {
+  try {
+    return JSON.parse(localStorage.getItem(MATCH_KEY) || '{}')[clubKey(club)] || {};
+  } catch {
+    return {};
+  }
+}
+function saveMatch(club, opp) {
+  let all = {};
+  try {
+    all = JSON.parse(localStorage.getItem(MATCH_KEY) || '{}');
+  } catch {
+    /* start again */
+  }
+  all[clubKey(club)] = opp;
+  remember(MATCH_KEY, JSON.stringify(all));
+}
+function readMatchControls() {
+  const form = $('mp-controls');
+  const one = (n) => form.querySelector(`input[name="mp-${n}"]:checked`)?.value || null;
+  const many = (n) => [...form.querySelectorAll(`input[name="mp-${n}"]:checked`)].map((i) => i.value);
+  return { strength: one('strength'), venue: one('venue'), style: many('style'), players: many('players') };
+}
+function updateMatch() {
+  if (!lastResult || !$('mp-controls')) return;
+  const opp = readMatchControls();
+  saveMatch(lastResult.club, opp);
+  $('mp-out').innerHTML = matchPlanBody(lastResult, opp);
+}
+
+// ---- role suitability filter
+function applyFilter() {
+  const section = $('suitability');
+  if (!section || !$('sf-q')) return;
+  const q = $('sf-q').value.trim().toLowerCase();
+  const g = $('sf-g').value;
+  const xiOnly = $('sf-xi').checked;
+  const showLoan = $('sf-loan').checked;
+  let shown = 0;
+  const rowsOk = (tr) => (!q || tr.dataset.name.includes(q)) && (!xiOnly || tr.dataset.xi === '1') && (showLoan || tr.dataset.loan !== '1');
+  for (const tr of section.querySelectorAll('table.best tbody tr')) {
+    const ok = rowsOk(tr) && (!g || tr.dataset.groups.split(' ').includes(g));
+    tr.toggleAttribute('data-hidden', !ok);
+    if (ok) shown++;
+  }
+  for (const grp of section.querySelectorAll('.mx-group')) {
+    let any = false;
+    for (const tr of grp.querySelectorAll('tbody tr')) {
+      const ok = rowsOk(tr);
+      tr.toggleAttribute('data-hidden', !ok);
+      any ||= ok;
+    }
+    grp.toggleAttribute('data-hidden', (g && grp.dataset.group !== g) || !any);
+  }
+  const total = section.querySelectorAll('table.best tbody tr').length;
+  $('sf-count').textContent = !shown ? 'No players match' : shown === total ? `${total} players` : `${shown} of ${total} players`;
+}
+
+// ---- player cards
+function openCard(pid) {
+  const p = lastResult?.players.find((x) => x.id === pid);
+  if (!p) return;
+  $('pcard-body').innerHTML = playerCard(lastResult, p);
+  const dlg = $('pcard');
+  if (typeof dlg.showModal === 'function') dlg.showModal();
+  else dlg.setAttribute('open', '');
+}
 
 /** The section bar under the toolbar: one link per report section, the one you're reading underlined. */
 function buildSectionNav() {
@@ -136,15 +274,20 @@ function buildSectionNav() {
 
 function showResult(result, note = '') {
   lastResult = result;
-  $('report-holder').innerHTML = renderReport(result);
+  $('report-holder').innerHTML = renderReport(result, { match: loadMatch(result.club) });
   $('report-holder').classList.add('in-app');
+  $('sheet-holder').innerHTML = cheatSheet(result);
   buildSectionNav();
+  lastSignature = setupChecklist(result);
+  applyFilter();
   $('start').classList.add('hidden');
   $('result').classList.remove('hidden');
   $('picker').classList.add('hidden');
   const n = pickCount(loadPicks()[clubKey(result.club)]);
   $('picks-badge').textContent = n ? String(n) : '';
   $('picks-badge').hidden = !n;
+  $('formation-badge').hidden = !result.formationChoice;
+  $('formation-panel').classList.add('hidden');
   $('result-note').innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : '';
   $('src-note').textContent = lastInput?.label || '';
   $('strength-quick').value = String(strengthValue());
@@ -156,10 +299,15 @@ function showResult(result, note = '') {
 /**
  * @param {string} text  the export
  * @param {string} filename
- * @param {{label?: string, fromGame?: boolean}} [from]  where it came from, shown above the report
+ * @param {{label?: string, fromGame?: boolean, exportedAt?: string, scouting?: object, history?: object[], focus?: string}} [from]
+ *   where it came from (shown above the report), and extra exports to compare (shortlist, earlier squads)
  */
 function run(text, filename, from = {}) {
-  lastInput = { text, filename, label: from.label ?? filename, fromGame: !!from.fromGame };
+  lastInput = {
+    text, filename, label: from.label ?? filename, fromGame: !!from.fromGame,
+    exportedAt: from.exportedAt || null, scouting: from.scouting || null, history: from.history || [],
+  };
+  const focus = from.focus;
   setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
   setTimeout(() => {
     $('strength-quick').disabled = false; // the work below is synchronous, so the page can't be clicked meanwhile
@@ -167,6 +315,10 @@ function run(text, filename, from = {}) {
     let note = '';
     try {
       result = analyseNow(text, filename);
+      if (!result.ok && result.formationError) {
+        note = `Your formation was not used: ${esc(result.error)} Open <strong>Formation</strong> to change it.`;
+        result = analyseNow(text, filename, undefined, {});
+      }
       if (!result.ok && result.pickError) {
         // Saved picks no longer fit (players left, positions changed): build without them and say so.
         note = `Your saved picks were not used: ${esc(result.error)} Open <strong>Choose players</strong> to change them.`;
@@ -182,12 +334,31 @@ function run(text, filename, from = {}) {
       return;
     }
     showResult(result, note);
+    if (focus) setTimeout(() => document.getElementById(focus)?.scrollIntoView({ block: 'start' }), 60);
   }, 30);
+}
+
+/** A shortlist / player search (scouting) or older squad exports (history), loaded from a file into the current report. */
+async function loadExtra(kind, files) {
+  if (!lastInput || !files.length) return;
+  const read = async (f) => ({ name: f.name, text: decode(await f.arrayBuffer()), exportedAt: null });
+  const items = await Promise.all([...files].map(read));
+  const from = { label: lastInput.label, fromGame: lastInput.fromGame, exportedAt: lastInput.exportedAt, scouting: lastInput.scouting, history: lastInput.history };
+  if (kind === 'scouting') {
+    from.scouting = items[0];
+    from.focus = 'scouting';
+  } else {
+    const known = new Set(from.history.map((h) => h.name));
+    from.history = [...from.history, ...items.filter((h) => !known.has(h.name))];
+    from.focus = 'progress';
+  }
+  run(lastInput.text, lastInput.filename, from);
 }
 
 function openPicker() {
   if (!lastResult) return;
   const panel = $('picker');
+  $('formation-panel').classList.add('hidden');
   const current = loadPicks()[clubKey(lastResult.club)] || {};
   const ui = renderPicker(panel, lastResult, current, {
     onApply: (picks) => {
@@ -210,6 +381,37 @@ function openPicker() {
           return;
         }
         savePicks(result.club, picks);
+        showResult(result);
+      }, 30);
+    },
+    onClose: () => panel.classList.add('hidden'),
+  });
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({ block: 'start' });
+}
+
+function openFormation() {
+  if (!lastResult) return;
+  const panel = $('formation-panel');
+  $('picker').classList.add('hidden');
+  const current = loadFormations()[clubKey(lastResult.club)] || {};
+  const ui = renderFormationPanel(panel, lastResult, currentDocs().formations, current, {
+    onApply: (choice) => {
+      panel.querySelector('#fm-msg').innerHTML = '<div class="working"><span>Rebuilding the tactic on your formation…</span><span class="track"><i></i></span></div>';
+      setTimeout(() => {
+        let result;
+        try {
+          result = analyseNow(lastInput.text, lastInput.filename, undefined, choice);
+        } catch (err) {
+          console.error(err);
+          ui.showError(`Something went wrong: ${err.message}`);
+          return;
+        }
+        if (!result.ok) {
+          ui.showError(result.error);
+          return;
+        }
+        saveFormation(result.club, choice);
         showResult(result);
       }, 30);
     },
@@ -306,6 +508,68 @@ function init() {
   $('sample').addEventListener('click', () => run(sampleCsv, 'squad_20261108_201500.csv (sample)', { label: 'Sample squad' }));
   $('print').addEventListener('click', () => window.print());
   $('choose-players').addEventListener('click', openPicker);
+  $('formation-btn').addEventListener('click', openFormation);
+  $('extra-file').addEventListener('change', (e) => loadExtra(e.target.dataset.kind, e.target.files));
+  const holder = $('report-holder');
+  holder.addEventListener('change', (e) => {
+    if (e.target.matches('.tick input')) {
+      updateChecklist();
+      saveChecks(lastSignature, [...$('setup').querySelectorAll('.tick input:checked')].map((b) => b.dataset.k));
+    } else if (e.target.closest('#sfilter')) applyFilter();
+    else if (e.target.closest('#mp-controls')) updateMatch();
+  });
+  holder.addEventListener('input', (e) => {
+    if (e.target.id === 'sf-q') applyFilter();
+  });
+  holder.addEventListener('click', (e) => {
+    if (e.target.id === 'mp-clear') {
+      for (const i of $('mp-controls').querySelectorAll('input')) i.checked = i.type === 'radio' && i.value === '';
+      updateMatch();
+      return;
+    }
+    if (e.target.id === 'cb-clear') {
+      for (const b of $('setup').querySelectorAll('.tick input')) b.checked = false;
+      updateChecklist();
+      saveChecks(lastSignature, []);
+      return;
+    }
+    const load = e.target.closest('[data-load]');
+    if (load) {
+      const input = $('extra-file');
+      input.dataset.kind = load.dataset.load;
+      input.multiple = load.dataset.load === 'history';
+      input.value = '';
+      input.click();
+      return;
+    }
+    const who = e.target.closest('.pname, .pl[data-pid]');
+    if (who && !e.target.matches('input')) {
+      e.preventDefault();
+      openCard(who.dataset.pid);
+    }
+  });
+  holder.addEventListener('keydown', (e) => {
+    const who = e.target.closest?.('.pl[data-pid]');
+    if (who && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      openCard(who.dataset.pid);
+    }
+  });
+  $('pcard-close').addEventListener('click', () => $('pcard').close?.() ?? $('pcard').removeAttribute('open'));
+  $('pcard').addEventListener('click', (e) => {
+    if (e.target === $('pcard')) $('pcard').close(); // click on the backdrop
+  });
+  $('print-sheet').addEventListener('click', () => {
+    document.documentElement.classList.add('print-sheet');
+    window.print();
+    setTimeout(() => document.documentElement.classList.remove('print-sheet'), 500);
+  });
+  window.addEventListener('afterprint', () => document.documentElement.classList.remove('print-sheet'));
+  $('share-image').addEventListener('click', () => {
+    if (!lastResult) return;
+    const club = safeName(lastResult.club);
+    saveTacticImage(lastResult, `FM27 tactic${club ? ' - ' + club : ''}.png`);
+  });
   // Change the team strength on the report itself (the plugin opens the page straight on the tactic).
   $('strength-quick').addEventListener('change', (e) => {
     const value = e.target.value;
@@ -320,7 +584,7 @@ function init() {
     if (!lastResult) return;
     const date = new Date().toISOString().slice(0, 10);
     const club = safeName(lastResult.club);
-    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult, { theme: currentTheme() }), 'text/html');
+    download(`FM27 tactic${club ? ' - ' + club : ''} - ${date}.html`, standaloneReport(lastResult, { theme: currentTheme(), match: loadMatch(lastResult.club) }), 'text/html');
   });
   $('again').addEventListener('click', () => {
     $('result').classList.add('hidden');
@@ -373,7 +637,16 @@ function init() {
 
   // Opened by the FM27 plugin (F8): the squad is already inside this page, so build the tactic straight away.
   const injected = readInjected();
-  if (injected) run(injected.text, injected.name || 'squad.csv', { label: injectedLabel(injected), fromGame: true });
+  if (injected) {
+    run(injected.text, injected.name || 'squad.csv', {
+      label: injectedLabel(injected),
+      fromGame: true,
+      exportedAt: injected.exportedAt,
+      scouting: injected.scouting?.text ? injected.scouting : null,
+      history: Array.isArray(injected.history) ? injected.history.filter((h) => h && h.text) : [],
+      focus: injected.scouting?.text ? 'scouting' : null,
+    });
+  }
 }
 
 init();

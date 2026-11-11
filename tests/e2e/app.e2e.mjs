@@ -30,7 +30,7 @@ for (const file of SAMPLE_FILES) {
   await page.setInputFiles('#file', join(ROOT, 'samples', file));
   await page.waitForSelector('#result:not(.hidden) .report', { timeout: 15000 });
   const sections = await page.$$eval('.report section', (els) => els.map((e) => e.id));
-  assert.deepEqual(sections, ['overview', 'setup', 'why', 'depth', 'alternatives', 'training', 'suitability', 'data'], file);
+  assert.deepEqual(sections, ['overview', 'setup', 'why', 'depth', 'alternatives', 'match', 'training', 'suitability', 'data'], file);
   assert.equal(await page.$$eval('#overview svg.pitch', (els) => els.length), 2, file);
   console.log(`ok  ${file}`);
   await page.click('#again');
@@ -45,7 +45,7 @@ assert.match(under, /Defensive|Cautious/);
 assert.match(await page.textContent('.report .meta'), /underdogs/);
 console.log('ok  sample button + team strength (underdogs)');
 // Section bar: one link per section; jumping to a section underlines it
-assert.equal(await page.$$eval('#secnav a', (as) => as.length), 8);
+assert.equal(await page.$$eval('#secnav a', (as) => as.length), 9);
 await page.click('#secnav a[data-id="depth"]');
 await page.waitForFunction(() => document.querySelector('#secnav a.on')?.dataset.id === 'depth', null, { timeout: 5000 });
 // Hovering a heatmap row keeps its colours
@@ -74,7 +74,7 @@ await page.waitForSelector('#result:not(.hidden) .report');
 await page.click('#choose-players');
 await page.waitForSelector('#picker:not(.hidden) .pk-row');
 await page.locator('.pk-row', { hasText: 'Caleb Lindqvist' }).locator('label:has(input[value="marquee"])').click();
-await page.locator('.pk-row', { hasText: 'Sami Pemberton' }).locator('.switch').click();
+await page.locator('.pk-row', { hasText: 'Sami Pemberton' }).locator('.switch:not(.out)').click();
 await page.click('#pk-apply');
 await page.waitForFunction(() => document.querySelector('.report')?.textContent.includes('Built around your picks'), null, { timeout: 30000 });
 const overviewText = await page.textContent('#overview');
@@ -82,13 +82,81 @@ assert.ok(overviewText.includes('Lindqvist') && overviewText.includes('Pemberton
 assert.equal(await page.textContent('#picks-badge'), '2');
 console.log('ok  choose players: marquee + must start rebuild the tactic');
 await page.click('#choose-players');
-await page.locator('.pk-row', { hasText: 'Callum Ashdown' }).locator('.switch').click();
-await page.locator('.pk-row', { hasText: 'Rafael Holloway' }).locator('.switch').click();
+await page.locator('.pk-row', { hasText: 'Callum Ashdown' }).locator('.switch:not(.out)').click();
+await page.locator('.pk-row', { hasText: 'Rafael Holloway' }).locator('.switch:not(.out)').click();
 assert.ok(await page.isDisabled('#pk-apply'), 'two goalkeepers cannot be applied');
 await page.click('#pk-clear');
 await page.click('#pk-apply');
 await page.waitForFunction(() => !document.querySelector('.report').textContent.includes('Built around your picks'), null, { timeout: 30000 });
 console.log('ok  picks validated and cleared');
+
+// Checklist mode: ticks show progress and survive a reload of the same tactic
+await page.click('#secnav a[data-id="setup"]');
+const ticks = page.locator('#setup .tick input');
+await ticks.nth(0).check();
+await ticks.nth(1).check();
+assert.equal(await page.textContent('#cb-done'), '2');
+await page.reload();
+await page.click('#sample');
+await page.waitForSelector('#result:not(.hidden) .report');
+assert.equal(await page.textContent('#cb-done'), '2', 'ticks remembered for this tactic');
+await page.click('#cb-clear');
+assert.equal(await page.textContent('#cb-done'), '0');
+console.log('ok  checklist mode');
+
+// Player card from the pitch
+await page.click('#overview .pl[data-pid] >> nth=0');
+await page.waitForSelector('#pcard[open] .pcard');
+assert.match(await page.textContent('#pcard .pcard'), /In this tactic/);
+await page.click('#pcard-close');
+console.log('ok  player card');
+
+// Role suitability filter
+await page.click('#secnav a[data-id="suitability"]');
+await page.fill('#sf-q', 'lindq');
+assert.match(await page.textContent('#sf-count'), /^1 of \d+ players$/);
+await page.fill('#sf-q', '');
+console.log('ok  role suitability filter');
+
+// Match plan: the plan follows what you pick about the opponent
+await page.click('#secnav a[data-id="match"]');
+await page.click('#mp-controls label:has(input[value="muchStronger"])');
+await page.click('#mp-controls label:has(input[value="away"])');
+await page.click('#mp-controls label:has(input[value="pressHigh"])');
+assert.match(await page.textContent('#mp-out'), /Away against stronger teams/);
+await page.click('#mp-clear');
+assert.match(await page.textContent('#mp-out'), /Pick what your next opponent is like/);
+console.log('ok  match plan');
+
+// Formation: your own shape, then back to the tool's choice
+await page.click('#formation-btn');
+await page.selectOption('#fm-ip', '4-4-2');
+await page.selectOption('#fm-oop', '4-4-2');
+await page.click('#fm-apply');
+await page.waitForFunction(() => document.querySelector('#overview')?.textContent.includes('Built on your formation'), null, { timeout: 30000 });
+assert.ok(!(await page.isHidden('#formation-badge')), 'badge shows your formation is in use');
+await page.click('#formation-btn');
+await page.click('#fm-auto');
+await page.waitForFunction(() => !document.querySelector('#overview')?.textContent.includes('Built on your formation'), null, { timeout: 30000 });
+console.log('ok  formation: your own and back to auto');
+
+// Unavailable players are left out
+await page.click('#choose-players');
+const firstStarter = (await page.$eval('#overview .pl[data-pid] title', (t) => t.textContent)).split(' · ')[0];
+await page.locator('.pk-row', { hasText: firstStarter }).locator('.switch.out').click();
+await page.click('#pk-apply');
+await page.waitForFunction((n) => document.querySelector('#overview')?.textContent.includes('marked them unavailable'), firstStarter, { timeout: 30000 });
+await page.click('#choose-players');
+await page.click('#pk-clear');
+await page.click('#pk-apply');
+await page.waitForFunction(() => !document.querySelector('#overview')?.textContent.includes('marked them unavailable'), null, { timeout: 30000 });
+console.log('ok  unavailable players');
+
+// Cheat sheet and image
+assert.ok(await page.$('#sheet-holder .sheet'), 'cheat sheet ready to print');
+const [png] = await Promise.all([page.waitForEvent('download'), page.click('#share-image')]);
+assert.match(png.suggestedFilename(), /^FM27 tactic - Harbour City\.png$/);
+console.log('ok  cheat sheet ready, image saved');
 
 const [download] = await Promise.all([page.waitForEvent('download'), page.click('#save')]);
 assert.match(download.suggestedFilename(), /^FM27 tactic - Harbour City - \d{4}-\d{2}-\d{2}\.html$/);
@@ -98,7 +166,15 @@ console.log('ok  save report');
 // Same filling as plugin/src/FM27TacticBuilder.Core/TacticPage.cs (JSON with <, > and & escaped).
 const SLOT = '<script type="application/json" id="fm27tb-export">null</script>';
 const csv = readFileSync(join(ROOT, 'samples', 'squad_20261108_201500.csv'), 'utf8');
-const json = JSON.stringify({ name: 'squad_20261110_180852.csv', exportedAt: '2026-11-10T18:08:52', source: 'Football Manager 27', text: csv })
+const lines = csv.replace(/^\uFEFF/, '').split(/\r?\n/);
+const head = lines[0];
+const older = lines.map((l, i) => (i && l ? l.replace(/(^|,)(1[0-8])(,|$)/, (m, a, v, b) => `${a}${Number(v) - 2}${b}`) : l)).join('\n');
+const shortlist = [head, ...lines.slice(1, 8).map((l, i) => l.replace(/^\d+,/, `990${i},`).replace(/,Harbour City,/, ',Other FC,'))].join('\n');
+const json = JSON.stringify({
+  name: 'squad_20261110_180852.csv', exportedAt: '2026-11-10T18:08:52', source: 'Football Manager 27', text: csv,
+  scouting: { name: 'shortlist_20261111_100000.csv', exportedAt: '2026-11-11T10:00:00', text: shortlist },
+  history: [{ name: 'squad_20261001_120000.csv', exportedAt: null, text: older }],
+})
   .replace(/[<>&\u2028\u2029]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 const template = readFileSync(join(ROOT, 'FM27-Tactic-Builder.html'), 'utf8');
 assert.equal(template.split(SLOT).length, 2, 'the page has one slot for the plugin');
@@ -111,6 +187,9 @@ await fromGame.goto('file://' + filled);
 await fromGame.waitForSelector('#result:not(.hidden) .report', { timeout: 15000 });
 assert.match(await fromGame.textContent('#src-note'), /^Read from FM27 · /);
 assert.match(await fromGame.textContent('.report'), /Harbour City/);
+assert.ok(await fromGame.$('#scouting'), 'shortlist compared');
+assert.match(await fromGame.textContent('#depth'), /players scored in this tactic's positions and roles/);
+assert.match(await fromGame.textContent('#training'), /Progress since 1 Oct 2026/);
 assert.equal(await fromGame.$eval('#strength-quick', (e) => e.value), '0');
 await fromGame.selectOption('#strength-quick', '2');
 await fromGame.waitForFunction(() => /title favourites/.test(document.querySelector('.report .meta')?.textContent || ''), null, { timeout: 15000 });

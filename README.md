@@ -73,7 +73,7 @@ tactic; open it any time), `exports\` (every squad you read, as CSV) and `views\
 
 | Key | What it does |
 | --- | --- |
-| **F8** | Reads the list on screen and opens your tactic |
+| **F8** | On your Squad screen: reads your players and opens your tactic. On a shortlist or player search: opens your latest tactic with those players scored as signings |
 | **Ctrl+F8** | Only saves the list as CSV (works on the squad, player database and shortlist screens) |
 | **Ctrl+Shift+F8** | Writes a dump of the game's screen layout, for fixing the plugin after an FM27 patch |
 
@@ -105,6 +105,7 @@ After the report appears, click **Choose players** to tell the builder about you
 | --- | --- |
 | **Must start** | He is always in the starting XI, in a position he can play. Formations that can't fit him are skipped. Pick up to 11. |
 | **Marquee** | The tactic is built around him. He always starts, and his fit counts 2.5 times when the builder compares formations and roles, so it chooses the shape and role that suit him best. Some team instructions are shaped for him too, for example *Progress Through* down his flank, *Pass Into Space* for a quick striker, or *Goalkeeper Distribution: Playmaker* for a deep playmaker. |
+| **Unavailable** | Suspended, resting or about to be sold: the tactic, the depth chart and every alternative are built without him. |
 | **Future star** | A young player with high potential. He wins close calls for a place (but won't start ahead of a much better player), is preferred as cover, and gets a development plan in the Training section. That plan covers the position and roles he grows into, how far he is from starting, which key attributes to train and how to give him minutes. If he doesn't start, an extra alternative tactic, *With your future stars starting*, puts all your future stars in the XI. |
 
 Everything else works the same way: the same game plan, balance rules and team instructions, built around your picks. The
@@ -114,6 +115,21 @@ how strong the team would be if the builder chose freely, and who would play ins
 Picks are remembered for that club in this browser, so your next export of the same squad uses them automatically. If a new
 export no longer fits them (say a picked player has left), the tactic is built without them and the report tells you.
 Players out on loan can't be picked.
+
+## More tools in the report
+
+| Tool | What it does |
+| --- | --- |
+| **Formation** (toolbar) | Choose the in-possession and/or out-of-possession shape yourself ("I want 4-2-3-1"). The tool builds the best eleven, roles and instructions for it, and says what the tool's own choice would have been. *Let the tool choose both* goes back. Remembered per club. |
+| **Checklist** (section 2) | Every setting has a tick box. Tick them off as you copy them into FM27; a bar shows how far you are. Ticks are kept for that tactic, and a changed tactic starts a fresh list. On paper the boxes print empty, to tick with a pen. |
+| **Player cards** | Click a player on a pitch or any underlined name: his place in the tactic, the attributes of his roles against your team's level, who else can play there and his best roles anywhere. |
+| **Signings** (section 4) | Press **F8** on your shortlist or a player search (or load such an export): every player is scored in your tactic's own positions and roles, and the report lists who would start for you, by how much he'd beat your current starter, who'd be better cover, and the best option for each weak spot. |
+| **Match plan** (section 6) | Pick what your next opponent is like: stronger or weaker, home or away, how they play (press high, sit deep, long balls…) and what their players are good at. You get which of your tactics to start from, the mentality, and which team instructions to change, each with a reason from your own squad. |
+| **Cup / rotation XI** (section 5) | An alternative for cup games and busy weeks: the same shapes with your first XI rested and young players first in line. |
+| **Progress** (section 7) | With the plugin, every F8 is kept; the report compares your squad with your earlier reads of the same club: first-team level over time, who is improving (with the attributes that rose), who is declining, arrivals and departures. Without the plugin, load an older export. |
+| **Role filter** (section 8) | Search by name, filter by position, show only the starting XI or hide players on loan. |
+| **Cheat sheet** (toolbar) | Prints a single A4 page with both shapes and every setting that differs from FM's defaults, to keep next to you. |
+| **Image** (toolbar) | Saves a picture of the tactic (both shapes, key instructions, set pieces) to share on Discord or Reddit. |
 
 ## Put it into FM27
 
@@ -127,8 +143,8 @@ Section 2 of the report, "Enter it in FM27", has six steps in the order of FM27'
 5. **Player instructions.**
 6. **Set pieces and captain.**
 
-Settings that differ from FM's defaults are in **bold**; leave the rest alone. Save the alternative tactics (section 5) in FM27's
-other tactic slots.
+Settings that differ from FM's defaults are in **bold** and have a tick box; leave the rest alone. Save the alternative tactics
+(section 5) in FM27's other tactic slots. Prefer one page? Use **Cheat sheet** in the toolbar.
 
 ---
 
@@ -225,7 +241,7 @@ npm run report -- samples/squad_20261108_201500.csv out/report.html
 # The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
 dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
 dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
-plugin/packaging/package.sh 0.6.0                         # plugin zip, full package (downloads BepInEx), setup.exe
+plugin/packaging/package.sh 0.7.0                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
 
 GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the

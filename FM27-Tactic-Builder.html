@@ -91,6 +91,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 .report .hint-line .ico { margin-top: 2px; }
 .report .hint-line strong { color: var(--ink-2); }
 
+.report h3[id] { scroll-margin-top: var(--scroll-offset, 64px); }
 .report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: var(--scroll-offset, 64px); }
 .report .lede { color: var(--ink-2); max-width: 78ch; }
 
@@ -287,6 +288,124 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 .report .alt:first-of-type { border-top: 0; padding-top: 0; }
 .report .alt .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
 
+/* checklist mode: tick boxes in "Enter it in FM27" (app: saved per tactic; paper: empty boxes to tick by hand) */
+.report .tick { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; }
+.report .tick input { appearance: none; -webkit-appearance: none; flex: none; width: 17px; height: 17px; margin: 0; border-radius: 5px; border: 1.5px solid var(--line-2); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
+.report .tick input::after { content: ""; width: 9px; height: 5px; border: 2px solid var(--accent-ink); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.report .tick input:checked { background: var(--accent); border-color: var(--accent); }
+.report .tick input:checked::after { opacity: 1; }
+.report .tick input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.report tr.done td { opacity: .5; }
+.report tr.done .tick span, .report tr.done .tick .pname { text-decoration: line-through; text-decoration-color: var(--muted); }
+.report table.settings.checklist td.name { padding-left: 10px; }
+.report table.settings.checklist tr.changed td.name::before { display: none; }
+.report table.settings.checklist tr.unchanged td.name { padding-left: 36px; }
+.report .app-only { display: none; }
+.in-app .report .app-only { display: flex; }
+.report .checkbar { align-items: center; gap: 12px; margin: 4px 0 6px; font-size: 13px; color: var(--ink-2); }
+.report .checkbar .cb-track { flex: 0 1 240px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.report .checkbar .cb-track i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .2s; }
+.report .checkbar.complete .cb-text { color: var(--accent); }
+.report .linkbtn { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.report .linkbtn:hover { color: var(--ink); }
+
+/* match plan */
+.report .mp-controls { flex-direction: column; gap: 8px; margin: 8px 0 14px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
+.report .mp-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.report .mp-l { width: 82px; flex: none; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.report .mp-chip { position: relative; cursor: pointer; }
+.report .mp-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.report .mp-chip span { display: inline-block; font-size: 13px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); background: var(--surface); }
+.report .mp-chip span:hover { color: var(--ink); border-color: var(--ink-2); }
+.report .mp-chip input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); font-weight: 600; }
+.report .mp-chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.report .mp-plan .kpis { margin-top: 10px; }
+
+/* recruitment and progress */
+.report .loadrow { flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 2px; }
+.report .loadrow .btn { font: inherit; font-size: 13px; font-weight: 600; border-radius: 8px; padding: 6px 11px; border: 1px solid var(--line-2); background: transparent; color: var(--ink); cursor: pointer; }
+.report .loadrow .btn:hover { border-color: var(--ink-2); }
+.report .tag.muted-tag { color: var(--muted); }
+.report .tag.up { color: var(--pos); border-color: transparent; background: color-mix(in srgb, var(--pos) 12%, transparent); }
+.report .tag.down { color: var(--neg); border-color: transparent; background: color-mix(in srgb, var(--neg) 12%, transparent); }
+.report table.scout { min-width: 760px; }
+.report svg.trend { width: 100%; max-width: 560px; height: auto; display: block; margin: 8px 0 4px; }
+.report svg.trend .grid { stroke: var(--line); stroke-width: 1; }
+.report svg.trend .ax { font: 11px var(--font); fill: var(--muted); }
+.report svg.trend .val { font: 600 12px var(--font); fill: var(--ink); }
+.report svg.trend .ln { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.report svg.trend .hit { fill: transparent; }
+.report svg.trend .dot { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+.report svg.trend .dot.now { fill: var(--accent); }
+.report svg.trend .pt:hover .dot, .report svg.trend .pt:focus .dot { stroke-width: 3; }
+
+/* player names open the player card in the app */
+.report .pname { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-align: left; cursor: default; }
+.in-app .report .pname { cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+.in-app .report .pname:hover { text-decoration-color: var(--accent); color: var(--ink); }
+.in-app .report .pl[data-pid] { cursor: pointer; }
+
+/* role suitability filter */
+.report .sfilter { flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 4px 0 8px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
+.report .sfilter input[type="search"], .report .sfilter select { font: inherit; font-size: 13.5px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: 8px; padding: 6px 9px; }
+.report .sfilter input[type="search"] { width: min(240px, 100%); }
+.report .sfilter .check { display: inline-flex; gap: 7px; align-items: center; font-size: 13px; color: var(--ink-2); margin: 0; }
+.report .sfilter .check input { accent-color: var(--accent); }
+.report .sf-count { font-size: 12.5px; color: var(--muted); margin-left: auto; }
+.report [data-hidden] { display: none !important; }
+
+/* player card */
+.pcard-dialog { border: 1px solid var(--line-2); border-radius: 14px; padding: 0; background: var(--surface); color: var(--ink); width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 48px); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
+.pcard-dialog::backdrop { background: rgba(0, 0, 0, .55); }
+.pcard-dialog .report { padding: 0; }
+.pcard-dialog .pc-close { position: sticky; top: 0; float: right; margin: 10px 10px 0 0; z-index: 2; }
+.report .pcard { padding: 18px 22px 20px; }
+.report .pc-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding-right: 44px; }
+.report .pc-head h3 { margin: 0; font-size: 20px; }
+.report .pc-facts { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.report .pc-level { display: grid; justify-items: end; line-height: 1.2; flex: none; }
+.report .pc-level strong { font-size: 22px; }
+.report .pc-tags { margin: 8px 0 2px; }
+.report .pcard h4 { margin-top: 16px; }
+.report .pc-place { display: grid; gap: 4px; font-size: 14px; }
+.report .pc-place > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.report .pc-sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.report .pc-sub b { color: var(--ink-2); }
+.report .pc-attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 6px 22px; }
+.report .pc-rt { font-size: 12.5px; font-weight: 650; display: flex; align-items: center; gap: 6px; margin: 4px 0 4px; }
+.report .ab { display: grid; grid-template-columns: 128px 1fr 34px; gap: 8px; align-items: center; font-size: 12.5px; color: var(--ink-2); padding: 1px 0; }
+.report .ab.keyattr .an { color: var(--ink); font-weight: 600; }
+.report .abar { position: relative; height: 8px; border-radius: 4px; background: var(--line); }
+.report .abar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--muted); opacity: .7; }
+.report .ab.hi .abar i { background: var(--pos); opacity: 1; }
+.report .ab.lo .abar i { background: var(--neg); opacity: 1; }
+.report .abar b { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
+.report .av { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+.report .tickkey { display: inline-block; width: 2px; height: 12px; background: var(--ink); border-radius: 1px; vertical-align: -2px; }
+.report .hi-k { color: var(--pos); font-weight: 600; } .report .lo-k { color: var(--neg); font-weight: 600; }
+.report .pc-best { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; font-size: 13px; }
+
+/* one-page cheat sheet (printed on its own) */
+.sheet { font: 9.5px/1.35 var(--font); color: #111; }
+.sheet header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; border-bottom: 1.5px solid #111; padding-bottom: 4px; margin-bottom: 6px; }
+.sheet h1 { font-size: 17px; margin: 0; }
+.sheet .eyebrow { font-size: 8px; text-transform: uppercase; letter-spacing: .1em; color: #555; font-weight: 700; }
+.sheet .sh-kpis { display: flex; flex-wrap: wrap; gap: 3px 12px; justify-content: flex-end; font-size: 9px; color: #444; }
+.sheet .sh-kpis b { color: #111; }
+.sheet .sh-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 10px; }
+.sheet .sh-pitches { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-content: start; }
+.sheet .sh-pitches table { grid-column: 1 / -1; }
+.sheet figure { margin: 0; }
+.sheet figcaption { font-weight: 700; font-size: 9px; margin-bottom: 2px; }
+.sheet svg.pitch { width: 100%; height: auto; display: block; }
+.sheet h2 { font-size: 10px; margin: 6px 0 2px; text-transform: uppercase; letter-spacing: .06em; }
+.sheet h2 span { font-weight: 400; text-transform: none; letter-spacing: 0; color: #666; }
+.sheet .sh-t { width: 100%; border-collapse: collapse; font-size: inherit; margin: 0; }
+.sheet .sh-t th, .sheet .sh-t td { text-align: left; padding: 1.5px 4px; border-bottom: .5px solid #ccc; vertical-align: top; }
+.sheet .sh-t th { font-size: 8px; color: #666; font-weight: 600; }
+.sheet .sh-foot { margin-top: 6px; font-size: 8px; color: #666; }
+.sheet .pl .pill { fill: #fff; } .sheet .pitch .nm { fill: #111; }
+
 @media (max-width: 900px) {
   .report .pitches.three, .report .pitches.small.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 }
@@ -317,6 +436,9 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
   .report .pf-row, .report .pf-axis { grid-template-columns: minmax(110px, 1.1fr) 1.6fr 36px 30px; }
   .report section.card#overview { break-before: auto; }
   .report nav.toc, .report .tip { display: none !important; }
+  .report .app-only, .report .sfilter { display: none !important; }
+  .report .tick input { border-color: #777; background: #fff; }
+  .report .pname { text-decoration: none !important; }
   .report .pl .pill { fill: #ffffff; }
   .report table, .report figure, .report .pos-card, .report .pf-row { break-inside: avoid; }
   .report .tablewrap { overflow: visible; }
@@ -429,7 +551,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .pk-warn { color: var(--warn); }
 .pk-list { display: grid; gap: 14px; margin-top: 8px; }
 .pk-gt { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 650; margin: 4px 0 6px; }
-.pk-row { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(170px, 1.3fr) auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
+.pk-row { display: grid; grid-template-columns: minmax(160px, 1.3fr) minmax(150px, 1.2fr) auto auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
 .pk-row:hover { background: var(--surface-2); border-color: var(--line); }
 .pk-row[hidden] { display: none; }
 .pk-name { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
@@ -451,6 +573,15 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .switch input:disabled + .knob { opacity: .55; }
 .switch input:focus-visible + .knob { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg.mini { padding: 3px; gap: 2px; flex-wrap: nowrap; }
+.fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 14px 0 6px; }
+.fm-grid label { display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.fm-grid select { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 9px 10px; }
+.fm-grid select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fm-top { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.fm-top button { font: inherit; font-size: 12.5px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+.fm-top button:hover { color: var(--ink); border-color: var(--line-2); }
+.fm-top button b { color: var(--ink); font-weight: 650; }
+.fm-top button span { color: var(--muted); }
 .seg.mini span { padding: 4px 9px; font-size: 12.5px; }
 @media (max-width: 860px) {
   .grid2 { grid-template-columns: 1fr; }
@@ -458,6 +589,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   .pk-role { grid-column: 1 / -1; order: 3; }
   .pk-row .seg.mini { grid-column: 1 / -1; order: 4; }
 }
+@media (max-width: 1400px) { #again .lbl { display: none; } }
 @media (max-width: 700px) {
   .topbar { margin: -10px -16px 4px; padding: 0 16px; }
   .toolbar { gap: 6px; padding: 8px 0 6px; }
@@ -466,7 +598,12 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   .tb-strength select { padding: 7px 8px; }
 }
 @media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
-@media print { body { background: #fff; } .appbar, .topbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
+#sheet-holder { display: none; }
+@media print {
+  body { background: #fff; } .appbar, .topbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; }
+  html.print-sheet #start, html.print-sheet #result > :not(#sheet-holder), html.print-sheet .appbar { display: none !important; }
+  html.print-sheet #sheet-holder { display: block; max-width: none; }
+}
 </style>
 </head>
 <body>
@@ -475,7 +612,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
       <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
       <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
-    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.6.0 · works offline · only reads your squad, never changes your game</div></div>
+    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.7.0 · works offline · only reads your squad, never changes your game</div></div>
   </div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
     <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -570,8 +707,11 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     <div class="topbar no-print">
     <div class="toolbar">
       <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
-      <button class="btn ghost" id="print" type="button" title="Print / Save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Print / Save as PDF</span></button>
-      <button class="btn ghost" id="save" type="button" title="Save the report as a file" aria-label="Save report"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Save report</span></button>
+      <button class="btn ghost" id="formation-btn" type="button" title="Choose the formation yourself" aria-label="Formation"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="2.5" width="14" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 10h14" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="6" r="1.3" fill="currentColor"/><circle cx="6.5" cy="13.5" r="1.3" fill="currentColor"/><circle cx="13.5" cy="13.5" r="1.3" fill="currentColor"/></svg><span class="lbl">Formation</span><span class="badge" id="formation-badge" hidden>yours</span></button>
+      <button class="btn ghost" id="print" type="button" title="Print / Save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Print</span></button>
+      <button class="btn ghost" id="print-sheet" type="button" title="Print a one-page cheat sheet" aria-label="Print cheat sheet"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 2.5h6l3 3v12h-9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9h5M8 12h5M8 15h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="lbl">Cheat sheet</span></button>
+      <button class="btn ghost" id="share-image" type="button" title="Save a picture of the tactic to share" aria-label="Save tactic image"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7.5" cy="8.5" r="1.6" fill="currentColor"/><path d="m3.5 15 4.5-4.5 3 3 2-2 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Image</span></button>
+      <button class="btn ghost" id="save" type="button" title="Save the report as a file" aria-label="Save report"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Save</span></button>
       <label class="tb-strength"><span class="tbl">Team strength</span>
         <select id="strength-quick">
           <option value="2">Title favourites</option>
@@ -588,16 +728,20 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     </div>
     <div id="result-note" class="no-print"></div>
     <div id="picker" class="panel picker hidden no-print"></div>
+    <div id="formation-panel" class="panel picker hidden no-print"></div>
     <div id="report-holder"></div>
+    <div id="sheet-holder" class="report"></div>
+    <input type="file" id="extra-file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
   </section>
 </main>
+<dialog id="pcard" class="pcard-dialog no-print" aria-label="Player card"><button class="icon-btn pc-close" type="button" id="pcard-close" aria-label="Close">✕</button><div class="report" id="pcard-body"></div></dialog>
 <script type="application/json" id="fm27tb-export">null</script>
 <script>
 (() => {
   // src/input/csv.js
   var CANDIDATES = [",", ";", "	"];
-  function detectDelimiter(text) {
-    const firstLine = firstRecord(text);
+  function detectDelimiter(text2) {
+    const firstLine = firstRecord(text2);
     let best = ",";
     let bestCount = -1;
     for (const d of CANDIDATES) {
@@ -609,14 +753,14 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     }
     return best;
   }
-  function firstRecord(text) {
+  function firstRecord(text2) {
     let inQuotes = false;
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
+    for (let i = 0; i < text2.length; i++) {
+      const c = text2[i];
       if (c === '"') inQuotes = !inQuotes;
-      else if ((c === "\n" || c === "\r") && !inQuotes) return text.slice(0, i);
+      else if ((c === "\n" || c === "\r") && !inQuotes) return text2.slice(0, i);
     }
-    return text;
+    return text2;
   }
   function countOutsideQuotes(line, ch) {
     let n = 0;
@@ -627,18 +771,18 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     }
     return n;
   }
-  function parseCSV(text, delimiter) {
-    text = stripBom(text);
-    const d = delimiter || detectDelimiter(text);
+  function parseCSV(text2, delimiter) {
+    text2 = stripBom(text2);
+    const d = delimiter || detectDelimiter(text2);
     const records = [];
     let field = "";
     let record = [];
     let inQuotes = false;
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
+    for (let i = 0; i < text2.length; i++) {
+      const c = text2[i];
       if (inQuotes) {
         if (c === '"') {
-          if (text[i + 1] === '"') {
+          if (text2[i + 1] === '"') {
             field += '"';
             i++;
           } else {
@@ -653,7 +797,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
         record.push(field);
         field = "";
       } else if (c === "\n" || c === "\r") {
-        if (c === "\r" && text[i + 1] === "\n") i++;
+        if (c === "\r" && text2[i + 1] === "\n") i++;
         record.push(field);
         records.push(record);
         record = [];
@@ -687,8 +831,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     }
     return comma > dot;
   }
-  function stripBom(text) {
-    return text.charCodeAt(0) === 65279 ? text.slice(1) : text;
+  function stripBom(text2) {
+    return text2.charCodeAt(0) === 65279 ? text2.slice(1) : text2;
   }
 
   // src/input/html.js
@@ -716,9 +860,9 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       let c;
       while (c = cellRe.exec(m[1])) {
         if (c[1].toLowerCase() === "th") isHeader = true;
-        const text = cellText(c[3].replace(/<\/t[hd]>\s*$/i, ""));
+        const text2 = cellText(c[3].replace(/<\/t[hd]>\s*$/i, ""));
         const span = /colspan\s*=\s*"?(\d+)/i.exec(c[2]);
-        cells.push(text);
+        cells.push(text2);
         for (let k = 1; span && k < Number(span[1]); k++) cells.push("");
       }
       if (cells.length) rows.push({ cells, isHeader });
@@ -797,21 +941,21 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   }
 
   // src/input/index.js
-  function looksLikeHtml(text, filename = "") {
+  function looksLikeHtml(text2, filename = "") {
     if (/\.html?$/i.test(filename)) return true;
-    return /<table\b/i.test(text.slice(0, 5e5)) && /<\/t[dh]>/i.test(text.slice(0, 5e5));
+    return /<table\b/i.test(text2.slice(0, 5e5)) && /<\/t[dh]>/i.test(text2.slice(0, 5e5));
   }
-  function readExport(text, filename = "") {
-    text = stripBom(String(text || ""));
+  function readExport(text2, filename = "") {
+    text2 = stripBom(String(text2 || ""));
     const warnings = [];
     let table;
     let format;
-    if (looksLikeHtml(text, filename)) {
-      const t = parseHTMLTable(text);
+    if (looksLikeHtml(text2, filename)) {
+      const t = parseHTMLTable(text2);
       table = { headers: t.headers, rows: t.rows, delimiter: null, decimalComma: guessDecimalComma(t.rows) };
       format = "html";
     } else {
-      table = parseCSV(text);
+      table = parseCSV(text2);
       format = "csv";
     }
     if (!table.headers.length) warnings.push("The file has no table in it.");
@@ -861,10 +1005,10 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 
   // src/parse/positions.js
   var SIDED = /* @__PURE__ */ new Set(["D", "WB", "M", "AM", "ST"]);
-  function parsePositions(text) {
+  function parsePositions(text2) {
     const out = /* @__PURE__ */ new Set();
-    if (!text) return out;
-    const chunks = String(text).replace(/[–—]/g, "-").split(/,|;|\|/).map((s) => s.trim()).filter(Boolean);
+    if (!text2) return out;
+    const chunks = String(text2).replace(/[–—]/g, "-").split(/,|;|\|/).map((s) => s.trim()).filter(Boolean);
     for (const chunk of chunks) {
       const m = /^([A-Za-z/ ]+?)\s*(?:\(([RLCrlc ]+)\))?$/.exec(chunk);
       if (!m) continue;
@@ -1050,6 +1194,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
         ability: parseNumber(get(row, "ability"), table.decimalComma),
         potential: parseNumber(get(row, "potential"), table.decimalComma),
         playingTime: cleanText(get(row, "playingTime")),
+        wage: cleanText(get(row, "wage")),
+        transferValue: cleanText(get(row, "transferValue")),
         mediaHandling: cleanText(get(row, "mediaHandling")),
         onLoan: false,
         fmBestRole: cleanText(get(row, "bestRole")),
@@ -1311,8 +1457,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   var DEEP_MID = /* @__PURE__ */ new Set(["DM", "M (C)"]);
   function evaluateBalance(lanes, slots, cfg) {
     const notes = [];
-    const add = (points2, text) => {
-      if (points2) notes.push({ points: points2, text });
+    const add = (points2, text2) => {
+      if (points2) notes.push({ points: points2, text: text2 });
     };
     const ip = lanes.map((l) => ({ role: l.ipRole, slot: l.ip, pos: slots[l.ip][2], x: slots[l.ip][0] }));
     const oop = lanes.map((l) => ({ role: l.oopRole, slot: l.oop, pos: slots[l.oop][2], x: slots[l.oop][0] }));
@@ -1384,8 +1530,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   }
   function evaluatePlan(lanes, slots, plan, cfg) {
     const notes = [];
-    const add = (points, text) => {
-      if (points) notes.push({ points, text });
+    const add = (points, text2) => {
+      if (points) notes.push({ points, text: text2 });
     };
     const ip = lanes.map((l) => l.ipRole).filter(Boolean);
     const oop = lanes.map((l) => l.oopRole).filter(Boolean);
@@ -1452,13 +1598,23 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       allowedFam: new Set(tuning.familiarity.allowInStartingXI),
       warnings: []
     };
-    const atClub = players.filter((p) => !p.onLoan);
+    const only = (list, name) => name ? list.filter((f) => f.name === name) : list;
+    ctx.formations = {
+      ...docs.formations,
+      inPossession: only(docs.formations.inPossession, search.forceIp),
+      outOfPossession: only(docs.formations.outOfPossession, search.forceOop)
+    };
+    ctx.forced = !!(search.forceIp || search.forceOop);
+    const atClub = players.filter((p) => !p.onLoan && !p.unavailable);
     const picksCfg = tuning.picks;
     const usePicks = !search.ignorePicks;
     const extra = new Set(search.extraLocks || []);
     ctx.locked = new Set(usePicks ? atClub.filter((p) => p.mustStart || p.label === "marquee" || extra.has(p.id)) : []);
     ctx.pickWeight = (p) => !usePicks ? 1 : p.label === "marquee" ? picksCfg.marqueeWeight : p.label === "future" ? picksCfg.futureStarWeight : 1;
     ctx.pickBonus = (p) => usePicks && p.label === "future" ? picksCfg.futureStarBonus : 0;
+    const rest = new Set(search.rest || []);
+    const youth = search.youthBonus || 0;
+    ctx.selectBias = (p) => (rest.has(p.id) ? -(search.restPenalty ?? 30) : 0) + (youth && p.age != null && p.age <= 21 ? youth : 0);
     let available = atClub.filter((p) => !(search.excludeInjured && p.injured) || ctx.locked.has(p));
     if (available.length < 11) {
       ctx.warnings.push("Fewer than 11 fit players, so injured players were included.");
@@ -1534,7 +1690,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       (lane, i) => pool.map((p) => {
         const v = laneValue(ctx, p, lane, roles && roles[i]);
         if (v <= FORBIDDEN / 2) return v;
-        return ctx.locked.has(p) ? v * ctx.pickWeight(p) + lockBonus : v + ctx.pickBonus(p);
+        return ctx.locked.has(p) ? v * ctx.pickWeight(p) + lockBonus : v + ctx.pickBonus(p) + ctx.selectBias(p);
       })
     );
     const { rowToCol } = assignMax(value);
@@ -2100,12 +2256,12 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     };
     const L = sideValue("L");
     const R = sideValue("R");
-    const C = sideValue("C");
+    const C2 = sideValue("C");
     let pt = "Balanced";
-    let ptWhy = `Your left (fit ${f1(L)}), centre (${f1(C)}) and right (${f1(R)}) are about equally strong.`;
+    let ptWhy = `Your left (fit ${f1(L)}), centre (${f1(C2)}) and right (${f1(R)}) are about equally strong.`;
     if (L != null && R != null && L - R >= 5) [pt, ptWhy] = ["Left", `Your left side is clearly stronger (fit ${f1(L)} against ${f1(R)} on the right).`];
     else if (L != null && R != null && R - L >= 5) [pt, ptWhy] = ["Right", `Your right side is clearly stronger (fit ${f1(R)} against ${f1(L)} on the left).`];
-    else if (C != null && C - Math.max(L ?? 0, R ?? 0) >= 5) [pt, ptWhy] = ["Middle", `Your central players are clearly the strongest (fit ${f1(C)}).`];
+    else if (C2 != null && C2 - Math.max(L ?? 0, R ?? 0) >= 5) [pt, ptWhy] = ["Middle", `Your central players are clearly the strongest (fit ${f1(C2)}).`];
     set("progressThrough", pt, ptWhy);
     if (d("fwdPace") >= S && d("fwdMovement") >= 0) set("passReception", "Pass Into Space", `${st("fwdPace")} ${st("fwdMovement")} Play balls into space for them to run onto.`);
     else if (tech >= S && d("fwdPace") <= 0) set("passReception", "Pass To Feet", `${st("technique")} The forwards aren't especially quick, so pass to feet.`);
@@ -2148,9 +2304,9 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       const side = x < 30 ? "L" : x > 70 ? "R" : "C";
       const attacking = /^(AM|ST)/.test(pos) || /^M \((L|R)\)/.test(pos);
       const tweak = (id, value, why2) => {
-        const text = `Built around ${nm}: ${why2}`;
-        if (values[id] !== value) set(id, value, text);
-        else reasons[id] = `${text} ${reasons[id]}`;
+        const text2 = `Built around ${nm}: ${why2}`;
+        if (values[id] !== value) set(id, value, text2);
+        else reasons[id] = `${text2} ${reasons[id]}`;
         builtAround.push({ player: p, id, value, why: why2 });
       };
       if (side !== "C" && (attacking || lane.ipRole.tagSet.has("attackingBack"))) wideSides.add(side);
@@ -2181,14 +2337,14 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
         return x < 30 || x > 70;
       });
       const nm = who.map((l) => l.player.name.split(/\s+/).pop()).join(" and ");
-      const text = `Built around ${nm}: get the ball to ${who.length > 1 ? "them" : "him"} on ${value === "Both Flanks" ? "both flanks" : `the ${value.toLowerCase()} flank`}.`;
-      if (values.progressThrough !== value) set("progressThrough", value, text);
-      builtAround.push({ player: who[0].player, id: "progressThrough", value, why: text });
+      const text2 = `Built around ${nm}: get the ball to ${who.length > 1 ? "them" : "him"} on ${value === "Both Flanks" ? "both flanks" : `the ${value.toLowerCase()} flank`}.`;
+      if (values.progressThrough !== value) set("progressThrough", value, text2);
+      builtAround.push({ player: who[0].player, id: "progressThrough", value, why: text2 });
     } else if (marquee.some((l) => ["DM", "M (C)", "AM (C)"].includes(ctx.slots[l.ip][2]) && l.ipRole.tagSet.has("creator"))) {
       const l = marquee.find((m) => ["DM", "M (C)", "AM (C)"].includes(ctx.slots[m.ip][2]) && m.ipRole.tagSet.has("creator"));
-      const text = `Built around ${l.player.name.split(/\s+/).pop()}: play through the middle, where he is.`;
-      if (values.progressThrough !== "Middle") set("progressThrough", "Middle", text);
-      builtAround.push({ player: l.player, id: "progressThrough", value: "Middle", why: text });
+      const text2 = `Built around ${l.player.name.split(/\s+/).pop()}: play through the middle, where he is.`;
+      if (values.progressThrough !== "Middle") set("progressThrough", "Middle", text2);
+      builtAround.push({ player: l.player, id: "progressThrough", value: "Middle", why: text2 });
     }
     for (const [id, val3] of Object.entries(opts.overrides || {})) {
       if (val3 == null) continue;
@@ -2323,7 +2479,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   function depthChart(system, ctx) {
     const cfg = ctx.tuning.depth;
     const xi = new Set(system.lanes.map((l) => l.player));
-    const atClub = ctx.players.filter((p) => !p.onLoan);
+    const atClub = ctx.players.filter((p) => !p.onLoan && !p.unavailable);
     const bench = atClub.filter((p) => !xi.has(p));
     const fitBench = bench.filter((p) => !p.injured);
     const value = system.lanes.map((lane) => fitBench.map((p) => laneValue2(ctx, p, lane)));
@@ -2608,6 +2764,23 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
         () => ({})
       );
     }
+    const rested = main.best.lanes.map((l) => l.player.id);
+    run2(
+      "Cup games and rotation",
+      "Use in cup games and busy weeks: the same shapes, your first XI rested, and young players first in line for a start.",
+      { forceIp: main.best.ipName, forceOop: main.best.oopName, rest: rested, youthBonus: 2, ignorePicks: true },
+      {},
+      strength,
+      "",
+      () => ({})
+    );
+    const rotation = alts.find((a) => a.title === "Cup games and rotation");
+    if (rotation) {
+      const still = rotation.system.lanes.filter((l) => rested.includes(l.player.id));
+      rotation.rotation = { stillStarting: still.map((l) => l.player), young: rotation.system.lanes.filter((l) => l.player.age != null && l.player.age <= 21).map((l) => l.player) };
+      rotation.similar = false;
+      if (still.length) rotation.when += ` Not enough cover to rest everyone: ${still.map((l) => l.player.name).join(", ")} still start${still.length === 1 ? "s" : ""}.`;
+    }
     const mainKey = shapeKey(main.best);
     const other = main.search.ranking.find((s) => shapeKey(s) !== mainKey);
     if (other) {
@@ -2639,6 +2812,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       const label = pick.label === "marquee" || pick.label === "future" ? pick.label : null;
       p.label = label;
       p.mustStart = !!pick.start || label === "marquee";
+      p.unavailable = !!pick.out && !p.onLoan;
+      if (p.unavailable) p.mustStart = false;
       if (p.onLoan && (p.mustStart || label)) {
         ignored.push({ player: p, reason: `out on loan${p.club ? " at " + p.club : ""}` });
         p.mustStart = false;
@@ -2699,9 +2874,134 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     });
   }
 
+  // src/engine/recruitment.js
+  var FORBIDDEN3 = -500;
+  var sameAs = (a, b) => a.uid && b.uid ? a.uid === b.uid : a.name === b.name && (a.age == null || b.age == null || a.age === b.age);
+  function recruitment(result, candidates, { max = 25 } = {}) {
+    const { best, ctx, depth: depth2 } = result;
+    const squad = result.players;
+    const weak = new Set(depth2.weakAreas.map((w) => w.lane));
+    const fresh = candidates.filter((c) => !squad.some((p) => sameAs(p, c)));
+    const inSquad = candidates.length - fresh.length;
+    const rows = [];
+    for (const c of fresh) {
+      let top = null;
+      best.lanes.forEach((lane, i) => {
+        const value = laneValue2(ctx, c, lane);
+        if (value <= FORBIDDEN3) return;
+        const d = depth2.lanes[i];
+        const cover = d?.secondChoice?.value ?? null;
+        const gain = value - lane.value;
+        const coverGain = cover == null ? value : value - cover;
+        const rank = gain > 0 ? 1e3 + gain : coverGain > 0 ? coverGain : -1e3 + value;
+        if (!top || rank > top.rank) top = { lane, value, gain, cover, coverGain, rank, weak: weak.has(lane) };
+      });
+      if (!top) continue;
+      const ip = slotRoleScore(c, top.lane.ipRole, top.lane.ip, ctx);
+      const oop = slotRoleScore(c, top.lane.oopRole, top.lane.oop, ctx);
+      const { ipWeight, oopWeight } = ctx.search;
+      const spread = (ipWeight * (ip.hi - ip.lo) + oopWeight * (oop.hi - oop.lo)) / 2;
+      const verdict = top.gain > 1 ? "starts" : top.coverGain > 1 ? "cover" : "no";
+      rows.push({
+        player: c,
+        lane: top.lane,
+        value: top.value,
+        gain: top.gain,
+        teamGain: Math.max(0, top.gain) / best.lanes.length,
+        cover: top.cover,
+        coverGain: top.coverGain,
+        weakArea: top.weak,
+        spread,
+        unknown: c.unknownAttrs.length,
+        verdict
+      });
+    }
+    rows.sort((a, b) => (b.verdict === "starts") - (a.verdict === "starts") || b.gain - a.gain || b.coverGain - a.coverGain);
+    const forWeak = depth2.weakAreas.map((w) => ({ area: w, pick: rows.filter((r) => r.lane === w.lane && r.verdict !== "no").sort((a, b) => b.value - a.value)[0] || null })).filter((x) => x.pick);
+    return {
+      total: candidates.length,
+      inSquad,
+      considered: fresh.length,
+      noPlace: fresh.length - rows.length,
+      starters: rows.filter((r) => r.verdict === "starts").length,
+      coverCount: rows.filter((r) => r.verdict === "cover").length,
+      rows: rows.slice(0, max),
+      forWeak
+    };
+  }
+
+  // src/engine/progress.js
+  var sameAs2 = (a, b) => a.uid && b.uid ? a.uid === b.uid : a.name === b.name;
+  var mean2 = (xs) => xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null;
+  function dateFromName(name) {
+    const m = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/.exec(name || "");
+    return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : null;
+  }
+  function firstTeamLevel(players) {
+    const levels = players.filter((p) => !p.onLoan).map(generalLevel).filter((v) => v != null).sort((a, b) => b - a);
+    return mean2(levels.slice(0, 18));
+  }
+  function attrChanges(now, before) {
+    const out = [];
+    for (const [a, v] of Object.entries(now.attrs)) {
+      const b = before.attrs[a];
+      if (!v || !b || v.range || b.range) continue;
+      if (v.v !== b.v) out.push({ attr: a, from: b.v, to: v.v, delta: v.v - b.v });
+    }
+    return out.sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta) || x.attr.localeCompare(y.attr));
+  }
+  function progress(result, earlier) {
+    const club = result.club;
+    const reads = earlier.map((e) => ({ ...e, date: e.exportedAt ? new Date(e.exportedAt) : dateFromName(e.name) })).filter((e) => !club || !e.club || e.club === club).filter((e) => e.players?.length);
+    const nowDate = result.exportedAt ? new Date(result.exportedAt) : dateFromName(result.filename) || /* @__PURE__ */ new Date();
+    reads.sort((a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0));
+    const usable = reads.filter((e) => !e.date || e.date < nowDate);
+    if (!usable.length) return { ok: false, skipped: earlier.length - reads.length };
+    for (const e of usable) for (const p of e.players) p.onLoan = /out on loan/i.test(p.playingTime) || !!(club && p.club && p.club !== club);
+    const previous = usable[usable.length - 1];
+    const now = result.players;
+    const players = now.map((p) => {
+      const before = previous.players.find((q) => sameAs2(p, q));
+      if (!before) return null;
+      const changes = attrChanges(p, before);
+      const gNow = generalLevel(p);
+      const gBefore = generalLevel(before);
+      return {
+        player: p,
+        changes,
+        up: changes.filter((c) => c.delta > 0).reduce((s, c) => s + c.delta, 0),
+        down: changes.filter((c) => c.delta < 0).reduce((s, c) => s + c.delta, 0),
+        levelDelta: gNow != null && gBefore != null ? gNow - gBefore : null,
+        abilityDelta: p.ability != null && before.ability != null ? p.ability - before.ability : null,
+        potentialDelta: p.potential != null && before.potential != null ? p.potential - before.potential : null
+      };
+    }).filter(Boolean);
+    const improvers = players.filter((x) => x.up + x.down > 0).sort((a, b) => b.up + b.down - (a.up + a.down)).slice(0, 10);
+    const decliners = players.filter((x) => x.up + x.down < 0).sort((a, b) => a.up + a.down - (b.up + b.down)).slice(0, 6);
+    const arrivals = now.filter((p) => !previous.players.some((q) => sameAs2(p, q)));
+    const departures = previous.players.filter((q) => !now.some((p) => sameAs2(p, q)));
+    const trend = [
+      ...usable.map((e) => ({ date: e.date, name: e.name, level: firstTeamLevel(e.players) })),
+      { date: nowDate, name: result.filename, level: firstTeamLevel(now), now: true }
+    ].filter((t) => t.level != null);
+    return {
+      ok: true,
+      previous: { name: previous.name, date: previous.date },
+      reads: usable.length,
+      skipped: earlier.length - usable.length,
+      trend,
+      improvers,
+      decliners,
+      arrivals,
+      departures,
+      unchanged: players.filter((x) => !x.changes.length).length,
+      compared: players.length
+    };
+  }
+
   // src/analyse.js
-  function analyse(text, filename, docs, options = {}) {
-    const table = readExport(text, filename);
+  function analyse(text2, filename, docs, options = {}) {
+    const table = readExport(text2, filename);
     const map = buildHeaderMap(table.headers, docs.columns, table.adapter.aliases);
     const columns = checkColumns(map, docs.columns);
     const base = { filename, source: table.adapter.label, format: table.format, columns };
@@ -2722,10 +3022,29 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     const strength = Math.max(-2, Math.min(2, Number(options.strength) || 0));
     const searchOptions = { excludeInjured: options.excludeInjured };
     if (options.excludeInjured === void 0) delete searchOptions.excludeInjured;
+    const notes = [];
+    const wanted = (typeof options.formation === "function" ? options.formation(club) : options.formation) || {};
+    for (const [key, list, label] of [["ip", docs.formations.inPossession, "in-possession"], ["oop", docs.formations.outOfPossession, "out-of-possession"]]) {
+      if (!wanted[key]) continue;
+      if (list.some((f) => f.name === wanted[key])) searchOptions[key === "ip" ? "forceIp" : "forceOop"] = wanted[key];
+      else notes.push(`The ${label} formation "${wanted[key]}" isn't in this version's list, so the tool chose one.`);
+    }
+    const forced = !!(searchOptions.forceIp || searchOptions.forceOop);
     const ctx = createContext(players, docs, searchOptions);
     ctx.instructionsDoc = docs.instructions;
-    let first = searchSystems(ctx, { polishTop: 0, quick: true });
+    let first = searchSystems(ctx, { polishTop: 0, quick: !forced });
     if (!first.best && ctx.locked.size) first = searchSystems(ctx, { polishTop: 0 });
+    if (!first.best && forced) {
+      const pair = [searchOptions.forceIp && `${searchOptions.forceIp} in possession`, searchOptions.forceOop && `${searchOptions.forceOop} out of possession`].filter(Boolean).join(" with ");
+      return {
+        ...base,
+        ok: false,
+        formationError: true,
+        club,
+        players,
+        error: `${pair} can't be used: ${searchOptions.forceIp && searchOptions.forceOop ? "players would have to move too far between the two shapes, or " : ""}no eleven of your players can fill it${ctx.locked.size ? " together with your picks" : ""}. Choose another formation, or let the tool choose.`
+      };
+    }
     if (!first.best) {
       if (ctx.locked.size) {
         const names = [...ctx.locked].map((p) => `${p.name} (${p.positionsText || [...p.positions].join(", ")})`).join(", ");
@@ -2755,9 +3074,17 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
         };
       }
     }
+    let formationChoice = null;
+    if (forced) {
+      const auto = createContext(players, docs, { ...searchOptions, forceIp: null, forceOop: null });
+      auto.plan = ctx.plan;
+      const as = searchSystems(auto, { polishTop: 2 });
+      formationChoice = { ip: searchOptions.forceIp || null, oop: searchOptions.forceOop || null, auto: as.best, fitCost: as.best ? as.best.score - best.score : 0 };
+    }
     const result = {
       ...base,
       ok: true,
+      formationChoice,
       club,
       players,
       ctx,
@@ -2772,11 +3099,32 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       training: trainingFocus(instructions, profile, best, ctx),
       suitability: suitabilityTable(ctx),
       freeChoice,
-      warnings: [...table.warnings, ...ctx.warnings]
+      warnings: [...table.warnings, ...notes, ...ctx.warnings]
     };
     result.picks = { summary: picksSummary(result), futureStars: futureStarPlans(result), ignored };
     result.alternatives = options.alternatives === false ? [] : buildAlternatives(result, players, docs, searchOptions);
+    result.exportedAt = options.exportedAt || null;
+    if (options.scouting?.text) {
+      const sc = readPlayers(options.scouting.text, options.scouting.name || "shortlist.csv", docs);
+      result.scouting = sc.ok ? { name: options.scouting.name, attributesFound: sc.attributesFound, attributesTotal: sc.attributesTotal, ...recruitment(result, sc.players) } : { name: options.scouting.name, error: sc.error };
+    }
+    if (options.history?.length) {
+      const earlier = options.history.map((h) => {
+        const r = readPlayers(h.text, h.name, docs);
+        return r.ok ? { name: h.name, exportedAt: h.exportedAt, players: r.players, club: r.club } : null;
+      }).filter(Boolean);
+      result.progress = progress(result, earlier);
+    }
     return result;
+  }
+  function readPlayers(text2, filename, docs) {
+    const table = readExport(text2, filename);
+    const map = buildHeaderMap(table.headers, docs.columns, table.adapter.aliases);
+    const columns = checkColumns(map, docs.columns);
+    if (!table.headers.length || !table.rows.length) return { ok: false, error: table.warnings[0] || "The file is empty." };
+    if (columns.fatal) return { ok: false, error: columns.fatal };
+    const players = parsePlayers(table, map, docs.columns, docs.tuning);
+    return { ok: true, players, club: commonClub(players), attributesFound: columns.attributesFound, attributesTotal: columns.attributesTotal };
   }
   function isOutOnLoan(p, club) {
     if (/out on loan/i.test(p.playingTime)) return true;
@@ -4769,7 +5117,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       const nm = shortName(it.name);
       const pw = Math.max(34, textWidth(nm, 10.5) + textWidth(String(s), 9.5) + 18);
       const captain = it.captain ? `<g class="cpt"><circle cx="${(cx - 14).toFixed(1)}" cy="${(cy - 14).toFixed(1)}" r="6.2" /><text x="${(cx - 14).toFixed(1)}" y="${(cy - 11.2).toFixed(1)}">C</text></g>` : "";
-      return `<g class="pl ${scoreClass(it.score)}" tabindex="0">
+      return `<g class="pl ${scoreClass(it.score)}" tabindex="0"${it.pid ? ` data-pid="${esc(it.pid)}" role="button"` : ""}>
   <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}${it.captain ? " · captain" : ""}</title>
   <circle cx="${cx}" cy="${cy}" r="24" class="hit" />
   <circle cx="${cx}" cy="${cy}" r="${RING}" class="trk" />
@@ -4844,6 +5192,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .report .hint-line .ico { margin-top: 2px; }
 .report .hint-line strong { color: var(--ink-2); }
 
+.report h3[id] { scroll-margin-top: var(--scroll-offset, 64px); }
 .report section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; margin: 14px 0; box-shadow: var(--shadow); scroll-margin-top: var(--scroll-offset, 64px); }
 .report .lede { color: var(--ink-2); max-width: 78ch; }
 
@@ -5040,6 +5389,124 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .report .alt:first-of-type { border-top: 0; padding-top: 0; }
 .report .alt .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
 
+/* checklist mode: tick boxes in "Enter it in FM27" (app: saved per tactic; paper: empty boxes to tick by hand) */
+.report .tick { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; }
+.report .tick input { appearance: none; -webkit-appearance: none; flex: none; width: 17px; height: 17px; margin: 0; border-radius: 5px; border: 1.5px solid var(--line-2); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
+.report .tick input::after { content: ""; width: 9px; height: 5px; border: 2px solid var(--accent-ink); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.report .tick input:checked { background: var(--accent); border-color: var(--accent); }
+.report .tick input:checked::after { opacity: 1; }
+.report .tick input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.report tr.done td { opacity: .5; }
+.report tr.done .tick span, .report tr.done .tick .pname { text-decoration: line-through; text-decoration-color: var(--muted); }
+.report table.settings.checklist td.name { padding-left: 10px; }
+.report table.settings.checklist tr.changed td.name::before { display: none; }
+.report table.settings.checklist tr.unchanged td.name { padding-left: 36px; }
+.report .app-only { display: none; }
+.in-app .report .app-only { display: flex; }
+.report .checkbar { align-items: center; gap: 12px; margin: 4px 0 6px; font-size: 13px; color: var(--ink-2); }
+.report .checkbar .cb-track { flex: 0 1 240px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.report .checkbar .cb-track i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .2s; }
+.report .checkbar.complete .cb-text { color: var(--accent); }
+.report .linkbtn { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.report .linkbtn:hover { color: var(--ink); }
+
+/* match plan */
+.report .mp-controls { flex-direction: column; gap: 8px; margin: 8px 0 14px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
+.report .mp-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.report .mp-l { width: 82px; flex: none; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.report .mp-chip { position: relative; cursor: pointer; }
+.report .mp-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.report .mp-chip span { display: inline-block; font-size: 13px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); background: var(--surface); }
+.report .mp-chip span:hover { color: var(--ink); border-color: var(--ink-2); }
+.report .mp-chip input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); font-weight: 600; }
+.report .mp-chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.report .mp-plan .kpis { margin-top: 10px; }
+
+/* recruitment and progress */
+.report .loadrow { flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 2px; }
+.report .loadrow .btn { font: inherit; font-size: 13px; font-weight: 600; border-radius: 8px; padding: 6px 11px; border: 1px solid var(--line-2); background: transparent; color: var(--ink); cursor: pointer; }
+.report .loadrow .btn:hover { border-color: var(--ink-2); }
+.report .tag.muted-tag { color: var(--muted); }
+.report .tag.up { color: var(--pos); border-color: transparent; background: color-mix(in srgb, var(--pos) 12%, transparent); }
+.report .tag.down { color: var(--neg); border-color: transparent; background: color-mix(in srgb, var(--neg) 12%, transparent); }
+.report table.scout { min-width: 760px; }
+.report svg.trend { width: 100%; max-width: 560px; height: auto; display: block; margin: 8px 0 4px; }
+.report svg.trend .grid { stroke: var(--line); stroke-width: 1; }
+.report svg.trend .ax { font: 11px var(--font); fill: var(--muted); }
+.report svg.trend .val { font: 600 12px var(--font); fill: var(--ink); }
+.report svg.trend .ln { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.report svg.trend .hit { fill: transparent; }
+.report svg.trend .dot { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+.report svg.trend .dot.now { fill: var(--accent); }
+.report svg.trend .pt:hover .dot, .report svg.trend .pt:focus .dot { stroke-width: 3; }
+
+/* player names open the player card in the app */
+.report .pname { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-align: left; cursor: default; }
+.in-app .report .pname { cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+.in-app .report .pname:hover { text-decoration-color: var(--accent); color: var(--ink); }
+.in-app .report .pl[data-pid] { cursor: pointer; }
+
+/* role suitability filter */
+.report .sfilter { flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 4px 0 8px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
+.report .sfilter input[type="search"], .report .sfilter select { font: inherit; font-size: 13.5px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: 8px; padding: 6px 9px; }
+.report .sfilter input[type="search"] { width: min(240px, 100%); }
+.report .sfilter .check { display: inline-flex; gap: 7px; align-items: center; font-size: 13px; color: var(--ink-2); margin: 0; }
+.report .sfilter .check input { accent-color: var(--accent); }
+.report .sf-count { font-size: 12.5px; color: var(--muted); margin-left: auto; }
+.report [data-hidden] { display: none !important; }
+
+/* player card */
+.pcard-dialog { border: 1px solid var(--line-2); border-radius: 14px; padding: 0; background: var(--surface); color: var(--ink); width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 48px); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
+.pcard-dialog::backdrop { background: rgba(0, 0, 0, .55); }
+.pcard-dialog .report { padding: 0; }
+.pcard-dialog .pc-close { position: sticky; top: 0; float: right; margin: 10px 10px 0 0; z-index: 2; }
+.report .pcard { padding: 18px 22px 20px; }
+.report .pc-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding-right: 44px; }
+.report .pc-head h3 { margin: 0; font-size: 20px; }
+.report .pc-facts { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.report .pc-level { display: grid; justify-items: end; line-height: 1.2; flex: none; }
+.report .pc-level strong { font-size: 22px; }
+.report .pc-tags { margin: 8px 0 2px; }
+.report .pcard h4 { margin-top: 16px; }
+.report .pc-place { display: grid; gap: 4px; font-size: 14px; }
+.report .pc-place > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.report .pc-sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.report .pc-sub b { color: var(--ink-2); }
+.report .pc-attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 6px 22px; }
+.report .pc-rt { font-size: 12.5px; font-weight: 650; display: flex; align-items: center; gap: 6px; margin: 4px 0 4px; }
+.report .ab { display: grid; grid-template-columns: 128px 1fr 34px; gap: 8px; align-items: center; font-size: 12.5px; color: var(--ink-2); padding: 1px 0; }
+.report .ab.keyattr .an { color: var(--ink); font-weight: 600; }
+.report .abar { position: relative; height: 8px; border-radius: 4px; background: var(--line); }
+.report .abar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--muted); opacity: .7; }
+.report .ab.hi .abar i { background: var(--pos); opacity: 1; }
+.report .ab.lo .abar i { background: var(--neg); opacity: 1; }
+.report .abar b { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
+.report .av { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+.report .tickkey { display: inline-block; width: 2px; height: 12px; background: var(--ink); border-radius: 1px; vertical-align: -2px; }
+.report .hi-k { color: var(--pos); font-weight: 600; } .report .lo-k { color: var(--neg); font-weight: 600; }
+.report .pc-best { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; font-size: 13px; }
+
+/* one-page cheat sheet (printed on its own) */
+.sheet { font: 9.5px/1.35 var(--font); color: #111; }
+.sheet header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; border-bottom: 1.5px solid #111; padding-bottom: 4px; margin-bottom: 6px; }
+.sheet h1 { font-size: 17px; margin: 0; }
+.sheet .eyebrow { font-size: 8px; text-transform: uppercase; letter-spacing: .1em; color: #555; font-weight: 700; }
+.sheet .sh-kpis { display: flex; flex-wrap: wrap; gap: 3px 12px; justify-content: flex-end; font-size: 9px; color: #444; }
+.sheet .sh-kpis b { color: #111; }
+.sheet .sh-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 10px; }
+.sheet .sh-pitches { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-content: start; }
+.sheet .sh-pitches table { grid-column: 1 / -1; }
+.sheet figure { margin: 0; }
+.sheet figcaption { font-weight: 700; font-size: 9px; margin-bottom: 2px; }
+.sheet svg.pitch { width: 100%; height: auto; display: block; }
+.sheet h2 { font-size: 10px; margin: 6px 0 2px; text-transform: uppercase; letter-spacing: .06em; }
+.sheet h2 span { font-weight: 400; text-transform: none; letter-spacing: 0; color: #666; }
+.sheet .sh-t { width: 100%; border-collapse: collapse; font-size: inherit; margin: 0; }
+.sheet .sh-t th, .sheet .sh-t td { text-align: left; padding: 1.5px 4px; border-bottom: .5px solid #ccc; vertical-align: top; }
+.sheet .sh-t th { font-size: 8px; color: #666; font-weight: 600; }
+.sheet .sh-foot { margin-top: 6px; font-size: 8px; color: #666; }
+.sheet .pl .pill { fill: #fff; } .sheet .pitch .nm { fill: #111; }
+
 @media (max-width: 900px) {
   .report .pitches.three, .report .pitches.small.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 }
@@ -5070,6 +5537,9 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   .report .pf-row, .report .pf-axis { grid-template-columns: minmax(110px, 1.1fr) 1.6fr 36px 30px; }
   .report section.card#overview { break-before: auto; }
   .report nav.toc, .report .tip { display: none !important; }
+  .report .app-only, .report .sfilter { display: none !important; }
+  .report .tick input { border-color: #777; background: #fff; }
+  .report .pname { text-decoration: none !important; }
   .report .pl .pill { fill: #ffffff; }
   .report table, .report figure, .report .pos-card, .report .pf-row { break-inside: avoid; }
   .report .tablewrap { overflow: visible; }
@@ -5122,6 +5592,169 @@ html { background: var(--bg); }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
 ::selection { background: var(--accent-soft); }
 `;
+
+  // src/engine/matchPlan.js
+  var OPPONENT = {
+    strength: [["muchStronger", "Much stronger"], ["stronger", "A bit stronger"], ["similar", "About the same"], ["weaker", "A bit weaker"], ["muchWeaker", "Much weaker"]],
+    venue: [["home", "Home"], ["away", "Away"]],
+    style: [
+      ["pressHigh", "Press high"],
+      ["sitDeep", "Sit deep"],
+      ["longBalls", "Play long balls"],
+      ["counter", "Counter-attack"],
+      ["playOut", "Play out from the back"],
+      ["possession", "Keep the ball"],
+      ["crosses", "Cross a lot"]
+    ],
+    players: [
+      ["fastForwards", "Fast forwards"],
+      ["tallStriker", "A tall, strong striker"],
+      ["fastWingers", "Fast wingers"],
+      ["weakAir", "Weak in the air at the back"],
+      ["slowCBs", "Slow centre-backs"]
+    ]
+  };
+  var STRENGTH_SCORE = { muchStronger: -2, stronger: -1, similar: 0, weaker: 1, muchWeaker: 2 };
+  var LABEL = Object.fromEntries([...OPPONENT.strength, ...OPPONENT.venue, ...OPPONENT.style, ...OPPONENT.players]);
+  var f12 = (n) => n == null ? "–" : n.toFixed(1);
+  var isEmptyOpponent = (opp) => !opp || !opp.strength && !opp.venue && !(opp.style || []).length && !(opp.players || []).length;
+  function matchPlan(result, opp = {}) {
+    const style = new Set(opp.style || []);
+    const traits = new Set(opp.players || []);
+    const m = result.profile.metrics;
+    const d = (k) => m[k]?.delta ?? 0;
+    const v = (k) => m[k]?.value ?? null;
+    const level = result.profile.level;
+    const mentalities = result.ctx.instructionsDoc.mentalities;
+    const score = (STRENGTH_SCORE[opp.strength] ?? 0) + (opp.venue === "home" ? 0.5 : opp.venue === "away" ? -0.5 : 0);
+    const findAlt = (t) => (result.alternatives || []).find((a) => a.title.startsWith(t) && !a.similar);
+    let base = { title: "Your main tactic", alt: null, why: "A fairly even game: your main tactic suits it." };
+    if (score <= -1.5 && findAlt("Away")) base = { title: findAlt("Away").title, alt: findAlt("Away"), why: "They are clearly better than you: start from your defensive setup and hit them on the break." };
+    else if (score >= 1.5 && findAlt("At home")) base = { title: findAlt("At home").title, alt: findAlt("At home"), why: "You should have most of the ball: start from your front-foot setup." };
+    const ins = base.alt ? base.alt.instructions : result.instructions;
+    const items = Object.fromEntries([...ins.ip, ...ins.oop].map((i) => [i.id, i]));
+    const values = { ...ins.values };
+    const baseMentality = ins.mentality.value;
+    let mentality = { value: baseMentality, reason: "As in the tactic you start from." };
+    const stepM = (by) => mentalities[Math.max(0, Math.min(mentalities.length - 1, mentalities.indexOf(baseMentality) + by))];
+    if (!base.alt && score <= -0.5 && score > -1.5) mentality = { value: stepM(-1), reason: "One step more careful: they are a little stronger, or you are away." };
+    if (!base.alt && score >= 0.5 && score < 1.5) mentality = { value: stepM(1), reason: "One step more positive: they are a little weaker, or you are at home." };
+    const changes = /* @__PURE__ */ new Map();
+    const notes = [];
+    const set = (id, value, reason) => {
+      const item = items[id];
+      if (!item || !item.options.includes(value)) return;
+      const from = values[id];
+      if (from === value && !changes.has(id)) return;
+      const prev = changes.get(id);
+      changes.set(id, { id, name: item.name, from: prev ? prev.from : from, to: value, reason: prev && prev.to === value ? prev.reason : reason });
+      values[id] = value;
+    };
+    const step2 = (id, by, reason) => {
+      const item = items[id];
+      if (!item) return;
+      const i = item.options.indexOf(values[id]);
+      if (i < 0) return;
+      set(id, item.options[Math.max(0, Math.min(item.options.length - 1, i + by))], reason);
+    };
+    const cbNames = result.best.lanes.filter((l) => /^D(C|CL|CR)$/.test(l.ip) || /^DC/.test(l.ip)).map((l) => l.player);
+    const bestHeader = cbNames.map((p) => ({ p, s: ((p.attrs["Heading"]?.v ?? 0) + (p.attrs["Jumping Reach"]?.v ?? 0) + (p.attrs["Strength"]?.v ?? 0)) / 3 })).sort((a, b) => b.s - a.s)[0]?.p;
+    if (style.has("pressHigh")) {
+      if (d("buildUp") >= 1 && d("composure") >= 0) {
+        set("buildUpStrategy", "Play Through Press", `Your back line plays out well (${f12(v("buildUp"))} against your level of ${f12(level)}): beat their press and the space behind it is yours.`);
+        if (d("fwdPace") >= 1) set("passReception", "Pass Into Space", `Once through the press, your quick front line (${f12(v("fwdPace"))}) can run into the space they leave.`);
+      } else {
+        set("buildUpStrategy", "Bypass Press", `Playing out isn't a strength (${f12(v("buildUp"))} against your level of ${f12(level)}): go past their press instead of through it.`);
+        set("goalKicks", "Long", "Long goal kicks keep the ball away from their press.");
+        set(
+          "gkDistribution",
+          d("aerialAttack") >= 0.5 ? "Target Forward" : d("fwdPace") >= 1 ? "Over Opposition Defence" : "Flanks",
+          d("aerialAttack") >= 0.5 ? "Your striker is strong in the air: aim for him." : d("fwdPace") >= 1 ? "Your quick forwards can chase balls over their high line." : "The flanks are where a pressing side leaves room."
+        );
+        step2("passingDirectness", 1, "A little more direct, to get the ball forward before they close you down.");
+      }
+    }
+    if (style.has("sitDeep")) {
+      set("patience", "Work Ball Into Box", "They defend deep and narrow: be patient and work the ball into the box.");
+      step2("attackingWidth", 1, "Stretch a deep block by using the whole width of the pitch.");
+      if (d("aerialAttack") >= 1) {
+        set("crossingStyle", "Floated Crosses", `Your strikers win headers (${f12(v("aerialAttack"))}): crosses are a good way through a packed box.`);
+        set("playForSetPieces", "Play for Set Pieces", "Corners and free kicks are a strong way to break down a deep defence with your aerial strength.");
+      }
+      if (d("longShots") >= 1) set("shotsFromDistance", "Encourage", `They leave room outside the box, and your midfield can shoot (${f12(v("longShots"))}).`);
+      if (d("pressing") >= 0) set("lineOfEngagement", "High Press", "They will try to keep it simple at the back: press them there.");
+    }
+    if (style.has("longBalls")) {
+      if (d("cbAerial") >= 0.5) notes.push(`Your centre-backs are good in the air (${f12(v("cbAerial"))}): keep your line and win the long balls.`);
+      else step2("defensiveLine", -1, `Your centre-backs aren't strong in the air (${f12(v("cbAerial"))}): drop a little deeper so long balls land in front of them.`);
+      if (d("cbPace") < 0) set("defensiveLineBehaviour", "Drop Off More", "Drop off rather than step up, so nobody gets in behind.");
+    }
+    if (style.has("counter")) {
+      const defensiveBase = base.alt && base.alt.title.startsWith("Away");
+      if (d("pressing") >= 0.5 && !defensiveBase) set("defensiveTransition", "Counter-Press", `Win the ball back straight away (your pressing: ${f12(v("pressing"))}) before their counter-attack starts.`);
+      else set("defensiveTransition", "Regroup", "Get back into shape the moment you lose the ball: their counter-attacks are their main weapon.");
+      if (values.supportingRuns === "Both Flanks") set("supportingRuns", "Balanced", "Keep a full-back at home against a counter-attacking side.");
+      if (d("cbPace") < 0) step2("defensiveLine", -1, `Your centre-backs aren't quick (${f12(v("cbPace"))}): a deeper line leaves less space to run into.`);
+    }
+    if (style.has("playOut")) {
+      if (d("pressing") >= 0) {
+        set("lineOfEngagement", "High Press", `They like to play out from the back, and your team can press (${f12(v("pressing"))}).`);
+        step2("triggerPress", 1, "Press their defenders more often to force mistakes.");
+        set("preventShortGkDistribution", "Yes", "Stop the short goal kick and they have to go long.");
+        set("pressingTrap", "Trap Outside", "Push their build-up towards the touchline, where it is easiest to win the ball.");
+      } else {
+        notes.push(`Pressing isn't your strength (${f12(v("pressing"))}): let them have the ball at the back and stay compact.`);
+        set("lineOfEngagement", "Mid Block", "Stay compact rather than chase the ball.");
+      }
+    }
+    if (style.has("possession")) {
+      if (d("pressing") < 1) set("lineOfEngagement", "Mid Block", "They will keep the ball anyway: stay compact and save energy.");
+      if (d("fwdPace") >= 0.5) set("attackingTransition", "Counter-Attack", `Win it and break quickly while they are spread out (front line pace ${f12(v("fwdPace"))}).`);
+      set("defensiveTransition", "Regroup", "Get back into shape quickly when you lose the ball.");
+    }
+    if (style.has("crosses")) {
+      if (d("cbAerial") >= 1) set("crossEngagement", "Invite Crosses", `Your centre-backs win headers (${f12(v("cbAerial"))}): let them cross.`);
+      else set("crossEngagement", "Stop Crosses", `Your centre-backs aren't dominant in the air (${f12(v("cbAerial"))}): close down crosses.`);
+    }
+    if (traits.has("fastForwards")) {
+      if (d("cbPace") < 1) {
+        step2("defensiveLine", -1, `Their forwards are quick and your centre-backs aren't (${f12(v("cbPace"))}): don't leave space behind.`);
+        set("defensiveLineBehaviour", "Drop Off More", "Drop off rather than step up against quick forwards.");
+      } else notes.push(`Your centre-backs are quick (${f12(v("cbPace"))}): you can keep your line against their fast forwards.`);
+    }
+    if (traits.has("tallStriker")) {
+      if (d("cbAerial") < 0.5) set("crossEngagement", "Stop Crosses", "Their striker wins headers: stop the crosses at the source.");
+      if (bestHeader) notes.push(`Let ${bestHeader.name}, your best centre-back in the air, take their target man.`);
+    }
+    if (traits.has("fastWingers")) {
+      if (d("wideDefending") < 0.5) {
+        if (values.supportingRuns === "Both Flanks") set("supportingRuns", "Balanced", "Fewer runs from your full-backs: keep them at home against quick wingers.");
+        set("pressingTrap", "Trap Inside", "Show their wingers inside, into the crowd, instead of letting them run at your full-backs.");
+      } else notes.push(`Your wide defending is solid (${f12(v("wideDefending"))}): no special measures against their wingers.`);
+    }
+    if (traits.has("weakAir")) {
+      if (d("aerialAttack") >= 0) {
+        set("crossingStyle", "Floated Crosses", "They are weak in the air: get crosses into the box.");
+        set("playForSetPieces", "Play for Set Pieces", "Corners and free kicks are a real chance against a side that struggles in the air.");
+      } else notes.push("They are weak in the air, but so are your strikers: use set pieces with your centre-backs going up.");
+    }
+    if (traits.has("slowCBs")) {
+      if (d("fwdPace") >= 0) {
+        set("passReception", "Pass Into Space", `Their centre-backs are slow and your front line isn't (${f12(v("fwdPace"))}): play balls in behind.`);
+        step2("passingDirectness", 1, "A little more direct, to get the ball in behind early.");
+      } else notes.push("Their centre-backs are slow, but your front line isn’t quick either: keep your usual passing.");
+    }
+    const chosen = [opp.strength, opp.venue, ...style, ...traits].filter(Boolean).map((k) => LABEL[k]);
+    return {
+      empty: isEmptyOpponent(opp),
+      opponent: opp,
+      chosen,
+      base,
+      mentality,
+      changes: [...changes.values()].filter((c) => c.from !== c.to),
+      notes
+    };
+  }
 
   // src/report/render.js
   var GROUPS = [
@@ -5217,8 +5850,8 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
   function pitches(system, slots, small = false, captain = null) {
     const mark = (p) => p.label || (p.mustStart ? "start" : null);
     const isCaptain = (p) => !!captain && p === captain;
-    const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score, mark: mark(l.player), captain: isCaptain(l.player) }));
-    const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score, mark: mark(l.player), captain: isCaptain(l.player) }));
+    const ipItems = system.lanes.map((l) => ({ slot: l.ip, abbr: l.ipRole.abbr, roleName: l.ipRole.name, name: l.player.name, score: l.ipScore.score, mark: mark(l.player), captain: isCaptain(l.player), pid: l.player.id }));
+    const oopItems = system.lanes.map((l) => ({ slot: l.oop, abbr: l.oopRole.abbr, roleName: l.oopRole.name, name: l.player.name, score: l.oopScore.score, mark: mark(l.player), captain: isCaptain(l.player), pid: l.player.id }));
     const move = hasMovement(system.lanes) ? `<figure><figcaption><span class="key ip"></span>Movement between phases</figcaption>${movementSVG(system.lanes, slots, "How players move between the two shapes")}
 <div class="legend"><span><span class="key ring"></span>out of possession</span><span><span class="key ip"></span>in possession</span></div></figure>` : "";
     return `<div class="pitches${small ? " small" : ""}${move ? " three" : ""}">
@@ -5240,19 +5873,31 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
     ${kpi(kpiIcon("press"), "Pressing", esc(ins.values.lineOfEngagement))}
     ${kpi(kpiIcon("fit"), "Team fit", `${fmt(best.fit, 1)} <span class="muted small">/ 100 · ${FIT_WORD(best.fit)}</span>`, `<div class="meter ${scoreClass(best.fit)}"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div>`)}
   </div>
+  ${formationNote(result)}
   ${pitches(best, ctx.slots, false, result.captain?.captain?.player)}
   ${fitLegend()}
   ${picksBlock(result)}
 </section>`;
   }
+  function formationNote(result) {
+    const fc = result.formationChoice;
+    if (!fc) return "";
+    const yours = [fc.ip && `<strong>${esc(fc.ip)}</strong> in possession`, fc.oop && `<strong>${esc(fc.oop)}</strong> out of possession`].filter(Boolean).join(" and ");
+    const auto = fc.auto;
+    const verdict = !auto ? "" : fc.fitCost <= 0.3 ? ` It's as good as anything the tool would pick for this squad.` : ` Left to choose, the tool would play <strong>${esc(auto.ipName)} / ${esc(auto.oopName)}</strong>, ${fmt(fc.fitCost, 1)} points better overall (team fit ${fmt(auto.fit, 1)}).`;
+    return `<div class="picks-cost">${ICON.info}<span>Built on your formation: ${yours}.${verdict} Change it with <strong>Formation</strong> in the app.</span></div>`;
+  }
   function picksBlock(result) {
     const summary = result.picks?.summary || [];
+    const out = result.players.filter((p) => p.unavailable);
+    const outLine = out.length ? `<p class="hint-line">${ICON.info}<span>Left out because you marked them unavailable: ${out.map((p) => `<strong>${esc(p.name)}</strong>`).join(", ")}.</span></p>` : "";
+    if (!summary.length && out.length) return outLine;
     if (!summary.length) {
       return `<p class="hint-line">${ICON.info}<span>Want the tactic built around particular players? Use <strong>Choose players</strong> in the app to mark players who must start, a marquee player or future stars.</span></p>`;
     }
     const slots = result.ctx.slots;
     const rows = summary.map(({ player: p, lane, best, inBestRole }) => {
-      const plays = lane ? `${esc(slotLabel(slots, lane.ip))} · ${role("IP", lane.ipRole)}<br>${esc(slotLabel(slots, lane.oop))} · ${role("OOP", lane.oopRole)}` : '<span class="muted">Not in the starting XI: see his development plan in section 6.</span>';
+      const plays = lane ? `${esc(slotLabel(slots, lane.ip))} · ${role("IP", lane.ipRole)}<br>${esc(slotLabel(slots, lane.oop))} · ${role("OOP", lane.oopRole)}` : '<span class="muted">Not in the starting XI: see his development plan in section 7.</span>';
       const bestTxt = [best.ip && `${esc(best.ip.role.name)} ${fmt(best.ip.score)}`, best.oop && `${esc(best.oop.role.name)} ${fmt(best.oop.score)}`].filter(Boolean).join("<br>");
       return `<tr><td><strong>${esc(p.name)}</strong><div class="sub">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}${p.injured ? " · injured" : ""}</div></td>
 <td>${pickTags(p)}</td><td>${plays}</td><td class="num">${lane ? fitChip(lane.value) : ""}</td>
@@ -5275,10 +5920,11 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
     return `<h3>Built around your picks</h3>
 <p class="lede small">Players marked <strong>must start</strong> and <strong>marquee</strong> are always in the XI; a marquee player's fit counts
 2.5 times when systems and roles are compared, so the shape is chosen around him. <strong>Future stars</strong> win close calls for a place and get a
-development plan (section 6).</p>
+development plan (section 7).</p>
 <div class="tablewrap"><table><thead><tr><th>Player</th><th>Your pick</th><th>Plays as</th><th class="num">Fit</th><th>His best roles anywhere</th></tr></thead><tbody>${rows}</tbody></table></div>
 ${cost ? `<div class="picks-cost">${ICON.info}<span>${cost}</span></div>` : ""}
 ${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="notes">${tweaks}</ul>` : ""}
+${outLine}
 <div class="legend"><span><svg class="ico" viewBox="0 0 16 16"><path d="M8 1.4l1.9 4.1 4.5.5-3.3 3.1.9 4.4L8 11.3l-3.9 2.2.9-4.4L1.6 6l4.5-.5z" fill="currentColor"/></svg>marquee</span>
 <span><svg class="ico" viewBox="0 0 16 16"><path d="M8 1.4l1.9 4.1 4.5.5-3.3 3.1.9 4.4L8 11.3l-3.9 2.2.9-4.4L1.6 6l4.5-.5z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>future star</span>
 <span><span class="key" style="background:var(--ink-2)"></span>must start</span><span>(markers on the pitches)</span></div>`;
@@ -5287,15 +5933,16 @@ ${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="
     if (!item.scale) return "";
     return `<span class="scale" aria-hidden="true">${item.options.map((o) => `<i class="${o === item.value ? "on" : ""}" title="${esc(o)}"></i>`).join("")}</span>`;
   }
-  function settingsTable(items) {
+  var tick = (key, label) => `<label class="tick"><input type="checkbox" data-k="${esc(key)}" aria-label="Done: ${esc(label)}"><span>${esc(label)}</span></label>`;
+  function settingsTable(items, checklist = false) {
     const rows = items.map(
       (i) => `<tr class="${i.changed ? "changed" : "unchanged"}">
-  <td class="name">${esc(i.name)}${i.verified === false ? ' <span class="tag">check label in-game</span>' : ""}</td>
+  <td class="name">${checklist && i.changed ? tick(`ti:${i.id}`, i.name) : esc(i.name)}${i.verified === false ? ' <span class="tag">check label in-game</span>' : ""}</td>
   <td class="val"><span class="v">${esc(i.value)}</span>${i.changed ? "" : '<span class="deflabel">default</span>'}${scale(i)}</td>
   <td class="why">${esc(i.reason)}${i.note ? ` <span class="muted">${esc(i.note)}</span>` : ""}</td>
 </tr>`
     ).join("\n");
-    return `<div class="tablewrap"><table class="settings"><thead><tr><th style="padding-left:22px">Setting</th><th>Set to</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="tablewrap"><table class="settings${checklist ? " checklist" : ""}"><thead><tr><th style="padding-left:22px">Setting</th><th>Set to</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function swing(side, taker) {
     if (!taker) return "";
@@ -5310,7 +5957,7 @@ ${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="
     const lanes = best.lanes.slice().sort(bySlotOrder(slots, "ip"));
     const roleRows = lanes.map(
       (l) => `<tr>
-  <td><strong>${esc(l.player.name)}</strong> ${pickTags(l.player)}<div class="sub">${esc(l.player.positionsText || [...l.player.positions].join(", "))}</div></td>
+  <td><label class="tick"><input type="checkbox" data-k="role:${esc(l.player.id)}" aria-label="Done: ${esc(l.player.name)}"><span><button type="button" class="pname" data-pid="${esc(l.player.id)}">${esc(l.player.name)}</button></span></label> ${pickTags(l.player)}<div class="sub">${esc(l.player.positionsText || [...l.player.positions].join(", "))}</div></td>
   <td>${esc(slotLabel(slots, l.ip))}</td>
   <td>${role("IP", l.ipRole)}</td>
   <td class="num">${fitChip(l.ipScore.score)}</td>
@@ -5321,24 +5968,27 @@ ${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="
 </tr>`
     ).join("\n");
     const sections = ["Overview", "Final Third", "Progression", "Build-Up"];
-    const ipTables = sections.map((sec) => `<h4>In Possession › ${esc(sec)}</h4>${settingsTable(ins.ip.filter((i) => i.section === sec))}`).join("\n");
+    const ipTables = sections.map((sec) => `<h4>In Possession › ${esc(sec)}</h4>${settingsTable(ins.ip.filter((i) => i.section === sec), true)}`).join("\n");
     const piRows = result.playerInstructions.filter((x) => x.items.length).sort((a, b) => bySlotOrder(slots, "ip")(a.lane, b.lane)).map(
-      (x) => `<tr><td><strong>${esc(x.player.name)}</strong><div class="sub">${esc(x.lane.ipRole.name)} / ${esc(x.lane.oopRole.name)}</div></td>
+      (x) => `<tr><td>${tick(`pi:${x.player.id}`, x.player.name)}<div class="sub">${esc(x.lane.ipRole.name)} / ${esc(x.lane.oopRole.name)}</div></td>
 <td>${x.items.map((i) => `<div class="line">${phaseKey(i.phase)}<span>${esc(i.name)}: <strong>${esc(i.value)}</strong></span></div>`).join("")}</td>
 <td class="muted">${x.items.map((i) => `<div>${esc(i.reason)}</div>`).join("")}</td></tr>`
     ).join("\n");
     const who = (t) => t ? `<strong>${esc(t.name)}</strong>${t.foot ? ` <span class="muted small">${esc(t.foot)}</span>` : ""}` : "–";
     const changedCount = [...ins.ip, ...ins.oop].filter((i) => i.changed).length;
+    const spRow = (key, label, val3, why2) => `<tr><td class="name">${tick(`sp:${key}`, label)}</td><td class="val">${val3}</td><td class="why">${why2}</td></tr>`;
+    const spWide = (key, label, content) => `<tr><td class="name">${tick(`sp:${key}`, label)}</td><td colspan="2">${content}</td></tr>`;
     return `
 <section id="setup" class="card">
   <h2><span class="num">2</span>Enter it in FM27</h2>
   <p class="lede">Work through these steps in order; they follow the FM27 tactics screens. <strong>${changedCount}</strong> of the
-  ${ins.ip.length + ins.oop.length} team instructions differ from FM's defaults (marked with a dot); leave the rest as they are.</p>
+  ${ins.ip.length + ins.oop.length} team instructions differ from FM's defaults (with a tick box); leave the rest as they are.</p>
+  <div class="checkbar app-only" id="checkbar"><span class="cb-text"><strong id="cb-done">0</strong> of <span id="cb-total">0</span> done</span><span class="cb-track"><i id="cb-fill"></i></span><button type="button" class="linkbtn" id="cb-clear">Clear ticks</button></div>
 
   <h3><span class="step">1</span>Style and mentality</h3>
-  <div class="tablewrap"><table class="settings"><tbody>
-    <tr class="changed"><td class="name">Style</td><td class="val"><span class="v">${esc(ins.style.value || "Any")}</span></td><td class="why">${esc(ins.style.reason)}</td></tr>
-    <tr class="changed"><td class="name">Mentality</td><td class="val"><span class="v">${esc(ins.mentality.value)}</span>${mentalityScale(ins.mentality.value, ctx)}</td><td class="why">${esc(ins.mentality.reason)}</td></tr>
+  <div class="tablewrap"><table class="settings checklist"><tbody>
+    <tr class="changed"><td class="name">${tick("style", "Style")}</td><td class="val"><span class="v">${esc(ins.style.value || "Any")}</span></td><td class="why">${esc(ins.style.reason)}</td></tr>
+    <tr class="changed"><td class="name">${tick("mentality", "Mentality")}</td><td class="val"><span class="v">${esc(ins.mentality.value)}</span>${mentalityScale(ins.mentality.value, ctx)}</td><td class="why">${esc(ins.mentality.reason)}</td></tr>
   </tbody></table></div>
 
   <h3><span class="step">2</span>Formations, players and roles</h3>
@@ -5357,7 +6007,7 @@ ${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="
   ${ipTables}
 
   <h3><span class="step">4</span>Team Instructions › Out of Possession</h3>
-  ${settingsTable(ins.oop)}
+  ${settingsTable(ins.oop, true)}
   <p class="legend">The bars under a setting show where it sits on FM27's scale. Names follow FM27 as closely as public sources allow; if a label
   in your game is worded slightly differently, pick the option with the same meaning.</p>
 
@@ -5367,17 +6017,17 @@ ${tweaks ? `<h4>Team instructions shaped by your marquee players</h4><ul class="
   FM27: if one isn't offered for that role, skip it.</p>
 
   <h3><span class="step">6</span>Set pieces and captain</h3>
-  <div class="tablewrap"><table class="settings"><tbody>
-    <tr><td class="name">Captain</td><td class="val">${who(captain.captain)}</td><td class="why">${esc(captain.captain?.why || "")}</td></tr>
-    <tr><td class="name">Vice-captain</td><td class="val">${who(captain.vice)}</td><td class="why">${esc(captain.vice?.why || "")}</td></tr>
-    <tr><td class="name">Corners (left)</td><td class="val">${who(sp.cornersLeft)}</td><td class="why">${esc(swing("left", sp.cornersLeft))}</td></tr>
-    <tr><td class="name">Corners (right)</td><td class="val">${who(sp.cornersRight)}</td><td class="why">${esc(swing("right", sp.cornersRight))}</td></tr>
-    <tr><td class="name">Free kicks (shots)</td><td class="val">${who(sp.directFreeKicks)}</td><td class="why">Free Kick Taking, Technique and Long Shots.</td></tr>
-    <tr><td class="name">Free kicks (crosses)</td><td class="val">${who(sp.indirectFreeKicks)}</td><td class="why">Free Kick Taking and Crossing.</td></tr>
-    <tr><td class="name">Penalties (in order)</td><td colspan="2">${sp.penalties.map((p, i) => `<span class="muted">${i + 1}.</span> ${esc(p?.name || "")}`).join(" &nbsp; ")}</td></tr>
-    <tr><td class="name">Long throws</td><td colspan="2">${sp.longThrows ? who(sp.longThrows) : '<span class="muted">Nobody has a long throw worth using.</span>'}</td></tr>
-    <tr><td class="name">Attack the ball</td><td colspan="2">${sp.aerialTargets.slice(0, 3).map((t) => `${esc(t.name)}${t.height ? ` <span class="muted small">${t.height} cm</span>` : ""}`).join(" &nbsp;·&nbsp; ")}</td></tr>
-    <tr><td class="name">Stay back</td><td colspan="2">${sp.stayBack.map((t) => esc(t?.name || "")).join(" &nbsp;·&nbsp; ")} <span class="muted small">quickest defenders who aren't aerial targets, to stop counter-attacks</span></td></tr>
+  <div class="tablewrap"><table class="settings checklist"><tbody>
+    ${spRow("captain", "Captain", who(captain.captain), esc(captain.captain?.why || ""))}
+    ${spRow("vice", "Vice-captain", who(captain.vice), esc(captain.vice?.why || ""))}
+    ${spRow("cornersLeft", "Corners (left)", who(sp.cornersLeft), esc(swing("left", sp.cornersLeft)))}
+    ${spRow("cornersRight", "Corners (right)", who(sp.cornersRight), esc(swing("right", sp.cornersRight)))}
+    ${spRow("fkShots", "Free kicks (shots)", who(sp.directFreeKicks), "Free Kick Taking, Technique and Long Shots.")}
+    ${spRow("fkCrosses", "Free kicks (crosses)", who(sp.indirectFreeKicks), "Free Kick Taking and Crossing.")}
+    ${spWide("penalties", "Penalties (in order)", sp.penalties.map((p, i) => `<span class="muted">${i + 1}.</span> ${esc(p?.name || "")}`).join(" &nbsp; "))}
+    ${spWide("longThrows", "Long throws", sp.longThrows ? who(sp.longThrows) : '<span class="muted">Nobody has a long throw worth using.</span>')}
+    ${spWide("attack", "Attack the ball", sp.aerialTargets.slice(0, 3).map((t) => `${esc(t.name)}${t.height ? ` <span class="muted small">${t.height} cm</span>` : ""}`).join(" &nbsp;·&nbsp; "))}
+    ${spWide("stayBack", "Stay back", `${sp.stayBack.map((t) => esc(t?.name || "")).join(" &nbsp;·&nbsp; ")} <span class="muted small">quickest defenders who aren't aerial targets, to stop counter-attacks</span>`)}
   </tbody></table></div>
 </section>`;
   }
@@ -5460,6 +6110,7 @@ ${rows.map(row).join("\n")}</div>`;
     if (p.label === "future") return ` <svg class="ico" viewBox="0 0 16 16" aria-label="future star"><path d="${STAR_PATH}" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>`;
     return "";
   }
+  var pname = (p) => `<button type="button" class="pname" data-pid="${esc(p.id)}">${esc(p.name)}</button>`;
   var INJ = '<svg class="ico" viewBox="0 0 16 16" aria-label="injured"><path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   function depth(result) {
     const { depth: dc, ctx } = result;
@@ -5484,8 +6135,8 @@ ${rows.map(row).join("\n")}</div>`;
   <div class="hd"><strong>${esc(slotLabel(slots, d.lane.ip))}</strong>
     <span class="roles"><span>${phaseKey("IP")}${esc(d.lane.ipRole.abbr)}</span><span>${phaseKey("OOP")}${esc(d.lane.oopRole.abbr)}</span></span></div>
   <div class="who">
-    <span class="rk">1</span><span class="nm1">${esc(d.starter.name)}${star(d.starter)}</span>${fitChip(d.starterValue)}
-    <span class="rk">2</span>${d.secondChoice ? `<span class="dim">${esc(d.secondChoice.player.name)}${star(d.secondChoice.player)}</span>${fitChip(d.secondChoice.value)}` : '<span class="dim">nobody fit</span><span></span>'}
+    <span class="rk">1</span><span class="nm1">${pname(d.starter)}${star(d.starter)}</span>${fitChip(d.starterValue)}
+    <span class="rk">2</span>${d.secondChoice ? `<span class="dim">${pname(d.secondChoice.player)}${star(d.secondChoice.player)}</span>${fitChip(d.secondChoice.value)}` : '<span class="dim">nobody fit</span><span></span>'}
   </div>
   ${extra.length ? `<div class="also"><span class="lbl">Also</span>${extra.join("")}</div>` : ""}
   ${weak2 ? `<div class="flag">${ICON.warn}Weak spot – see below</div>` : ""}
@@ -5502,7 +6153,7 @@ ${rows.map(row).join("\n")}</div>`;
     ).join("")}</ol>` : `<p>${ICON.check} No weak areas: every position has a good starter and reasonable cover.</p>`;
     return `
 <section id="depth" class="card">
-  <h2><span class="num">4</span>Depth chart and transfer targets</h2>
+  <h2><span class="num">4</span>Depth chart and signings</h2>
   <p class="lede">Second choices form an exact "second XI" for the same system and roles (fit players only), so nobody is listed twice.
   Fit scores use the roles of the main tactic.</p>
   <div class="board">${board}</div>
@@ -5510,7 +6161,40 @@ ${rows.map(row).join("\n")}</div>`;
   ${weak}
   <p class="legend">"Look for" lists the key attributes of the two roles, weakest first for your current starter (his value shown): a signing
   should beat him on these.</p>
+  ${scoutingBlock(result)}
 </section>`;
+  }
+  var money = (p) => [p.transferValue && `value ${esc(p.transferValue)}`, p.wage && `wage ${esc(p.wage)}`].filter(Boolean).join(" · ");
+  function scoutingBlock(result) {
+    const sc = result.scouting;
+    const load = `<div class="loadrow app-only"><button type="button" class="btn ghost small" data-load="scouting">${sc ? "Load another list…" : "Load a shortlist or player search…"}</button>
+<span class="small muted">With the plugin: press <b>F8</b> on your shortlist or a player search. Without it: export the list (F9) and load it here. The list's view needs the attribute columns.</span></div>`;
+    if (!sc) {
+      return `<h3 id="scouting">Who would improve your team?</h3>
+<p class="muted small">Score the players from a shortlist or a player search in this tactic's positions and roles, and see who would start for you
+and by how much the team improves.</p>${load}`;
+    }
+    if (sc.error) return `<h3 id="scouting">Who would improve your team?</h3><div class="picks-cost">${ICON.warn}<span>${esc(sc.name)} couldn't be used: ${esc(sc.error)}</span></div>${load}`;
+    const slots = result.ctx.slots;
+    const verdictTag = (r) => r.verdict === "starts" ? '<span class="tag accent">Would start</span>' : r.verdict === "cover" ? '<span class="tag">Better cover</span>' : '<span class="tag muted-tag">Not better</span>';
+    const rows = sc.rows.map((r) => {
+      const p = r.player;
+      const sub = [p.age != null && fmt(p.age), p.club && esc(p.club), money(p)].filter(Boolean).join(" · ");
+      const vsStarter = `${r.gain >= 0 ? "+" : "−"}${fmt(Math.abs(r.gain))} <span class="muted small">on ${esc(r.lane.player.name.split(/\s+/).pop())}</span>`;
+      const vsCover = r.cover == null ? '<span class="muted">no cover now</span>' : `${r.coverGain >= 0 ? "+" : "−"}${fmt(Math.abs(r.coverGain))}`;
+      const flags = [r.weakArea ? '<span class="tag warn">weak spot</span>' : "", r.spread >= 3 ? `<span class="tag warn">±${fmt(r.spread)} scouting</span>` : "", r.unknown > 5 ? `<span class="tag warn">${r.unknown} attributes unknown</span>` : ""].join(" ");
+      return `<tr><td><strong>${esc(p.name)}</strong><div class="sub">${sub}</div></td>
+<td>${esc(slots[r.lane.ip][3])} <span class="muted small">${esc(r.lane.ipRole.abbr)} / ${esc(r.lane.oopRole.abbr)}</span></td>
+<td class="num">${fitChip(r.value)}</td><td class="num">${vsStarter}</td><td class="num">${vsCover}</td><td>${verdictTag(r)} ${flags}</td></tr>`;
+    }).join("");
+    const weakList = sc.forWeak.length ? `<h4>For your weak spots</h4><ul class="notes">${sc.forWeak.map((w) => `<li><span class="pts">${ICON.check}</span><span><strong>${esc(slots[w.area.lane.ip][3])}</strong>: ${esc(w.pick.player.name)} ${fitChip(w.pick.value)} <span class="muted">(starter ${fmt(w.area.lane.value)})</span></span></li>`).join("")}</ul>` : "";
+    return `<h3 id="scouting">Who would improve your team? <span class="muted small">${esc(sc.name)}</span></h3>
+<p class="lede small">${sc.considered} players scored in this tactic's positions and roles${sc.inSquad ? ` (${sc.inSquad} already at your club skipped)` : ""}:
+<strong>${sc.starters}</strong> would start, <strong>${sc.coverCount}</strong> would be better cover than what you have${sc.noPlace ? `, ${sc.noPlace} have no position in this tactic` : ""}.
+Fit uses the same scale as your own players; "on" = how much better than your current starter in that spot.${sc.attributesFound < sc.attributesTotal / 2 ? " <strong>Few attributes were in that export, so the scores are rough.</strong>" : ""}</p>
+${weakList}
+${rows ? `<div class="tablewrap"><table class="scout"><thead><tr><th>Player</th><th>Best spot</th><th class="num">Fit</th><th class="num">vs starter</th><th class="num">vs cover</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="muted">None of these players has a position in this tactic.</p>'}
+${load}`;
   }
   function alternatives(result) {
     if (!result.alternatives?.length) return "";
@@ -5529,7 +6213,7 @@ ${rows.map(row).join("\n")}</div>`;
       return `<div class="alt"><h3><span class="step">${letter}</span>${esc(a.title)}</h3>
 <p class="muted">${esc(a.when)}</p>
 <div class="chips"><span class="tag">Mentality: ${esc(a.instructions.mentality.value)}</span><span class="tag">${esc(a.instructions.values.lineOfEngagement)}</span>
-<span class="tag">${phaseKey("IP")}${esc(a.system.ipName)}</span><span class="tag">${phaseKey("OOP")}${esc(a.system.oopName)}</span><span class="tag">Fit ${fmt(a.system.fit, 1)}</span></div>
+<span class="tag">${phaseKey("IP")}${esc(a.system.ipName)}</span><span class="tag">${phaseKey("OOP")}${esc(a.system.oopName)}</span><span class="tag">Fit ${fmt(a.system.fit, 1)}</span>${a.rotation?.young.length ? `<span class="tag accent">${a.rotation.young.length} player${a.rotation.young.length === 1 ? "" : "s"} aged 21 or under</span>` : ""}</div>
 ${pitches(a.system, slots, true, result.captain?.captain?.player)}
 <h4>Players and roles that change</h4>${roleList2}
 <h4>Settings that change from the main tactic</h4>
@@ -5542,6 +6226,43 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th styl
   ${blocks}
 </section>`;
   }
+  function matchPlanBody(result, opp) {
+    const plan = matchPlan(result, opp || {});
+    if (plan.empty) {
+      return `<p class="muted mp-empty">Pick what your next opponent is like above (in the app), and the plan appears here: which of your
+tactics to start from and which instructions to change, with reasons.</p>`;
+    }
+    const rows = plan.changes.map((c) => `<tr class="changed"><td class="name">${esc(c.name)}</td><td class="muted">${esc(c.from)}</td><td><span class="v">${esc(c.to)}</span></td><td class="why">${esc(c.reason)}</td></tr>`).join("");
+    const alt = plan.base.alt;
+    return `<div class="mp-plan">
+  <div class="chips"><span class="small muted">Opponent:</span>${plan.chosen.map((c) => `<span class="chip">${esc(c)}</span>`).join("")}</div>
+  <div class="kpis">
+    ${kpi(kpiIcon("style"), "Start from", esc(plan.base.title), `<div class="small muted" style="margin-top:4px">${esc(plan.base.why)}</div>`)}
+    ${kpi(kpiIcon("mentality"), "Mentality", esc(plan.mentality.value), `<div class="small muted" style="margin-top:4px">${esc(plan.mentality.reason)}</div>`)}
+    ${alt ? kpi(phaseKey("IP"), "Shapes", `${esc(alt.system.ipName)} <span class="muted small">/ ${esc(alt.system.oopName)}</span>`) : ""}
+  </div>
+  ${rows ? `<h4>Change these team instructions</h4><div class="tablewrap"><table class="settings"><thead><tr><th style="padding-left:22px">Setting</th><th>${alt ? "That tactic" : "Main tactic"}</th><th>For this match</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="muted">No team instruction changes needed: the tactic already suits this opponent.</p>'}
+  ${plan.notes.length ? `<h4>Also</h4><ul class="notes">${plan.notes.map((n) => `<li><span class="pts">${ICON.info}</span><span>${esc(n)}</span></li>`).join("")}</ul>` : ""}
+</div>`;
+  }
+  function matchSection(result, opp = {}) {
+    const radios = (name, list, chosen) => `<label class="mp-chip"><input type="radio" name="mp-${name}" value=""${!chosen ? " checked" : ""}><span>Not sure</span></label>${list.map(([k, label]) => `<label class="mp-chip"><input type="radio" name="mp-${name}" value="${k}"${chosen === k ? " checked" : ""}><span>${esc(label)}</span></label>`).join("")}`;
+    const boxes = (name, list, chosen = []) => list.map(([k, label]) => `<label class="mp-chip"><input type="checkbox" name="mp-${name}" value="${k}"${chosen.includes(k) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
+    return `
+<section id="match" class="card">
+  <h2><span class="num">6</span>Match plan for your next opponent</h2>
+  <p class="lede">Say what your next opponent is like, and the tool picks which of your tactics to start from and which team
+  instructions to change for the match, using what your own players are good at. Leave anything you don't know.</p>
+  <form class="mp-controls app-only" id="mp-controls">
+    <div class="mp-row"><span class="mp-l">They are</span>${radios("strength", OPPONENT.strength, opp?.strength)}</div>
+    <div class="mp-row"><span class="mp-l">You play</span>${radios("venue", OPPONENT.venue, opp?.venue)}</div>
+    <div class="mp-row"><span class="mp-l">They</span>${boxes("style", OPPONENT.style, opp?.style)}</div>
+    <div class="mp-row"><span class="mp-l">They have</span>${boxes("players", OPPONENT.players, opp?.players)}</div>
+    <div class="mp-row"><span class="mp-l"></span><button type="button" class="linkbtn" id="mp-clear">Clear</button></div>
+  </form>
+  <div id="mp-out">${matchPlanBody(result, opp)}</div>
+</section>`;
+  }
   var trainingNote = (note) => /^Young enough/.test(note || "") ? `<span class="tag accent" title="${esc(note)}">young · improves fast</span>` : esc(note);
   function training(result) {
     const t = result.training;
@@ -5552,7 +6273,7 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th styl
     ).join("");
     return `
 <section id="training" class="card">
-  <h2><span class="num">6</span>Training focus</h2>
+  <h2><span class="num">7</span>Training and progress</h2>
   <h3>Tactical Understanding sessions</h3>
   <p class="lede small">These teach the tactic, so FM27's Tactical Effectiveness rises faster. Put them in the weekly schedule.</p>
   ${list(t.team)}
@@ -5563,7 +6284,52 @@ ${diffRows ? `<div class="tablewrap"><table class="settings"><thead><tr><th styl
   <p class="lede small">The weakest trainable key attributes for each player's two roles. FM27 renamed some individual training focuses, so pick the one that trains that attribute.</p>
   ${ind ? `<div class="tablewrap"><table><thead><tr><th>Player</th><th>Roles</th><th>Work on</th><th></th></tr></thead><tbody>${ind}</tbody></table></div>` : "<p>No clear weak spots in the starters' key attributes.</p>"}
   ${futureStars(result)}
+  ${progressBlock(result)}
 </section>`;
+  }
+  function trendChart(trend) {
+    const W3 = 560;
+    const H3 = 150;
+    const pad = { l: 38, r: 16, t: 14, b: 26 };
+    const ys = trend.map((t) => t.level);
+    let lo = Math.min(...ys);
+    let hi = Math.max(...ys);
+    if (hi - lo < 0.6) [lo, hi] = [lo - 0.3, hi + 0.3];
+    const x = (i) => pad.l + (trend.length === 1 ? 0.5 : i / (trend.length - 1)) * (W3 - pad.l - pad.r);
+    const y = (v) => pad.t + (1 - (v - lo) / (hi - lo)) * (H3 - pad.t - pad.b);
+    const ticks = [lo, (lo + hi) / 2, hi];
+    const day = (d) => d ? d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
+    const path = trend.map((t, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(t.level).toFixed(1)}`).join(" ");
+    return `<svg class="trend" viewBox="0 0 ${W3} ${H3}" role="img" aria-label="First-team level over your reads">
+${ticks.map((t) => `<line x1="${pad.l}" x2="${W3 - pad.r}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" class="grid"/><text x="${pad.l - 6}" y="${(y(t) + 3.5).toFixed(1)}" class="ax" text-anchor="end">${fmt(t, 1)}</text>`).join("")}
+<path d="${path}" class="ln"/>
+${trend.map((t, i) => `<g class="pt" tabindex="0"><title>${esc(day(t.date))}: ${fmt(t.level, 2)}${t.now ? " (now)" : ""}</title><circle cx="${x(i).toFixed(1)}" cy="${y(t.level).toFixed(1)}" r="9" class="hit"/><circle cx="${x(i).toFixed(1)}" cy="${y(t.level).toFixed(1)}" r="4.5" class="dot${t.now ? " now" : ""}"/></g>`).join("")}
+${trend.map((t, i) => i === 0 || i === trend.length - 1 ? `<text x="${x(i).toFixed(1)}" y="${H3 - 8}" class="ax" text-anchor="${i === 0 && trend.length > 1 ? "start" : "end"}">${esc(t.now ? "now" : day(t.date))}</text>` : "").join("")}
+<text x="${x(trend.length - 1).toFixed(1)}" y="${(y(trend[trend.length - 1].level) - 10).toFixed(1)}" class="val" text-anchor="end">${fmt(trend[trend.length - 1].level, 2)}</text>
+</svg>`;
+  }
+  function progressBlock(result) {
+    const pr = result.progress;
+    const load = `<div class="loadrow app-only"><button type="button" class="btn ghost small" data-load="history">${pr?.ok ? "Compare with other exports…" : "Compare with an older export…"}</button>
+<span class="small muted">With the plugin this happens by itself: every F8 is kept, and the page compares with your earlier reads of the same club.</span></div>`;
+    if (!pr || !pr.ok) {
+      return `<h3 id="progress">Progress over time</h3><p class="muted small">${pr && !pr.ok ? "None of the older exports belongs to this club, or they are newer than this one." : "See who is improving: compare this squad with an older export of the same club."}</p>${load}`;
+    }
+    const day = (d) => d ? d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "your last read";
+    const chips = (cs) => cs.slice(0, 5).map((c) => `<span class="tag${c.delta > 0 ? " up" : " down"}">${c.delta > 0 ? "+" : "−"}${Math.abs(c.delta)} ${esc(c.attr)}</span>`).join(" ");
+    const row = (x) => `<tr><td><strong>${esc(x.player.name)}</strong>${x.player.age != null ? ` <span class="muted small">${fmt(x.player.age)}</span>` : ""}</td>
+<td class="num">${x.levelDelta != null ? `${x.levelDelta >= 0 ? "+" : "−"}${fmt(Math.abs(x.levelDelta), 2)}` : ""}</td><td>${chips(x.changes)}</td>
+<td class="small muted">${x.potentialDelta ? `potential ${x.potentialDelta > 0 ? "+" : "−"}${fmt(Math.abs(x.potentialDelta), 1)}★` : ""}</td></tr>`;
+    const first = pr.trend[0];
+    const last2 = pr.trend[pr.trend.length - 1];
+    return `<h3 id="progress">Progress since ${esc(day(pr.previous.date))}</h3>
+<p class="lede small">Compared with ${pr.reads} earlier read${pr.reads === 1 ? "" : "s"} of this club. First-team level (the 18 best players' average attribute)
+went from <strong>${fmt(first.level, 2)}</strong> to <strong>${fmt(last2.level, 2)}</strong>${pr.unchanged ? `; ${pr.unchanged} of ${pr.compared} players haven't changed` : ""}.</p>
+${pr.trend.length > 1 ? trendChart(pr.trend) : ""}
+${pr.improvers.length ? `<h4>Improving</h4><div class="tablewrap"><table><thead><tr><th>Player</th><th class="num">Level</th><th>Biggest changes</th><th></th></tr></thead><tbody>${pr.improvers.map(row).join("")}</tbody></table></div>` : ""}
+${pr.decliners.length ? `<h4>Declining</h4><div class="tablewrap"><table><thead><tr><th>Player</th><th class="num">Level</th><th>Biggest changes</th><th></th></tr></thead><tbody>${pr.decliners.map(row).join("")}</tbody></table></div>` : ""}
+${pr.arrivals.length || pr.departures.length ? `<h4>Squad changes</h4><div class="chips">${pr.arrivals.map((p) => `<span class="chip">+ ${esc(p.name)}</span>`).join("")}${pr.departures.map((p) => `<span class="chip loan">− ${esc(p.name)}</span>`).join("")}</div>` : ""}
+${load}`;
   }
   function futureStars(result) {
     const plans = result.picks?.futureStars || [];
@@ -5604,6 +6370,7 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
     const xiIds = new Set(result.best.lanes.map((l) => l.player.id));
     const fmRoleName = (abbr) => roles.find((r) => r.phase === "IP" && r.abbr === abbr)?.name;
     const ordered = players.slice().sort((a, b) => Number(a.onLoan) - Number(b.onLoan));
+    const groupsOf = (p) => GROUPS.map((g, i) => g.positions.some((pos) => p.positions.has(pos)) ? i : null).filter((i) => i != null).join(" ");
     const bestRows = ordered.map((p) => {
       const scored = result.suitability.find((s) => s.player === p).scores;
       const top = (phase) => roles.filter((r) => r.phase === phase && scored[r.id]).map((r) => ({ r, s: scored[r.id] })).sort((a, b) => b.s.score - a.s.score).slice(0, 3).map(({ r, s }) => `<div class="line">${fitChip(s.score)} ${esc(r.name)}</div>`).join("");
@@ -5611,19 +6378,20 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
       if (xiIds.has(p.id)) flags.push('<span class="tag accent">Starting XI</span>');
       if (p.label || p.mustStart) flags.push(pickTags(p));
       if (p.onLoan) flags.push(`<span class="tag">On loan${p.club ? " at " + esc(p.club) : ""}</span>`);
+      if (p.unavailable) flags.push('<span class="tag warn">Unavailable (your choice)</span>');
       if (p.injured) flags.push(`<span class="tag warn">${ICON.warn}Injured${p.injury ? ": " + esc(p.injury) : ""}</span>`);
       if (p.uncertainAttrs.length) flags.push(`<span class="tag warn">${p.uncertainAttrs.length} scouting ranges</span>`);
       if (p.unknownAttrs.length > 3) flags.push(`<span class="tag warn">${p.unknownAttrs.length} attributes unknown</span>`);
       const fm = p.fmBestRole ? `${esc(fmRoleName(p.fmBestRole) || p.fmBestRole)} <span class="muted small">${esc(p.fmBestRole)}</span>` : '<span class="muted">–</span>';
-      return `<tr${p.onLoan ? ' class="muted"' : ""}><td><strong>${esc(p.name)}</strong><div class="sub">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}</div></td>
+      return `<tr${p.onLoan ? ' class="muted"' : ""} data-name="${esc(p.name.toLowerCase())}" data-groups="${groupsOf(p)}" data-loan="${p.onLoan ? 1 : 0}" data-xi="${xiIds.has(p.id) ? 1 : 0}"><td><strong>${pname(p)}</strong><div class="sub">${esc(p.positionsText)}${p.age != null ? " · " + fmt(p.age) : ""}</div></td>
 <td>${top("IP")}</td><td>${top("OOP")}</td><td>${fm}</td><td>${flags.join(" ")}</td></tr>`;
     }).join("\n");
-    const matrices = GROUPS.map((g) => {
+    const matrices = GROUPS.map((g, gi) => {
       const groupRoles = roles.filter((r) => r.positions.some((pos) => g.positions.includes(pos)));
       const ipRoles = groupRoles.filter((r) => r.phase === "IP");
       const oopRoles = groupRoles.filter((r) => r.phase === "OOP");
       const members = ordered.filter((p) => g.positions.some((pos) => p.positions.has(pos)));
-      if (!members.length) return `<h3>${esc(g.title)}</h3><p class="muted">Nobody in the squad lists these positions.</p>`;
+      if (!members.length) return `<div class="mx-group" data-group="${gi}"><h3>${esc(g.title)}</h3><p class="muted">Nobody in the squad lists these positions.</p></div>`;
       const th = (r) => `<th class="${r.phase === "IP" ? "ip" : "oop"}" title="${esc(r.name)}">${esc(r.abbr)}</th>`;
       const head = `${ipRoles.map(th).join("")}<th class="gap"></th>${oopRoles.map(th).join("")}`;
       const body = members.map((p) => {
@@ -5633,20 +6401,27 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
           return vals.map((v) => heatCell(v?.score, v && v.score === max)).join("");
         });
         const tag = p.onLoan ? ' <span class="tag">loan</span>' : p.injured ? ' <span class="tag warn">inj</span>' : "";
-        return `<tr><td>${esc(p.name)}${tag}</td>${cells[0]}<td class="gap"></td>${cells[1]}</tr>`;
+        return `<tr data-name="${esc(p.name.toLowerCase())}" data-loan="${p.onLoan ? 1 : 0}" data-xi="${xiIds.has(p.id) ? 1 : 0}"><td>${pname(p)}${tag}</td>${cells[0]}<td class="gap"></td>${cells[1]}</tr>`;
       }).join("");
       const seen = /* @__PURE__ */ new Set();
       const legend = [...ipRoles, ...oopRoles].filter((r) => !seen.has(`${r.abbr}|${r.name}`) && seen.add(`${r.abbr}|${r.name}`)).map((r) => `<span><b>${esc(r.abbr)}</b>${esc(r.name)}</span>`).join("");
-      return `<h3>${esc(g.title)}</h3>
+      return `<div class="mx-group" data-group="${gi}"><h3>${esc(g.title)}</h3>
 <div class="tablewrap"><table class="matrix"><thead><tr><th>Player</th>${head}</tr></thead><tbody>${body}</tbody></table></div>
-<div class="abbr-grid">${legend}</div>`;
+<div class="abbr-grid">${legend}</div></div>`;
     }).join("\n");
     return `
 <section id="suitability" class="card">
-  <h2><span class="num">7</span>Role suitability for the whole squad</h2>
+  <h2><span class="num">8</span>Role suitability for the whole squad</h2>
   <p class="lede">Every player scored for every FM27 role. A score weighs the role's key attributes three times and its preferred attributes 1.5 times
   (the same attributes FM27 highlights for that role), adds the attributes the match engine rewards in every role (pace, acceleration,
   anticipation, decisions…), then adjusts for position familiarity and, on the wings, for the stronger foot.</p>
+  <div class="sfilter app-only" id="sfilter">
+    <input type="search" id="sf-q" placeholder="Find a player…" aria-label="Find a player">
+    <select id="sf-g" aria-label="Position group"><option value="">All positions</option>${GROUPS.map((g, i) => `<option value="${i}">${esc(g.title)}</option>`).join("")}</select>
+    <label class="check"><input type="checkbox" id="sf-xi"> Starting XI only</label>
+    <label class="check"><input type="checkbox" id="sf-loan" checked> Show players on loan</label>
+    <span class="sf-count" id="sf-count"></span>
+  </div>
   <h3>Best roles per player</h3>
   <div class="tablewrap"><table class="best">
     <thead><tr><th>Player</th><th>Best in possession</th><th>Best out of possession</th><th>FM's best role</th><th>Notes</th></tr></thead>
@@ -5691,19 +6466,20 @@ train for those roles, and how to give him minutes. Potential stars are FM's own
     for (const w of result.warnings) items.push(esc(w));
     return `
 <section id="data" class="card">
-  <h2><span class="num">8</span>About your data</h2>
+  <h2><span class="num">9</span>About your data</h2>
   <ul class="muted">${items.map((i) => `<li>${i}</li>`).join("")}</ul>
 </section>`;
   }
   var SECTIONS = [
-    ["overview", "At a glance"],
-    ["setup", "Enter it in FM27"],
+    ["overview", "Overview"],
+    ["setup", "Enter it"],
     ["why", "Why"],
-    ["depth", "Depth"],
+    ["depth", "Depth & signings"],
     ["alternatives", "Alternatives"],
+    ["match", "Match plan"],
     ["training", "Training"],
-    ["suitability", "Role suitability"],
-    ["data", "Your data"]
+    ["suitability", "Roles"],
+    ["data", "Data"]
   ];
   function renderReport(result, opts = {}) {
     const when = (opts.generatedAt || /* @__PURE__ */ new Date()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -5722,6 +6498,7 @@ ${enterIt(result)}
 ${why(result)}
 ${depth(result)}
 ${alternatives(result)}
+${matchSection(result, opts.match)}
 ${training(result)}
 ${suitability(result)}
 ${dataNotes(result)}
@@ -5771,12 +6548,13 @@ ${dataNotes(result)}
       const pick = picks[key] || {};
       const label = pick.label || "";
       const id = `pk-${encodeURIComponent(key).replace(/[^a-zA-Z0-9_-]/g, "_")}`;
-      const opt = (value, text) => `<label><input type="radio" name="${id}-label" value="${value}"${label === value ? " checked" : ""}><span>${text}</span></label>`;
+      const opt = (value, text2) => `<label><input type="radio" name="${id}-label" value="${value}"${label === value ? " checked" : ""}><span>${text2}</span></label>`;
       return `<div class="pk-row" data-key="${esc(key)}" data-gk="${p.isGoalkeeper ? 1 : 0}" data-name="${esc(p.name.toLowerCase())}">
   <div class="pk-name"><strong>${esc(p.name)}</strong><span class="pk-sub">${esc(p.positionsText || [...p.positions].join(", "))}${p.age != null ? ` · ${p.age}` : ""}${p.injured ? ' · <span class="pk-inj">injured</span>' : ""}</span></div>
   <div class="pk-role">${best ? `${fitChip(best.score)}<span class="pk-rn">${esc(best.role.name)}</span>` : ""}</div>
-  <label class="switch"><input type="checkbox" class="pk-start"${pick.start || label === "marquee" ? " checked" : ""}${label === "marquee" ? " disabled" : ""}><span class="knob" aria-hidden="true"></span><span class="sw-text">Must start</span></label>
+  <label class="switch"><input type="checkbox" class="pk-start"${!pick.out && (pick.start || label === "marquee") ? " checked" : ""}${label === "marquee" || pick.out ? " disabled" : ""}><span class="knob" aria-hidden="true"></span><span class="sw-text">Must start</span></label>
   <div class="seg mini" role="radiogroup" aria-label="Label for ${esc(p.name)}">${opt("", "None")}${opt("future", "Future star")}${opt("marquee", "Marquee")}</div>
+  <label class="switch out" title="Suspended, resting or about to leave: the tactic is built without him"><input type="checkbox" class="pk-out"${pick.out ? " checked" : ""}><span class="knob" aria-hidden="true"></span><span class="sw-text">Unavailable</span></label>
 </div>`;
     };
     el.innerHTML = `
@@ -5784,7 +6562,8 @@ ${dataNotes(result)}
   <div>
     <h2>Build around your players</h2>
     <p class="hint"><strong>Must start</strong>: always in the XI. <strong>Marquee</strong>: the tactic is built around him (always starts, and his fit
-    counts 2.5 times when choosing the shape and roles). <strong>Future star</strong>: high potential; wins close calls for a place and gets a development plan.</p>
+    counts 2.5 times when choosing the shape and roles). <strong>Future star</strong>: high potential; wins close calls for a place and gets a development plan.
+    <strong>Unavailable</strong>: suspended, resting or about to leave; the tactic is built without him.</p>
   </div>
   <div class="pk-actions">
     <span class="pk-count" id="pk-count"></span>
@@ -5807,30 +6586,41 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
       const out = {};
       for (const r of el.querySelectorAll(".pk-row")) {
         const label = r.querySelector('input[type="radio"]:checked')?.value || "";
-        const start = r.querySelector(".pk-start").checked;
-        if (start || label) out[r.dataset.key] = { start: start || label === "marquee", label: label || null };
+        const unavailable = r.querySelector(".pk-out").checked;
+        const start = !unavailable && r.querySelector(".pk-start").checked;
+        if (start || label || unavailable) out[r.dataset.key] = { start: start || !unavailable && label === "marquee", label: label || null, ...unavailable ? { out: true } : {} };
       }
       return out;
     };
     const validate = () => {
       const rows = [...el.querySelectorAll(".pk-row")];
-      const locked = rows.filter((r) => r.querySelector(".pk-start").checked);
+      const outRows = rows.filter((r) => r.querySelector(".pk-out").checked);
+      const locked = rows.filter((r) => r.querySelector(".pk-start").checked && !r.querySelector(".pk-out").checked);
       const gks = locked.filter((r) => r.dataset.gk === "1");
       const futures = rows.filter((r) => r.querySelector('input[value="future"]:checked')).length;
       const marquees = rows.filter((r) => r.querySelector('input[value="marquee"]:checked')).length;
-      $2("#pk-count").textContent = `${locked.length} / 11 must start · ${marquees} marquee · ${futures} future star${futures === 1 ? "" : "s"}`;
+      $2("#pk-count").textContent = `${locked.length} / 11 must start · ${marquees} marquee · ${futures} future star${futures === 1 ? "" : "s"} · ${outRows.length} unavailable`;
       let problem = "";
       if (locked.length > 11) problem = "Only 11 players can start: unmark some.";
       else if (gks.length > 1) problem = "Only one goalkeeper can start.";
+      else if (rows.length - outRows.length < 11) problem = "Fewer than 11 players are left: mark fewer players unavailable.";
+      else if (!rows.some((r) => r.dataset.gk === "1" && !r.querySelector(".pk-out").checked)) problem = "Every goalkeeper is marked unavailable: someone has to go in goal.";
       else if (marquees > 3) problem = "Building around more than three marquee players rarely works; the tool will try, but consider fewer.";
       msg(problem ? `<span class="pk-warn">${esc(problem)}</span>` : "");
-      $2("#pk-apply").disabled = locked.length > 11 || gks.length > 1;
+      $2("#pk-apply").disabled = locked.length > 11 || gks.length > 1 || rows.length - outRows.length < 11;
     };
     el.addEventListener("change", (e) => {
       const r = e.target.closest(".pk-row");
-      if (r && e.target.type === "radio") {
+      if (r && (e.target.type === "radio" || e.target.classList.contains("pk-out"))) {
         const start = r.querySelector(".pk-start");
-        if (e.target.value === "marquee") {
+        const out = r.querySelector(".pk-out");
+        const marquee = r.querySelector('input[value="marquee"]');
+        if (e.target === out && out.checked && marquee.checked) r.querySelector('input[value=""]').checked = true;
+        marquee.disabled = out.checked;
+        if (out.checked) {
+          start.checked = false;
+          start.disabled = true;
+        } else if (marquee.checked) {
           start.checked = true;
           start.disabled = true;
         } else {
@@ -5848,16 +6638,391 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
         const start = r.querySelector(".pk-start");
         start.checked = false;
         start.disabled = false;
+        r.querySelector(".pk-out").checked = false;
+        r.querySelector('input[value="marquee"]').disabled = false;
         r.querySelector('input[value=""]').checked = true;
       }
       validate();
     });
     $2("#pk-close").addEventListener("click", onClose);
     $2("#pk-apply").addEventListener("click", () => onApply(state()));
+    for (const r of el.querySelectorAll(".pk-row")) {
+      if (r.querySelector(".pk-out").checked) r.querySelector('input[value="marquee"]').disabled = true;
+    }
     validate();
-    return { showError: (text) => msg(`<span class="pk-warn">${esc(text)}</span>`) };
+    return { showError: (text2) => msg(`<span class="pk-warn">${esc(text2)}</span>`) };
   }
-  var pickCount = (picks) => Object.values(picks || {}).filter((p) => p.start || p.label).length;
+  var pickCount = (picks) => Object.values(picks || {}).filter((p) => p.start || p.label || p.out).length;
+
+  // src/app/formation.js
+  function renderFormationPanel(el, result, formations, current, { onApply, onClose }) {
+    const options = (list, chosen) => `<option value="">Let the tool choose</option>${list.map((f) => `<option value="${esc(f.name)}"${f.name === chosen ? " selected" : ""}>${esc(f.name)}</option>`).join("")}`;
+    const ranking = (result.formationChoice ? [result.formationChoice.auto, result.best] : result.search.ranking).filter(Boolean);
+    const seen = /* @__PURE__ */ new Set();
+    const top = ranking.filter((s) => !seen.has(s.ipName + "|" + s.oopName) && seen.add(s.ipName + "|" + s.oopName)).slice(0, 5).map((s) => `<button type="button" data-ip="${esc(s.ipName)}" data-oop="${esc(s.oopName)}"><b>${esc(s.ipName)}</b> / ${esc(s.oopName)} <span class="muted">${fmt(s.fit, 1)}</span></button>`).join("");
+    el.innerHTML = `
+<div class="pk-head">
+  <div>
+    <h2>Formation</h2>
+    <p class="hint">Pick the shape yourself and the tool builds the best eleven, roles and instructions for it. Leave a phase on
+    <strong>Let the tool choose</strong> to have it pick the best partner shape. Remembered for this club.</p>
+  </div>
+  <div class="pk-actions">
+    <button class="btn ghost small" type="button" id="fm-auto">Let the tool choose both</button>
+    <button class="btn ghost small" type="button" id="fm-close">Close</button>
+    <button class="btn" type="button" id="fm-apply">Rebuild tactic</button>
+  </div>
+</div>
+<div class="fm-grid">
+  <label>In possession<select id="fm-ip">${options(formations.inPossession, current?.ip)}</select></label>
+  <label>Out of possession<select id="fm-oop">${options(formations.outOfPossession, current?.oop)}</select></label>
+</div>
+<div class="hint">Strong systems for this squad (team fit), to start from:</div>
+<div class="fm-top">${top}</div>
+<div id="fm-msg" class="pk-msg" role="status" aria-live="polite"></div>`;
+    const $2 = (sel) => el.querySelector(sel);
+    const choice = () => ({ ip: $2("#fm-ip").value || null, oop: $2("#fm-oop").value || null });
+    el.querySelector(".fm-top").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      $2("#fm-ip").value = b.dataset.ip;
+      $2("#fm-oop").value = b.dataset.oop;
+    });
+    $2("#fm-auto").addEventListener("click", () => onApply({ ip: null, oop: null }));
+    $2("#fm-close").addEventListener("click", onClose);
+    $2("#fm-apply").addEventListener("click", () => onApply(choice()));
+    return { showError: (text2) => $2("#fm-msg").innerHTML = `<span class="pk-warn">${esc(text2)}</span>` };
+  }
+
+  // src/app/share.js
+  var W2 = 1600;
+  var H2 = 900;
+  var C = {
+    bg: "#0d0f0e",
+    panel: "#161917",
+    line: "#2a2f2c",
+    ink: "#eef0ec",
+    ink2: "#b9bfb9",
+    muted: "#868d87",
+    accent: "#25c48c",
+    pitch: "#12201a",
+    stripe: "#16271e",
+    pitchLine: "rgba(226,240,230,0.22)",
+    token: "#0d1310",
+    track: "rgba(58,64,60,0.9)",
+    ip: "#3987e5",
+    oop: "#d95926",
+    fit: ["#205d44", "#169065", "#25c48c", "#8bf4c4"],
+    captain: "#b7820f"
+  };
+  var FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+  var band2 = (s) => s >= 75 ? 3 : s >= 65 ? 2 : s >= 55 ? 1 : 0;
+  var last = (name) => String(name).trim().split(/\s+/).pop();
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function text(ctx, s, x, y, { size = 16, weight = 400, color = C.ink, align = "left", max } = {}) {
+    ctx.font = `${weight} ${size}px ${FONT}`;
+    ctx.fillStyle = color;
+    ctx.textAlign = align;
+    ctx.textBaseline = "alphabetic";
+    let out = String(s);
+    if (max) while (out.length > 3 && ctx.measureText(out).width > max) out = out.slice(0, -2) + "…";
+    ctx.fillText(out, x, y);
+    return ctx.measureText(out).width;
+  }
+  function pitch(ctx, x, y, w, h, items, slots, title, phaseColor) {
+    roundRect(ctx, x, y, w, h, 14);
+    ctx.fillStyle = C.pitch;
+    ctx.fill();
+    ctx.save();
+    ctx.clip();
+    for (let i = 0; i < 10; i++) if (i % 2) {
+      ctx.fillStyle = C.stripe;
+      ctx.fillRect(x, y + i * h / 10, w, h / 10);
+    }
+    ctx.restore();
+    const m = 14;
+    ctx.strokeStyle = C.pitchLine;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x + m, y + m, w - 2 * m, h - 2 * m);
+    ctx.beginPath();
+    ctx.moveTo(x + m, y + h / 2);
+    ctx.lineTo(x + w - m, y + h / 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y + h / 2, w * 0.12, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeRect(x + w / 2 - w * 0.24, y + m, w * 0.48, h * 0.12);
+    ctx.strokeRect(x + w / 2 - w * 0.24, y + h - m - h * 0.12, w * 0.48, h * 0.12);
+    ctx.fillStyle = phaseColor;
+    ctx.beginPath();
+    ctx.arc(x + 6, y - 18, 6, 0, Math.PI * 2);
+    ctx.fill();
+    text(ctx, title, x + 20, y - 12, { size: 18, weight: 650 });
+    const px2 = (sx) => x + 30 + sx / 100 * (w - 60);
+    const py2 = (sy) => y + h - 64 - sy / 100 * (h - 64 - 40);
+    for (const it of items) {
+      const [sx, sy] = slots[it.slot];
+      const cx = px2(sx);
+      const cy = py2(sy);
+      ctx.lineCap = "round";
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = C.track;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 23, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = C.fit[band2(it.score)];
+      ctx.beginPath();
+      ctx.arc(cx, cy, 23, -Math.PI / 2, -Math.PI / 2 + Math.max(0, Math.min(100, it.score)) / 100 * Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = C.token;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 19, 0, Math.PI * 2);
+      ctx.fill();
+      text(ctx, it.abbr, cx, cy + 4.5, { size: 12, weight: 750, align: "center" });
+      if (it.captain) {
+        ctx.fillStyle = C.captain;
+        ctx.beginPath();
+        ctx.arc(cx - 18, cy - 18, 8, 0, Math.PI * 2);
+        ctx.fill();
+        text(ctx, "C", cx - 18, cy - 14, { size: 10, weight: 800, color: "#1a1405", align: "center" });
+      }
+      ctx.font = `650 14px ${FONT}`;
+      const label = `${last(it.name)}  ${Math.round(it.score)}`;
+      const tw = ctx.measureText(label).width + 16;
+      roundRect(ctx, cx - tw / 2, cy + 28, tw, 22, 11);
+      ctx.fillStyle = "rgba(9,14,11,0.86)";
+      ctx.fill();
+      text(ctx, last(it.name), cx - tw / 2 + 8, cy + 44, { size: 14, weight: 650 });
+      text(ctx, String(Math.round(it.score)), cx + tw / 2 - 8, cy + 44, { size: 13, weight: 600, color: C.muted, align: "right" });
+    }
+  }
+  function drawTacticCard(result) {
+    const canvas = document.createElement("canvas");
+    canvas.width = W2;
+    canvas.height = H2;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(0, 0, W2, H2);
+    const { best, instructions: ins, ctx: c, setPieces: sp, captain } = result;
+    const slots = c.slots;
+    const cap = captain.captain?.player;
+    const items = (phase) => best.lanes.map((l) => ({
+      slot: phase === "IP" ? l.ip : l.oop,
+      abbr: (phase === "IP" ? l.ipRole : l.oopRole).abbr,
+      name: l.player.name,
+      score: (phase === "IP" ? l.ipScore : l.oopScore).score,
+      captain: l.player === cap
+    }));
+    text(ctx, "FM27 TACTIC BUILDER", 48, 58, { size: 15, weight: 750, color: C.accent });
+    text(ctx, `${result.club || "Your squad"}: the tactic`, 48, 100, { size: 38, weight: 750, max: 900 });
+    const chips = [`Style: ${ins.style.value || "custom"}`, `Mentality: ${ins.mentality.value}`, ins.values.lineOfEngagement, `Team fit ${best.fit.toFixed(1)}`];
+    let cx = 48;
+    for (const chip of chips) {
+      ctx.font = `600 15px ${FONT}`;
+      const w = ctx.measureText(chip).width + 24;
+      roundRect(ctx, cx, 122, w, 32, 16);
+      ctx.fillStyle = C.panel;
+      ctx.fill();
+      ctx.strokeStyle = C.line;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      text(ctx, chip, cx + 12, 143, { size: 15, weight: 600, color: C.ink2 });
+      cx += w + 10;
+    }
+    pitch(ctx, 48, 214, 420, 640, items("IP"), slots, `In possession · ${best.ipName}`, C.ip);
+    pitch(ctx, 500, 214, 420, 640, items("OOP"), slots, `Out of possession · ${best.oopName}`, C.oop);
+    const x0 = 960;
+    roundRect(ctx, x0, 190, 592, 664, 16);
+    ctx.fillStyle = C.panel;
+    ctx.fill();
+    ctx.strokeStyle = C.line;
+    ctx.stroke();
+    let y = 232;
+    const heading = (s) => {
+      text(ctx, s.toUpperCase(), x0 + 26, y, { size: 13, weight: 750, color: C.muted });
+      y += 26;
+    };
+    const row = (k, v) => {
+      text(ctx, k, x0 + 26, y, { size: 16, color: C.ink2, max: 300 });
+      text(ctx, v, x0 + 566, y, { size: 16, weight: 650, align: "right", max: 250 });
+      y += 26;
+    };
+    heading("Key instructions (changed from default)");
+    const changed = [...ins.ip, ...ins.oop].filter((i) => i.changed);
+    for (const i of changed.slice(0, 12)) row(i.name, i.value);
+    if (changed.length > 12) {
+      text(ctx, `+ ${changed.length - 12} more in the full report`, x0 + 26, y, { size: 14, color: C.muted });
+      y += 24;
+    }
+    y += 12;
+    heading("Set pieces");
+    const nm = (t) => t ? last(t.name) : "–";
+    row("Captain", nm(captain.captain));
+    row("Corners L / R", `${nm(sp.cornersLeft)} / ${nm(sp.cornersRight)}`);
+    row("Free kicks", nm(sp.directFreeKicks));
+    row("Penalties", sp.penalties.slice(0, 2).map(nm).join(", "));
+    text(ctx, "Made with FM27 Tactic Builder · fit = how well each player suits his role (0–100)", 48, 884, { size: 13, color: C.muted });
+    return canvas;
+  }
+  function saveTacticImage(result, filename) {
+    const canvas = drawTacticCard(result);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2e3);
+    }, "image/png");
+  }
+
+  // src/report/card.js
+  var FORBIDDEN4 = -500;
+  function attrRow(p, a, level, isKey) {
+    const at = p.attrs[a];
+    const k = isKey ? " keyattr" : "";
+    if (!at) return `<div class="ab${k}"><span class="an">${esc(a)}</span><span class="abar"></span><span class="av muted">?</span></div>`;
+    const w = Math.max(1, Math.min(20, at.v)) / 20 * 100;
+    const lv = level != null ? Math.max(1, Math.min(20, level)) / 20 * 100 : null;
+    const cls = level == null ? "" : at.v >= level + 2 ? " hi" : at.v <= level - 2 ? " lo" : "";
+    const shown = at.range ? `${at.lo}–${at.hi}` : fmt(at.v);
+    return `<div class="ab${k}${cls}"><span class="an">${esc(a)}</span><span class="abar"><i style="width:${w.toFixed(0)}%"></i>${lv != null ? `<b style="left:${lv.toFixed(0)}%" title="Team level ${fmt(level, 1)}"></b>` : ""}</span><span class="av">${shown}</span></div>`;
+  }
+  function roleAttrs(p, role2, level, done) {
+    const rows = [...role2.key.map((a) => [a, true]), ...role2.preferred.map((a) => [a, false])].filter(([a]) => !done.has(a));
+    rows.forEach(([a]) => done.add(a));
+    if (!rows.length) return "";
+    return `<div class="pc-role"><div class="pc-rt">${phaseKey(role2.phase)}${esc(role2.name)} <span class="muted small">key, then preferred</span></div>${rows.map(([a, key]) => attrRow(p, a, level, key)).join("")}</div>`;
+  }
+  function bestRoles2(result, p) {
+    const scores = result.suitability.find((s) => s.player === p)?.scores || {};
+    const top = (phase) => result.ctx.roles.roles.filter((r) => r.phase === phase && scores[r.id]).map((r) => ({ r, s: scores[r.id].score })).sort((a, b) => b.s - a.s).slice(0, 3);
+    return { ip: top("IP"), oop: top("OOP") };
+  }
+  function playerCard(result, p) {
+    const { best, ctx, depth: depth2, profile } = result;
+    const slots = ctx.slots;
+    const level = profile.level;
+    const lane = best.lanes.find((l) => l.player === p);
+    const facts = [
+      p.age != null && `${fmt(p.age)} years`,
+      p.positionsText,
+      p.preferredFoot && (/foot/i.test(p.preferredFoot) ? p.preferredFoot : `${p.preferredFoot} foot`),
+      p.heightCm && `${p.heightCm} cm`,
+      p.personality
+    ].filter(Boolean);
+    const status = [
+      pickTags(p),
+      p.injured ? `<span class="tag warn">Injured${p.injury ? ": " + esc(p.injury) : ""}</span>` : "",
+      p.onLoan ? `<span class="tag">On loan${p.club ? " at " + esc(p.club) : ""}</span>` : "",
+      p.unavailable ? '<span class="tag warn">Unavailable (your choice)</span>' : "",
+      lane ? '<span class="tag accent">Starting XI</span>' : ""
+    ].join(" ");
+    let place;
+    let roles = [];
+    if (lane) {
+      place = `<div class="pc-place">
+  <div>${phaseKey("IP")}<strong>${esc(slots[lane.ip][3])}</strong> · ${esc(lane.ipRole.name)} ${fitChip(lane.ipScore.score)}</div>
+  <div>${phaseKey("OOP")}<strong>${esc(slots[lane.oop][3])}</strong> · ${esc(lane.oopRole.name)} ${fitChip(lane.oopScore.score)}</div></div>`;
+      roles = [lane.ipRole, lane.oopRole];
+      const d = depth2.lanes.find((x) => x.lane === lane);
+      const cover = d ? [d.secondChoice, ...d.options.filter((o) => o.player !== d.secondChoice?.player)].filter(Boolean).slice(0, 3) : [];
+      if (cover.length) {
+        place += `<div class="pc-sub">Who else can play here: ${cover.map((o) => `${esc(o.player.name)} <b>${fmt(o.value)}</b>${o.injured ? ' <span class="muted">(injured)</span>' : ""}`).join(" · ")}</div>`;
+      }
+    } else {
+      const options = best.lanes.map((l) => ({ l, v: laneValue2(ctx, p, l) })).filter((o2) => o2.v > FORBIDDEN4).sort((a, b2) => b2.v - a.v);
+      const o = options[0];
+      if (o) {
+        const gap = o.l.value - o.v;
+        place = `<div class="pc-place"><div>Not in the starting XI. His best spot in this tactic: <strong>${esc(slots[o.l.ip][3])}</strong>
+  (${esc(o.l.ipRole.name)} / ${esc(o.l.oopRole.name)}) ${fitChip(o.v)}</div>
+  <div class="pc-sub">${gap > 0 ? `${fmt(gap)} behind the starter, ${esc(o.l.player.name)}.` : `Level with the starter, ${esc(o.l.player.name)}.`}</div></div>`;
+        roles = [o.l.ipRole, o.l.oopRole];
+      } else {
+        place = '<div class="pc-place">Not in the starting XI, and no position in this tactic suits him.</div>';
+      }
+    }
+    const done = /* @__PURE__ */ new Set();
+    const attrs = roles.map((r) => roleAttrs(p, r, level, done)).join("");
+    const b = bestRoles2(result, p);
+    const list = (xs) => xs.map((x) => `<div class="line">${fitChip(x.s)} ${esc(x.r.name)}</div>`).join("");
+    const gl = generalLevel(p);
+    return `<div class="pcard">
+  <header class="pc-head"><div><h3>${esc(p.name)}</h3><div class="pc-facts">${facts.map(esc).join(" · ")}</div></div>
+  <div class="pc-level"><span class="muted small">General level</span><strong>${gl != null ? fmt(gl, 1) : "–"}</strong><span class="muted small">team ${level != null ? fmt(level, 1) : "–"}</span></div></header>
+  <div class="pc-tags">${status}</div>
+  <h4>In this tactic</h4>${place}
+  ${attrs ? `<h4>Attributes for these roles</h4><div class="pc-attrs">${attrs}</div>
+  <div class="legend"><span><span class="tickkey"></span>team level</span><span>bar = his attribute (1–20)</span><span><b class="lo-k">red</b> 2+ below the team level, <b class="hi-k">blue</b> 2+ above</span></div>` : ""}
+  <h4>His best roles anywhere</h4>
+  <div class="pc-best"><div><div class="pc-rt">${phaseKey("IP")}In possession</div>${list(b.ip)}</div><div><div class="pc-rt">${phaseKey("OOP")}Out of possession</div>${list(b.oop)}</div></div>
+  ${p.traits.length ? `<h4>Traits</h4><div class="chips">${p.traits.map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>` : ""}
+  ${p.fmBestRole ? `<p class="muted small">FM's assistant: best role ${esc(p.fmBestRole)}${p.ability != null ? `, ability ${fmt(p.ability, 1)}` : ""}${p.potential != null ? `, potential ${fmt(p.potential, 1)} stars` : ""}.</p>` : ""}
+</div>`;
+  }
+
+  // src/report/sheet.js
+  function cheatSheet(result) {
+    const { best, instructions: ins, ctx, setPieces: sp, captain, playerInstructions: pis } = result;
+    const slots = ctx.slots;
+    const items = (phase) => best.lanes.map((l) => ({
+      slot: phase === "IP" ? l.ip : l.oop,
+      abbr: (phase === "IP" ? l.ipRole : l.oopRole).abbr,
+      roleName: (phase === "IP" ? l.ipRole : l.oopRole).name,
+      name: l.player.name,
+      score: (phase === "IP" ? l.ipScore : l.oopScore).score,
+      captain: l.player === captain.captain?.player
+    }));
+    const changed = (list) => list.filter((i) => i.changed);
+    const rows = (list) => list.map((i) => `<tr><td>${esc(i.name)}</td><td><b>${esc(i.value)}</b></td></tr>`).join("");
+    const ip = changed(ins.ip);
+    const oop = changed(ins.oop);
+    const roles = best.lanes.slice().sort((a, b) => slots[a.ip][1] - slots[b.ip][1] || slots[a.ip][0] - slots[b.ip][0]).map((l) => `<tr><td>${esc(shortName(l.player.name))}</td><td>${esc(slots[l.ip][3])} · ${esc(l.ipRole.abbr)}</td><td>${esc(slots[l.oop][3])} · ${esc(l.oopRole.abbr)}</td></tr>`).join("");
+    const piRows = pis.filter((x) => x.items.length).map((x) => `<tr><td>${esc(shortName(x.player.name))}</td><td>${x.items.map((i) => `${esc(i.name)}: <b>${esc(i.value)}</b>`).join("; ")}</td></tr>`).join("");
+    const name = (t) => t ? esc(shortName(t.name)) : "–";
+    return `<div class="sheet">
+  <header><div><div class="eyebrow">FM27 Tactic Builder · cheat sheet</div><h1>${esc(result.club || "Your tactic")}</h1></div>
+  <div class="sh-kpis"><span>Style <b>${esc(ins.style.value || "Any")}</b></span><span>Mentality <b>${esc(ins.mentality.value)}</b></span>
+  <span>In possession <b>${esc(best.ipName)}</b></span><span>Out of possession <b>${esc(best.oopName)}</b></span></div></header>
+  <div class="sh-grid">
+    <div class="sh-pitches">
+      <figure><figcaption>In possession</figcaption>${pitchSVG(items("IP"), slots, "In possession shape")}</figure>
+      <figure><figcaption>Out of possession</figcaption>${pitchSVG(items("OOP"), slots, "Out of possession shape")}</figure>
+      <table class="sh-t"><thead><tr><th>Player</th><th>IP spot · role</th><th>OOP spot · role</th></tr></thead><tbody>${roles}</tbody></table>
+    </div>
+    <div class="sh-cols">
+      <h2>In possession <span>(only changes from default)</span></h2>
+      <table class="sh-t">${rows(ip) || "<tr><td>All defaults</td></tr>"}</table>
+      <h2>Out of possession</h2>
+      <table class="sh-t">${rows(oop) || "<tr><td>All defaults</td></tr>"}</table>
+      ${piRows ? `<h2>Player instructions</h2><table class="sh-t">${piRows}</table>` : ""}
+      <h2>Set pieces</h2>
+      <table class="sh-t">
+        <tr><td>Captain / vice</td><td><b>${name(captain.captain)}</b> / ${name(captain.vice)}</td></tr>
+        <tr><td>Corners left / right</td><td><b>${name(sp.cornersLeft)}</b> / <b>${name(sp.cornersRight)}</b></td></tr>
+        <tr><td>Free kicks shot / cross</td><td><b>${name(sp.directFreeKicks)}</b> / <b>${name(sp.indirectFreeKicks)}</b></td></tr>
+        <tr><td>Penalties</td><td>${sp.penalties.slice(0, 3).map((p) => name(p)).join(", ")}</td></tr>
+        ${sp.longThrows ? `<tr><td>Long throws</td><td><b>${name(sp.longThrows)}</b></td></tr>` : ""}
+        <tr><td>Attack the ball</td><td>${sp.aerialTargets.slice(0, 3).map((t) => name(t)).join(", ")}</td></tr>
+        <tr><td>Stay back</td><td>${sp.stayBack.map((t) => name(t)).join(", ")}</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="sh-foot">Everything not listed stays at FM's default. Made with FM27 Tactic Builder. It can't enter the tactic into the game for you.</p>
+</div>`;
+  }
 
   // samples/squad_20261108_201500.csv
   var squad_20261108_201500_default = 'Unique ID,Position,Best Pos,Player,Age,Club,Nation,2nd Nat,Height,Preferred Foot,Left Foot,Right Foot,Personality,Media Handling,Playing Time,Wage,Transfer Value,Rating,Inf,Best Role,Ability,Potential,Aerial Reach,Command Of Area,Communication,Eccentricity,Handling,Kicking,One On Ones,Punching,Reflexes,Rushing Out (Tendency),Throwing,Aggression,Anticipation,Bravery,Composure,Concentration,Decisions,Determination,Flair,Leadership,Off The Ball,Positioning,Team Work,Vision,Work Rate,Acceleration,Agility,Balance,Jumping Reach,Natural Fitness,Pace,Stamina,Strength,Corners,Crossing,Dribbling,Finishing,First Touch,Free Kick Taking,Heading,Long Shots,Player Trait,CON,Injury,Fatigue,Long Throws,Marking,Passing,Penalty Taking,Tackling,Technique\r\n91000000,GK,GK,Callum Ashdown,29,Harbour City,England,England,191 cm,Right-Footed Only,Very Weak,Very Strong,Model Professional,Media-friendly,Star Player,£4.0K p/w,£1M - £3M,-,,,3.5,3.5,19,17,16,13,16,14,18,14,19,15,16,12,13,13,16,18,16,12,12,11,10,17,12,13,11,11,17,11,11,10,13,12,11,13,6,7,7,7,14,8,8,Tries To Play Way Out Of Trouble,,-,,13,9,13,11,8,6\r\n91000137,GK,GK,Rafael Holloway,33,Harbour City,Scotland,,194 cm,Right-Footed,Reasonable,Very Strong,Resolute,Level-headed,Important Player,£11.0K p/w,£4M - £6M,-,Wnt,,2.5,2.5,17,15,11,10,14,6,13,11,14,8,10,8,10,8,7,13,10,10,11,11,9,14,9,9,9,10,13,11,10,8,10,11,9,11,5,4,4,6,9,3,6,-,,-,,9,5,8,11,6,5\r\n91000274,GK,GK,Tomas Okafor,19,Harbour City,Ireland,,188 cm,Left-Footed,Very Strong,Weak,Fairly Determined,Reserved,Squad Player,£18.0K p/w,£7M - £9M,-,,,0.5,1.5,12,11,10,10,13,11,10,8,12,8,10,7,11,6,8,13,11,9,6,9,6,10,8,7,6,6,11,9,5,9,6,6,8,6,2,2,2,1,7,3,3,-,,-,,6,4,12,6,2,1\r\n91000411,D (C),D (C),Elias Vantongeren,27,Harbour City,Wales,,188 cm,Left-Footed Only,Very Strong,Very Weak,Model Citizen,"Outspoken, Volatile",Fringe Player,£25.0K p/w,£10M - £12M,-,Bid,BCB,3.5,3.5,4,5,4,6,3,5,3,5,3,3,5,13,19,10,16,15,14,12,11,11,12,17,14,14,10,13,12,11,12,11,14,13,12,9,13,13,11,15,9,19,14,"Brings Ball Out Of Defence, Tries Long Range Passes",,-,,11,16,17,10,17,14\r\n91000548,D (C),D (C),Kofi Draycott,30,Harbour City,Netherlands,,192 cm,Right-Footed Only,Very Weak,Very Strong,Born Leader,Media-friendly,Star Player,£32.0K p/w,£13M - £15M,-,,SCB,3.0,3.0,2,2,4,4,2,2,2,2,4,2,2,16,12,16,12,13,11,10,7,18,9,15,10,10,11,7,11,12,18,11,8,11,17,8,11,6,9,10,9,16,10,"Dives Into Tackles, Marks Opponent Tightly",,-,,8,16,9,8,16,7\r\n91000685,"D (RC), DM",D (C),Mateo Falkner,24,Harbour City,Portugal,England,184 cm,Right-Footed Only,Very Weak,Very Strong,Determined,Level-headed,Important Player,£9.0K p/w,£16M - £18M,-,,CCB,3.0,3.0,3,2,1,5,4,1,2,1,4,3,3,11,16,12,10,15,12,12,11,12,12,16,9,11,9,16,14,9,6,13,16,13,10,9,11,10,11,11,9,14,12,-,,-,,7,15,11,11,18,9\r\n91000822,D (C),D (C),Jonah Marlowe,21,Harbour City,Ghana,,190 cm,Left-Footed Only,Very Strong,Very Weak,Balanced,Reserved,Squad Player,£16.0K p/w,£19M - £21M,-,Wnt,,1.5,2.5,1,1,1,1,1,1,1,1,1,1,1,15,12,12,9,13,7,7,6,6,9,10,9,8,10,6,6,6,14,8,5,9,15,5,6,7,8,8,6,14,7,-,,-,,6,13,4,7,12,5\r\n91000959,D/WB (L),D (L),Luca Thackeray,25,Harbour City,Sweden,,176 cm,Left-Footed Only,Very Strong,Very Weak,Driven,"Outspoken, Volatile",Fringe Player,£23.0K p/w,£2M - £4M,-,,WB,3.0,3.0,2,2,3,4,4,3,1,2,3,4,3,11,11,10,12,10,9,10,10,12,17,13,15,12,16,15,12,12,9,9,15,17,10,8,16,13,12,10,9,8,12,"Gets Forward Whenever Possible, Runs With Ball Down Left",,-,,8,16,12,10,15,13\r\n91001096,D (L),D (L),Andre Bellweather,28,Harbour City,England,,180 cm,Left-Footed,Very Strong,Reasonable,Professional,Media-friendly,Star Player,£30.0K p/w,£5M - £7M,-,Bid,,2.0,2.0,1,1,1,1,1,1,3,1,1,1,1,10,15,8,10,13,12,10,8,8,11,15,12,9,14,12,9,9,9,10,9,10,13,6,5,6,11,7,5,9,9,-,,-,,7,15,10,8,15,8\r\n91001233,D/WB (R),D (R),Niklas Dunmore,26,Harbour City,Scotland,,178 cm,Right-Footed Only,Very Weak,Very Strong,Perfectionist,Level-headed,Important Player,£7.0K p/w,£8M - £10M,-,,IWB,3.0,3.0,3,3,2,3,4,3,1,3,4,3,2,10,16,10,17,10,17,11,12,11,9,14,12,13,10,15,12,9,11,11,13,11,13,8,10,10,10,15,9,12,9,Likes To Switch Ball To Other Flank,,-,,9,13,18,8,18,16\r\n91001370,"D/WB (R), M (R)",D (R),Oskar Kerrigan,20,Harbour City,Ireland,England,175 cm,Right-Footed,Weak,Very Strong,Fairly Ambitious,Reserved,Squad Player,£14.0K p/w,£11M - £13M,-,,,1.5,2.5,1,2,1,1,1,1,1,1,1,1,1,8,11,11,9,9,9,8,9,7,15,8,11,7,14,15,11,9,10,9,16,16,5,6,15,12,7,8,8,8,9,-,,-,,8,12,7,8,11,12\r\n91001507,DM,DM,Theo Radley,29,Harbour City,Wales,,183 cm,Right-Footed,Weak,Very Strong,Resolute,"Outspoken, Volatile",Fringe Player,£21.0K p/w,£14M - £16M,-,Wnt,SDM,3.5,3.5,4,4,3,4,6,3,3,5,3,3,5,14,15,13,12,16,13,13,10,16,10,16,18,12,17,13,13,12,11,12,13,15,15,9,13,10,10,12,10,11,14,Marks Opponent Tightly,,-,,8,15,12,11,15,11\r\n91001644,"DM, M (C)",DM,Malik Zelenko,31,Harbour City,Netherlands,,177 cm,Right-Footed,Reasonable,Very Strong,Model Professional,Media-friendly,Star Player,£28.0K p/w,£17M - £19M,-,,DLP,3.5,3.5,3,6,4,3,2,6,5,3,6,5,5,13,15,13,19,14,16,10,11,14,14,14,13,17,13,13,11,10,12,12,10,14,7,18,11,14,13,16,20,8,16,"Likes To Switch Ball To Other Flank, Tries Long Range Passes",,-,,11,10,17,10,10,17\r\n91001781,M (C),M (C),Dario Brennan,26,Harbour City,Portugal,,181 cm,Right-Footed,Weak,Very Strong,Driven,Level-headed,Important Player,£5.0K p/w,£20M - £22M,-,Bid,BBM,3.0,3.0,3,3,2,5,5,5,4,3,2,3,4,15,10,11,10,13,13,15,11,11,16,12,16,10,15,14,12,12,10,12,14,14,10,9,9,9,10,16,11,11,13,Gets Into Opposition Area,,-,,9,9,17,8,15,10\r\n91001918,"DM, M (C)",M (C),Ruben Iverson,23,Harbour City,Ghana,,179 cm,Left-Footed,Very Strong,Reasonable,Determined,Reserved,Squad Player,£12.0K p/w,£3M - £5M,-,,,2.0,2.0,1,3,2,2,2,2,1,1,1,2,2,13,8,9,9,10,12,11,8,11,13,8,15,10,14,13,9,9,8,9,11,12,11,6,10,10,10,13,8,10,12,-,,-,,6,8,13,7,14,9\r\n91002055,M/AM (C),M (C),Sami Pemberton,24,Harbour City,Sweden,England,174 cm,Left-Footed,Very Strong,Reasonable,Fairly Professional,"Outspoken, Volatile",Fringe Player,£19.0K p/w,£6M - £8M,-,,MPM,3.0,3.0,5,2,4,2,2,2,4,2,2,4,2,12,14,10,15,9,14,13,12,13,13,13,14,15,11,12,10,11,9,11,12,12,6,20,13,16,11,14,20,10,13,Plays One-Twos,,-,,9,7,16,7,6,18\r\n91002192,M (C),M (C),Yannick Whitlock,18,Harbour City,England,,172 cm,Right-Footed,Weak,Very Strong,Light-Hearted,Media-friendly,Star Player,£26.0K p/w,£9M - £11M,-,Wnt,,1.0,2.0,1,1,1,2,2,1,1,1,1,2,1,10,8,9,14,9,13,8,11,8,10,8,9,14,9,9,8,10,6,6,10,9,6,4,7,12,9,12,6,9,11,-,,-,,8,6,13,8,6,15\r\n91002329,AM (C),AM (C),Bram Ellacombe,27,Harbour City,Scotland,,175 cm,Right-Footed Only,Very Weak,Very Strong,Balanced,Level-headed,Important Player,£33.0K p/w,£12M - £14M,-,,AP,3.5,3.5,2,3,6,6,6,2,4,5,3,5,4,11,12,10,17,10,16,13,18,11,15,10,12,18,11,13,14,13,12,12,12,12,8,9,13,13,15,15,20,10,14,"Tries Killer Balls Often, Shoots From Distance",,-,,11,11,17,20,8,18\r\n91002466,M/AM (L),AM (L),Felix Garrow,22,Harbour City,Ireland,,173 cm,Left-Footed,Very Strong,Reasonable,Driven,Reserved,Squad Player,£10.0K p/w,£15M - £17M,-,Bid,W,3.0,4.0,3,4,3,4,5,5,3,2,4,1,3,11,10,11,13,12,11,11,12,11,14,9,12,9,13,16,15,10,12,12,17,14,9,19,16,16,13,14,11,8,10,"Hugs Line, Runs With Ball Down Left",,-,,9,7,10,7,6,15\r\n91002603,AM (RL),AM (L),Idris Northcott,25,Harbour City,Wales,,178 cm,Right-Footed Only,Very Weak,Very Strong,Ambitious,"Outspoken, Volatile",Fringe Player,£17.0K p/w,£18M - £20M,-,,IF,3.5,3.5,2,3,4,5,3,6,2,5,3,3,4,10,15,12,14,10,14,12,12,12,18,10,11,11,14,15,18,13,12,11,13,11,13,11,8,18,15,19,11,7,14,"Cuts Inside From Left Wing, Curls Ball",,-,,8,8,13,18,11,18\r\n91002740,M/AM (R),AM (R),Marco Ulloa,24,Harbour City,Netherlands,England,176 cm,Left-Footed Only,Very Strong,Very Weak,Fairly Determined,Media-friendly,Star Player,£24.0K p/w,£1M - £3M,-,,IF,3.0,3.0,2,4,2,5,3,3,4,3,5,4,3,11,16,12,12,13,10,12,14,13,17,9,12,11,10,16,16,15,9,10,16,9,9,9,8,14,17,15,8,7,16,Cuts Inside From Right Wing,,-,,8,8,9,10,8,17\r\n91002877,M/AM (R),M (R),Leon Corrigan,21,Harbour City,Portugal,,171 cm,Right-Footed,Weak,Very Strong,Unambitious,Level-headed,Important Player,£31.0K p/w,£4M - £6M,-,Wnt,,2.0,3.0,1,1,2,3,2,3,1,2,1,2,2,11,8,11,8,10,10,8,13,8,10,10,10,8,14,13,13,10,9,8,15,13,8,6,13,15,7,11,9,6,9,-,,-,,8,5,10,8,4,14\r\n91003014,ST (C),ST (C),Ivo Everly,28,Harbour City,Ghana,,182 cm,Right-Footed,Weak,Very Strong,Driven,Reserved,Squad Player,£8.0K p/w,£7M - £9M,-,Inj,P,3.5,3.5,4,4,3,3,5,4,5,5,2,5,4,14,19,13,16,15,11,13,10,13,18,11,11,9,13,17,14,12,11,13,13,13,13,8,13,13,17,15,8,11,11,"Gets Into Opposition Area, Moves Into Channels",,Hamstring Strain,,12,11,10,20,11,10\r\n91003151,ST (C),ST (C),Caleb Lindqvist,30,Harbour City,Sweden,,193 cm,Right-Footed,Weak,Very Strong,Resolute,"Outspoken, Volatile",Fringe Player,£15.0K p/w,£10M - £12M,-,Bid,TF,3.0,3.0,2,4,3,3,1,2,2,5,5,3,3,13,9,15,14,11,12,13,12,12,12,11,12,12,10,7,8,17,18,12,7,13,15,10,10,9,17,14,11,15,12,Wins Aerial Balls,,-,,10,9,10,8,10,10\r\n91003288,"AM (C), ST (C)",ST (C),Tariq Stroud,26,Harbour City,England,,183 cm,Left-Footed Only,Very Strong,Very Weak,Professional,Media-friendly,Star Player,£22.0K p/w,£13M - £15M,-,,DLF,3.0,3.0,2,4,2,5,3,5,2,2,2,2,1,11,10,10,18,10,12,10,12,12,16,11,13,15,10,9,10,14,12,12,12,11,14,10,12,15,17,18,7,9,12,Comes Deep To Get Ball,,-,,8,9,17,7,13,14\r\n91003425,ST (C),ST (C),Emil Ambrose,19,Harbour City,Scotland,England,179 cm,Right-Footed Only,Very Weak,Very Strong,Light-Hearted,Level-headed,Important Player,£29.0K p/w,£16M - £18M,-,,,1.5,2.5,1,1,2,1,1,1,1,1,1,1,1,7,11,10,11,9,9,6,7,6,11,7,10,4,9,15,10,7,6,9,13,9,7,6,9,9,12,10,6,8,9,-,,-,,8,3,4,7,3,7\r\n91003562,D (C),D (C),Jasper Castell,22,Bramley Town,Ireland,,190 cm,Right-Footed,Weak,Very Strong,Professional,Reserved,Out On Loan,£6.0K p/w,£19M - £21M,-,Wnt,,4.5,5.0,4,5,5,6,6,6,5,5,5,4,7,14,20,13,19,14,17,13,14,14,13,18,14,18,14,14,12,15,17,15,11,13,16,9,14,15,13,17,11,18,13,-,,-,,13,17,17,12,19,17\r\n91003699,AM (RL),AM (R),Nuno Jessop,20,Port Ellis,Wales,,175 cm,Right-Footed,Weak,Very Strong,Driven,"Outspoken, Volatile",Out On Loan,£13.0K p/w,£2M - £4M,-,,,3.5,4.5,6,5,2,4,2,2,3,4,3,3,5,11,11,13,11,12,13,13,16,12,16,13,13,14,15,17,15,11,12,12,17,14,9,11,16,19,11,16,10,7,12,-,,-,,10,9,13,11,11,15\r\n91003836,GK,GK,Ollie Quayle,18,Kestrel Rovers,Netherlands,,189 cm,Right-Footed,Weak,Very Strong,Balanced,Media-friendly,Out On Loan,£20.0K p/w,£5M - £7M,-,Bid,,1.5,2.5,14,13,11,7,14,6,13,10,13,5,8,7,10,8,6,14,7,8,9,8,8,13,9,6,6,9,10,7,7,7,6,7,6,8,3,3,5,4,9,2,4,-,,-,,10,4,8,9,2,4\r\n';
@@ -5867,8 +7032,12 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
   var THEME_KEY = "fm27-tactic-builder.theme";
   var STRENGTH_KEY = "fm27-tactic-builder.strength";
   var PICKS_KEY = "fm27-tactic-builder.picks";
+  var FORMATION_KEY = "fm27-tactic-builder.formation";
+  var CHECK_KEY = "fm27-tactic-builder.checklist";
+  var MATCH_KEY = "fm27-tactic-builder.match";
   var $ = (id) => document.getElementById(id);
   var lastResult = null;
+  var lastSignature = "";
   var lastInput = null;
   var clubKey = (club) => club || "(no club)";
   function loadPicks() {
@@ -5883,6 +7052,19 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     if (pickCount(picks)) all[clubKey(club)] = picks;
     else delete all[clubKey(club)];
     remember(PICKS_KEY, JSON.stringify(all));
+  }
+  function loadFormations() {
+    try {
+      return JSON.parse(localStorage.getItem(FORMATION_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function saveFormation(club, choice) {
+    const all = loadFormations();
+    if (choice.ip || choice.oop) all[clubKey(club)] = choice;
+    else delete all[clubKey(club)];
+    remember(FORMATION_KEY, JSON.stringify(all));
   }
   function store(read, value) {
     try {
@@ -5936,15 +7118,127 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     }
     setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
   }
-  function analyseNow(text, filename, picks) {
+  function analyseNow(text2, filename, picks, formation) {
     const saved = loadPicks();
-    return analyse(text, filename, currentDocs(), {
+    const savedFormation = loadFormations();
+    return analyse(text2, filename, currentDocs(), {
       excludeInjured: $("opt-injured").checked,
       strength: strengthValue(),
-      picks: picks ?? ((club) => saved[clubKey(club)] || {})
+      picks: picks ?? ((club) => saved[clubKey(club)] || {}),
+      formation: formation ?? ((club) => savedFormation[clubKey(club)] || {}),
+      exportedAt: lastInput?.exportedAt || void 0,
+      scouting: lastInput?.scouting || void 0,
+      history: lastInput?.history?.length ? lastInput.history : void 0
     });
   }
   var spy = null;
+  function tacticSignature(r) {
+    const parts = [
+      r.club,
+      r.best.ipName,
+      r.best.oopName,
+      JSON.stringify(r.instructions.values),
+      r.instructions.mentality.value,
+      ...r.best.lanes.map((l) => `${l.player.id}:${l.ip}:${l.ipRole.id}:${l.oop}:${l.oopRole.id}`)
+    ];
+    let h = 5381;
+    for (const ch of parts.join("|")) h = (h * 33 ^ ch.charCodeAt(0)) >>> 0;
+    return h.toString(36);
+  }
+  function loadChecks() {
+    try {
+      return JSON.parse(localStorage.getItem(CHECK_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function saveChecks(sig, keys) {
+    const all = loadChecks();
+    if (keys.length) all[sig] = keys;
+    else delete all[sig];
+    const sigs = Object.keys(all);
+    if (sigs.length > 20) for (const old of sigs.slice(0, sigs.length - 20)) delete all[old];
+    remember(CHECK_KEY, JSON.stringify(all));
+  }
+  function updateChecklist() {
+    const boxes = [...$("setup")?.querySelectorAll(".tick input") || []];
+    const done = boxes.filter((b) => b.checked).length;
+    for (const b of boxes) b.closest("tr")?.classList.toggle("done", b.checked);
+    if (!$("cb-done")) return;
+    $("cb-done").textContent = String(done);
+    $("cb-total").textContent = String(boxes.length);
+    $("cb-fill").style.width = `${boxes.length ? done / boxes.length * 100 : 0}%`;
+    $("checkbar").classList.toggle("complete", boxes.length > 0 && done === boxes.length);
+  }
+  function setupChecklist(result) {
+    const sig = tacticSignature(result);
+    const saved = new Set(loadChecks()[sig] || []);
+    for (const b of $("setup")?.querySelectorAll(".tick input") || []) b.checked = saved.has(b.dataset.k);
+    updateChecklist();
+    return sig;
+  }
+  function loadMatch(club) {
+    try {
+      return JSON.parse(localStorage.getItem(MATCH_KEY) || "{}")[clubKey(club)] || {};
+    } catch {
+      return {};
+    }
+  }
+  function saveMatch(club, opp) {
+    let all = {};
+    try {
+      all = JSON.parse(localStorage.getItem(MATCH_KEY) || "{}");
+    } catch {
+    }
+    all[clubKey(club)] = opp;
+    remember(MATCH_KEY, JSON.stringify(all));
+  }
+  function readMatchControls() {
+    const form = $("mp-controls");
+    const one = (n) => form.querySelector(`input[name="mp-${n}"]:checked`)?.value || null;
+    const many = (n) => [...form.querySelectorAll(`input[name="mp-${n}"]:checked`)].map((i) => i.value);
+    return { strength: one("strength"), venue: one("venue"), style: many("style"), players: many("players") };
+  }
+  function updateMatch() {
+    if (!lastResult || !$("mp-controls")) return;
+    const opp = readMatchControls();
+    saveMatch(lastResult.club, opp);
+    $("mp-out").innerHTML = matchPlanBody(lastResult, opp);
+  }
+  function applyFilter() {
+    const section = $("suitability");
+    if (!section || !$("sf-q")) return;
+    const q = $("sf-q").value.trim().toLowerCase();
+    const g = $("sf-g").value;
+    const xiOnly = $("sf-xi").checked;
+    const showLoan = $("sf-loan").checked;
+    let shown = 0;
+    const rowsOk = (tr) => (!q || tr.dataset.name.includes(q)) && (!xiOnly || tr.dataset.xi === "1") && (showLoan || tr.dataset.loan !== "1");
+    for (const tr of section.querySelectorAll("table.best tbody tr")) {
+      const ok = rowsOk(tr) && (!g || tr.dataset.groups.split(" ").includes(g));
+      tr.toggleAttribute("data-hidden", !ok);
+      if (ok) shown++;
+    }
+    for (const grp of section.querySelectorAll(".mx-group")) {
+      let any = false;
+      for (const tr of grp.querySelectorAll("tbody tr")) {
+        const ok = rowsOk(tr);
+        tr.toggleAttribute("data-hidden", !ok);
+        any ||= ok;
+      }
+      grp.toggleAttribute("data-hidden", g && grp.dataset.group !== g || !any);
+    }
+    const total = section.querySelectorAll("table.best tbody tr").length;
+    $("sf-count").textContent = !shown ? "No players match" : shown === total ? `${total} players` : `${shown} of ${total} players`;
+  }
+  function openCard(pid) {
+    const p = lastResult?.players.find((x) => x.id === pid);
+    if (!p) return;
+    $("pcard-body").innerHTML = playerCard(lastResult, p);
+    const dlg = $("pcard");
+    if (typeof dlg.showModal === "function") dlg.showModal();
+    else dlg.setAttribute("open", "");
+  }
   function buildSectionNav() {
     const nav = $("secnav");
     const present = SECTIONS.filter(([id]) => document.getElementById(id));
@@ -5972,15 +7266,20 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
   }
   function showResult(result, note = "") {
     lastResult = result;
-    $("report-holder").innerHTML = renderReport(result);
+    $("report-holder").innerHTML = renderReport(result, { match: loadMatch(result.club) });
     $("report-holder").classList.add("in-app");
+    $("sheet-holder").innerHTML = cheatSheet(result);
     buildSectionNav();
+    lastSignature = setupChecklist(result);
+    applyFilter();
     $("start").classList.add("hidden");
     $("result").classList.remove("hidden");
     $("picker").classList.add("hidden");
     const n = pickCount(loadPicks()[clubKey(result.club)]);
     $("picks-badge").textContent = n ? String(n) : "";
     $("picks-badge").hidden = !n;
+    $("formation-badge").hidden = !result.formationChoice;
+    $("formation-panel").classList.add("hidden");
     $("result-note").innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : "";
     $("src-note").textContent = lastInput?.label || "";
     $("strength-quick").value = String(strengthValue());
@@ -5988,18 +7287,31 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     setStatus("");
     window.scrollTo(0, 0);
   }
-  function run(text, filename, from = {}) {
-    lastInput = { text, filename, label: from.label ?? filename, fromGame: !!from.fromGame };
+  function run(text2, filename, from = {}) {
+    lastInput = {
+      text: text2,
+      filename,
+      label: from.label ?? filename,
+      fromGame: !!from.fromGame,
+      exportedAt: from.exportedAt || null,
+      scouting: from.scouting || null,
+      history: from.history || []
+    };
+    const focus = from.focus;
     setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
     setTimeout(() => {
       $("strength-quick").disabled = false;
       let result;
       let note = "";
       try {
-        result = analyseNow(text, filename);
+        result = analyseNow(text2, filename);
+        if (!result.ok && result.formationError) {
+          note = `Your formation was not used: ${esc(result.error)} Open <strong>Formation</strong> to change it.`;
+          result = analyseNow(text2, filename, void 0, {});
+        }
         if (!result.ok && result.pickError) {
           note = `Your saved picks were not used: ${esc(result.error)} Open <strong>Choose players</strong> to change them.`;
-          result = analyseNow(text, filename, {});
+          result = analyseNow(text2, filename, {});
         }
       } catch (err) {
         console.error(err);
@@ -6011,11 +7323,28 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
         return;
       }
       showResult(result, note);
+      if (focus) setTimeout(() => document.getElementById(focus)?.scrollIntoView({ block: "start" }), 60);
     }, 30);
+  }
+  async function loadExtra(kind, files) {
+    if (!lastInput || !files.length) return;
+    const read = async (f) => ({ name: f.name, text: decode(await f.arrayBuffer()), exportedAt: null });
+    const items = await Promise.all([...files].map(read));
+    const from = { label: lastInput.label, fromGame: lastInput.fromGame, exportedAt: lastInput.exportedAt, scouting: lastInput.scouting, history: lastInput.history };
+    if (kind === "scouting") {
+      from.scouting = items[0];
+      from.focus = "scouting";
+    } else {
+      const known = new Set(from.history.map((h) => h.name));
+      from.history = [...from.history, ...items.filter((h) => !known.has(h.name))];
+      from.focus = "progress";
+    }
+    run(lastInput.text, lastInput.filename, from);
   }
   function openPicker() {
     if (!lastResult) return;
     const panel = $("picker");
+    $("formation-panel").classList.add("hidden");
     const current = loadPicks()[clubKey(lastResult.club)] || {};
     const ui = renderPicker(panel, lastResult, current, {
       onApply: (picks) => {
@@ -6038,6 +7367,36 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
             return;
           }
           savePicks(result.club, picks);
+          showResult(result);
+        }, 30);
+      },
+      onClose: () => panel.classList.add("hidden")
+    });
+    panel.classList.remove("hidden");
+    panel.scrollIntoView({ block: "start" });
+  }
+  function openFormation() {
+    if (!lastResult) return;
+    const panel = $("formation-panel");
+    $("picker").classList.add("hidden");
+    const current = loadFormations()[clubKey(lastResult.club)] || {};
+    const ui = renderFormationPanel(panel, lastResult, currentDocs().formations, current, {
+      onApply: (choice) => {
+        panel.querySelector("#fm-msg").innerHTML = '<div class="working"><span>Rebuilding the tactic on your formation…</span><span class="track"><i></i></span></div>';
+        setTimeout(() => {
+          let result;
+          try {
+            result = analyseNow(lastInput.text, lastInput.filename, void 0, choice);
+          } catch (err) {
+            console.error(err);
+            ui.showError(`Something went wrong: ${err.message}`);
+            return;
+          }
+          if (!result.ok) {
+            ui.showError(result.error);
+            return;
+          }
+          saveFormation(result.club, choice);
           showResult(result);
         }, 30);
       },
@@ -6122,6 +7481,68 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     $("sample").addEventListener("click", () => run(squad_20261108_201500_default, "squad_20261108_201500.csv (sample)", { label: "Sample squad" }));
     $("print").addEventListener("click", () => window.print());
     $("choose-players").addEventListener("click", openPicker);
+    $("formation-btn").addEventListener("click", openFormation);
+    $("extra-file").addEventListener("change", (e) => loadExtra(e.target.dataset.kind, e.target.files));
+    const holder = $("report-holder");
+    holder.addEventListener("change", (e) => {
+      if (e.target.matches(".tick input")) {
+        updateChecklist();
+        saveChecks(lastSignature, [...$("setup").querySelectorAll(".tick input:checked")].map((b) => b.dataset.k));
+      } else if (e.target.closest("#sfilter")) applyFilter();
+      else if (e.target.closest("#mp-controls")) updateMatch();
+    });
+    holder.addEventListener("input", (e) => {
+      if (e.target.id === "sf-q") applyFilter();
+    });
+    holder.addEventListener("click", (e) => {
+      if (e.target.id === "mp-clear") {
+        for (const i of $("mp-controls").querySelectorAll("input")) i.checked = i.type === "radio" && i.value === "";
+        updateMatch();
+        return;
+      }
+      if (e.target.id === "cb-clear") {
+        for (const b of $("setup").querySelectorAll(".tick input")) b.checked = false;
+        updateChecklist();
+        saveChecks(lastSignature, []);
+        return;
+      }
+      const load = e.target.closest("[data-load]");
+      if (load) {
+        const input2 = $("extra-file");
+        input2.dataset.kind = load.dataset.load;
+        input2.multiple = load.dataset.load === "history";
+        input2.value = "";
+        input2.click();
+        return;
+      }
+      const who = e.target.closest(".pname, .pl[data-pid]");
+      if (who && !e.target.matches("input")) {
+        e.preventDefault();
+        openCard(who.dataset.pid);
+      }
+    });
+    holder.addEventListener("keydown", (e) => {
+      const who = e.target.closest?.(".pl[data-pid]");
+      if (who && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        openCard(who.dataset.pid);
+      }
+    });
+    $("pcard-close").addEventListener("click", () => $("pcard").close?.() ?? $("pcard").removeAttribute("open"));
+    $("pcard").addEventListener("click", (e) => {
+      if (e.target === $("pcard")) $("pcard").close();
+    });
+    $("print-sheet").addEventListener("click", () => {
+      document.documentElement.classList.add("print-sheet");
+      window.print();
+      setTimeout(() => document.documentElement.classList.remove("print-sheet"), 500);
+    });
+    window.addEventListener("afterprint", () => document.documentElement.classList.remove("print-sheet"));
+    $("share-image").addEventListener("click", () => {
+      if (!lastResult) return;
+      const club = safeName(lastResult.club);
+      saveTacticImage(lastResult, `FM27 tactic${club ? " - " + club : ""}.png`);
+    });
     $("strength-quick").addEventListener("change", (e) => {
       const value = e.target.value;
       const radio2 = document.querySelector(`input[name="strength"][value="${CSS.escape(value)}"]`);
@@ -6135,7 +7556,7 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
       if (!lastResult) return;
       const date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
       const club = safeName(lastResult.club);
-      download(`FM27 tactic${club ? " - " + club : ""} - ${date}.html`, standaloneReport(lastResult, { theme: currentTheme() }), "text/html");
+      download(`FM27 tactic${club ? " - " + club : ""} - ${date}.html`, standaloneReport(lastResult, { theme: currentTheme(), match: loadMatch(lastResult.club) }), "text/html");
     });
     $("again").addEventListener("click", () => {
       $("result").classList.add("hidden");
@@ -6182,7 +7603,16 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
       r.addEventListener("change", () => remember(STRENGTH_KEY, r.value));
     }
     const injected = readInjected();
-    if (injected) run(injected.text, injected.name || "squad.csv", { label: injectedLabel(injected), fromGame: true });
+    if (injected) {
+      run(injected.text, injected.name || "squad.csv", {
+        label: injectedLabel(injected),
+        fromGame: true,
+        exportedAt: injected.exportedAt,
+        scouting: injected.scouting?.text ? injected.scouting : null,
+        history: Array.isArray(injected.history) ? injected.history.filter((h) => h && h.text) : [],
+        focus: injected.scouting?.text ? "scouting" : null
+      });
+    }
   }
   init();
 })();

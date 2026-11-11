@@ -113,7 +113,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .pk-warn { color: var(--warn); }
 .pk-list { display: grid; gap: 14px; margin-top: 8px; }
 .pk-gt { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 650; margin: 4px 0 6px; }
-.pk-row { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(170px, 1.3fr) auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
+.pk-row { display: grid; grid-template-columns: minmax(160px, 1.3fr) minmax(150px, 1.2fr) auto auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
 .pk-row:hover { background: var(--surface-2); border-color: var(--line); }
 .pk-row[hidden] { display: none; }
 .pk-name { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
@@ -135,6 +135,15 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .switch input:disabled + .knob { opacity: .55; }
 .switch input:focus-visible + .knob { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg.mini { padding: 3px; gap: 2px; flex-wrap: nowrap; }
+.fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 14px 0 6px; }
+.fm-grid label { display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.fm-grid select { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 9px 10px; }
+.fm-grid select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fm-top { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.fm-top button { font: inherit; font-size: 12.5px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+.fm-top button:hover { color: var(--ink); border-color: var(--line-2); }
+.fm-top button b { color: var(--ink); font-weight: 650; }
+.fm-top button span { color: var(--muted); }
 .seg.mini span { padding: 4px 9px; font-size: 12.5px; }
 @media (max-width: 860px) {
   .grid2 { grid-template-columns: 1fr; }
@@ -142,6 +151,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   .pk-role { grid-column: 1 / -1; order: 3; }
   .pk-row .seg.mini { grid-column: 1 / -1; order: 4; }
 }
+@media (max-width: 1400px) { #again .lbl { display: none; } }
 @media (max-width: 700px) {
   .topbar { margin: -10px -16px 4px; padding: 0 16px; }
   .toolbar { gap: 6px; padding: 8px 0 6px; }
@@ -150,7 +160,12 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   .tb-strength select { padding: 7px 8px; }
 }
 @media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
-@media print { body { background: #fff; } .appbar, .topbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
+#sheet-holder { display: none; }
+@media print {
+  body { background: #fff; } .appbar, .topbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; }
+  html.print-sheet #start, html.print-sheet #result > :not(#sheet-holder), html.print-sheet .appbar { display: none !important; }
+  html.print-sheet #sheet-holder { display: block; max-width: none; }
+}
 </style>
 </head>
 <body>
@@ -254,8 +269,11 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     <div class="topbar no-print">
     <div class="toolbar">
       <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
-      <button class="btn ghost" id="print" type="button" title="Print / Save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Print / Save as PDF</span></button>
-      <button class="btn ghost" id="save" type="button" title="Save the report as a file" aria-label="Save report"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Save report</span></button>
+      <button class="btn ghost" id="formation-btn" type="button" title="Choose the formation yourself" aria-label="Formation"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="2.5" width="14" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 10h14" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="6" r="1.3" fill="currentColor"/><circle cx="6.5" cy="13.5" r="1.3" fill="currentColor"/><circle cx="13.5" cy="13.5" r="1.3" fill="currentColor"/></svg><span class="lbl">Formation</span><span class="badge" id="formation-badge" hidden>yours</span></button>
+      <button class="btn ghost" id="print" type="button" title="Print / Save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Print</span></button>
+      <button class="btn ghost" id="print-sheet" type="button" title="Print a one-page cheat sheet" aria-label="Print cheat sheet"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 2.5h6l3 3v12h-9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9h5M8 12h5M8 15h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="lbl">Cheat sheet</span></button>
+      <button class="btn ghost" id="share-image" type="button" title="Save a picture of the tactic to share" aria-label="Save tactic image"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7.5" cy="8.5" r="1.6" fill="currentColor"/><path d="m3.5 15 4.5-4.5 3 3 2-2 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Image</span></button>
+      <button class="btn ghost" id="save" type="button" title="Save the report as a file" aria-label="Save report"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Save</span></button>
       <label class="tb-strength"><span class="tbl">Team strength</span>
         <select id="strength-quick">
           <option value="2">Title favourites</option>
@@ -272,9 +290,13 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     </div>
     <div id="result-note" class="no-print"></div>
     <div id="picker" class="panel picker hidden no-print"></div>
+    <div id="formation-panel" class="panel picker hidden no-print"></div>
     <div id="report-holder"></div>
+    <div id="sheet-holder" class="report"></div>
+    <input type="file" id="extra-file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
   </section>
 </main>
+<dialog id="pcard" class="pcard-dialog no-print" aria-label="Player card"><button class="icon-btn pc-close" type="button" id="pcard-close" aria-label="Close">✕</button><div class="report" id="pcard-body"></div></dialog>
 <script type="application/json" id="fm27tb-export">null</script>
 <!--APP_SCRIPT-->
 </body>

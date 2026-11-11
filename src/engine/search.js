@@ -37,7 +37,16 @@ export function createContext(players, docs, options = {}) {
     allowedFam: new Set(tuning.familiarity.allowInStartingXI),
     warnings: [],
   };
-  const atClub = players.filter((p) => !p.onLoan);
+  // Your own formation: only that in-possession and/or out-of-possession shape is tried.
+  const only = (list, name) => (name ? list.filter((f) => f.name === name) : list);
+  ctx.formations = {
+    ...docs.formations,
+    inPossession: only(docs.formations.inPossession, search.forceIp),
+    outOfPossession: only(docs.formations.outOfPossession, search.forceOop),
+  };
+  ctx.forced = !!(search.forceIp || search.forceOop);
+  // Players you marked unavailable (suspended, resting, being sold) are left out like players on loan.
+  const atClub = players.filter((p) => !p.onLoan && !p.unavailable);
   // Your picks: "must start" and marquee players are locked into the XI (even when injured, since you chose
   // them); marquee players and future stars also count more when systems and roles are compared.
   const picksCfg = tuning.picks;
@@ -46,6 +55,10 @@ export function createContext(players, docs, options = {}) {
   ctx.locked = new Set(usePicks ? atClub.filter((p) => p.mustStart || p.label === 'marquee' || extra.has(p.id)) : []);
   ctx.pickWeight = (p) => (!usePicks ? 1 : p.label === 'marquee' ? picksCfg.marqueeWeight : p.label === 'future' ? picksCfg.futureStarWeight : 1);
   ctx.pickBonus = (p) => (usePicks && p.label === 'future' ? picksCfg.futureStarBonus : 0);
+  // Selection only (not scoring): rest some players (rotation XI) and give young players a head start.
+  const rest = new Set(search.rest || []);
+  const youth = search.youthBonus || 0;
+  ctx.selectBias = (p) => (rest.has(p.id) ? -(search.restPenalty ?? 30) : 0) + (youth && p.age != null && p.age <= 21 ? youth : 0);
   let available = atClub.filter((p) => !(search.excludeInjured && p.injured) || ctx.locked.has(p));
   if (available.length < 11) {
     ctx.warnings.push('Fewer than 11 fit players, so injured players were included.');
@@ -138,7 +151,7 @@ function pickXI(ctx, lanes, roles) {
       const v = laneValue(ctx, p, lane, roles && roles[i]);
       if (v <= FORBIDDEN / 2) return v;
       // locked players always start; a future star gets a small head start in close calls
-      return ctx.locked.has(p) ? v * ctx.pickWeight(p) + lockBonus : v + ctx.pickBonus(p);
+      return ctx.locked.has(p) ? v * ctx.pickWeight(p) + lockBonus : v + ctx.pickBonus(p) + ctx.selectBias(p);
     }),
   );
   const { rowToCol } = assignMax(value);

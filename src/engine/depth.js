@@ -7,7 +7,7 @@ import { familiarity } from '../parse/positions.js';
 
 const FORBIDDEN = -1000;
 
-function laneValue(ctx, p, lane) {
+export function laneValue(ctx, p, lane) {
   const ipFam = familiarity(p, ctx.slots[lane.ip][2], ctx.adjacency);
   const oopFam = familiarity(p, ctx.slots[lane.oop][2], ctx.adjacency);
   if (!ctx.allowedFam.has(ipFam) || !ctx.allowedFam.has(oopFam)) return FORBIDDEN;
@@ -22,7 +22,7 @@ function laneValue(ctx, p, lane) {
 export function depthChart(system, ctx) {
   const cfg = ctx.tuning.depth;
   const xi = new Set(system.lanes.map((l) => l.player));
-  const atClub = ctx.players.filter((p) => !p.onLoan);
+  const atClub = ctx.players.filter((p) => !p.onLoan && !p.unavailable);
   const bench = atClub.filter((p) => !xi.has(p));
   const fitBench = bench.filter((p) => !p.injured);
 

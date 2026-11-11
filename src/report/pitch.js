@@ -82,7 +82,7 @@ const textWidth = (t, size) => [...t].reduce((w, c) => w + (/[ilj.,'’\s]/.test
  * Players in one phase: a token per player with the role abbreviation inside and an arc around it that
  * fills with the fit score (colour = fit band), and the surname with the score in a pill underneath.
  * Badges: pick markers (top right) and C for the captain (top left).
- * @param {Array<{slot:string, abbr:string, roleName:string, name:string, score:number, mark?:string, captain?:boolean}>} items
+ * @param {Array<{slot:string, abbr:string, roleName:string, name:string, score:number, mark?:string, captain?:boolean, pid?:string}>} items
  */
 export function pitchSVG(items, slots, title) {
   const players = items
@@ -98,7 +98,7 @@ export function pitchSVG(items, slots, title) {
       const captain = it.captain
         ? `<g class="cpt"><circle cx="${(cx - 14).toFixed(1)}" cy="${(cy - 14).toFixed(1)}" r="6.2" /><text x="${(cx - 14).toFixed(1)}" y="${(cy - 11.2).toFixed(1)}">C</text></g>`
         : '';
-      return `<g class="pl ${scoreClass(it.score)}" tabindex="0">
+      return `<g class="pl ${scoreClass(it.score)}" tabindex="0"${it.pid ? ` data-pid="${esc(it.pid)}" role="button"` : ''}>
   <title>${esc(it.name)} · ${esc(it.roleName)} · fit ${s}${markTitle}${it.captain ? ' · captain' : ''}</title>
   <circle cx="${cx}" cy="${cy}" r="24" class="hit" />
   <circle cx="${cx}" cy="${cy}" r="${RING}" class="trk" />

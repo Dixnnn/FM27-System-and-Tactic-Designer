@@ -2,9 +2,12 @@
 // FM27 Tactic Builder: puts a squad export into the Tactic Builder page, so the page opens with the squad loaded.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FM27TacticBuilder.Core
 {
@@ -24,7 +27,10 @@ namespace FM27TacticBuilder.Core
         /// <param name="csv">The export as CSV text.</param>
         /// <param name="exportedAt">When the squad was read.</param>
         /// <param name="source">Where it came from, e.g. "Football Manager 27 27.1.0".</param>
-        public static string Build(string template, string fileName, string csv, DateTime exportedAt, string source)
+        /// <param name="scouting">A shortlist or player search to compare with the squad (F8 on that screen), or null.</param>
+        /// <param name="history">Earlier squad exports, for the progress comparison (newest first), or null.</param>
+        public static string Build(string template, string fileName, string csv, DateTime exportedAt, string source,
+            ExtraExport? scouting = null, IReadOnlyList<ExtraExport>? history = null)
         {
             if (template == null)
                 throw new ArgumentNullException(nameof(template));
@@ -36,11 +42,59 @@ namespace FM27TacticBuilder.Core
                 .Append("{\"name\":").Append(JsonText.Quote(fileName))
                 .Append(",\"exportedAt\":").Append(JsonText.Quote(exportedAt.ToString("yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture)))
                 .Append(",\"source\":").Append(JsonText.Quote(source ?? ""))
-                .Append(",\"text\":").Append(JsonText.Quote(csv))
-                .Append('}')
-                .ToString();
-            var filled = Slot.Replace(">null<", ">" + json + "<");
+                .Append(",\"text\":").Append(JsonText.Quote(csv));
+            if (scouting != null)
+                json.Append(",\"scouting\":").Append(scouting.ToJson());
+            if (history != null && history.Count > 0)
+                json.Append(",\"history\":[").Append(string.Join(",", history.Select(h => h.ToJson()))).Append(']');
+            json.Append('}');
+            var filled = Slot.Replace(">null<", ">" + json.ToString() + "<");
             return template.Substring(0, at) + filled + template.Substring(at + Slot.Length);
+        }
+    }
+
+    /// <summary>Another export that travels with the squad: a shortlist to compare, or an earlier squad read.</summary>
+    public sealed class ExtraExport
+    {
+        public ExtraExport(string name, string text, DateTime? exportedAt)
+        {
+            Name = name;
+            Text = text;
+            ExportedAt = exportedAt;
+        }
+
+        public string Name { get; }
+        public string Text { get; }
+        public DateTime? ExportedAt { get; }
+
+        internal string ToJson() =>
+            "{\"name\":" + JsonText.Quote(Name) +
+            ",\"exportedAt\":" + (ExportedAt.HasValue ? JsonText.Quote(ExportedAt.Value.ToString("yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture)) : "null") +
+            ",\"text\":" + JsonText.Quote(Text) + "}";
+    }
+
+    /// <summary>The squad exports the plugin keeps in its exports folder (squad_yyyyMMdd_HHmmss.csv).</summary>
+    public static class ExportHistory
+    {
+        private static readonly Regex SquadFile = new(@"^squad_(\d{8}_\d{6})\.csv$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        /// <summary>Squad exports among <paramref name="files"/>, newest first, without <paramref name="except"/>.</summary>
+        public static List<string> SquadExports(IEnumerable<string> files, string? except, int max)
+        {
+            return files
+                .Where(f => SquadFile.IsMatch(Path.GetFileName(f)))
+                .Where(f => except == null || !string.Equals(Path.GetFullPath(f), Path.GetFullPath(except), StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(f => Path.GetFileName(f), StringComparer.OrdinalIgnoreCase)
+                .Take(Math.Max(0, max))
+                .ToList();
+        }
+
+        /// <summary>The time in a name like squad_20261110_180852.csv, or null.</summary>
+        public static DateTime? TimeFromName(string path)
+        {
+            var m = SquadFile.Match(Path.GetFileName(path) ?? "");
+            return m.Success && DateTime.TryParseExact(m.Groups[1].Value, "yyyyMMdd_HHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var t)
+                ? t : (DateTime?)null;
         }
     }
 

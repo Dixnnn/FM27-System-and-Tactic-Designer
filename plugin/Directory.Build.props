@@ -5,7 +5,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <!-- Keep in step with "version" in ../package.json (a test checks this). -->
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <Product>FM27 Tactic Builder</Product>
     <Copyright>FM27 Tactic Builder contributors. Squad reader based on FM View Exporter, (C) 2026 ElectroHugin.</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
