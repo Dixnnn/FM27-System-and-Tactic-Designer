@@ -217,3 +217,48 @@ namespace FM27TacticBuilder.Tests
         }
     }
 }
+
+namespace FM27TacticBuilder.Tests
+{
+    public class ExtraExportTests
+    {
+        [Fact]
+        public void A_shortlist_and_earlier_reads_travel_with_the_squad()
+        {
+            var template = "<body>" + TacticPage.Slot + "</body>";
+            var scouting = new ExtraExport("shortlist_20261111_100000.csv", "Player\r\n</script>Scout\r\n", new DateTime(2026, 11, 11, 10, 0, 0));
+            var history = new[] { new ExtraExport("squad_20261101_090000.csv", "Player\r\nA\r\n", null) };
+            var page = TacticPage.Build(template, "squad_20261111_100500.csv", "Player\r\nB\r\n", DateTime.Now, "FM", scouting, history);
+            var json = System.Text.RegularExpressions.Regex.Match(page, "id=\"fm27tb-export\">(.*?)</script>", System.Text.RegularExpressions.RegexOptions.Singleline).Groups[1].Value;
+            var root = System.Text.Json.JsonDocument.Parse(json).RootElement;
+            Assert.Equal("Player\r\n</script>Scout\r\n", root.GetProperty("scouting").GetProperty("text").GetString());
+            Assert.Equal("2026-11-11T10:00:00", root.GetProperty("scouting").GetProperty("exportedAt").GetString());
+            Assert.Equal(1, root.GetProperty("history").GetArrayLength());
+            Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("history")[0].GetProperty("exportedAt").ValueKind);
+            Assert.Single(System.Text.RegularExpressions.Regex.Matches(page, "</script>")); // the one in the shortlist is escaped
+        }
+
+        [Fact]
+        public void Without_extras_the_payload_has_no_extra_fields()
+        {
+            var page = TacticPage.Build("<b>" + TacticPage.Slot + "</b>", "a.csv", "x", DateTime.Now, "");
+            Assert.DoesNotContain("\"scouting\"", page);
+            Assert.DoesNotContain("\"history\"", page);
+        }
+
+        [Fact]
+        public void Finds_earlier_squad_reads_newest_first()
+        {
+            var files = new[]
+            {
+                "/x/exports/squad_20261101_090000.csv", "/x/exports/shortlist_20261105_100000.csv", "/x/exports/squad_20261110_180852.csv",
+                "/x/exports/squad_20261105_120000.csv", "/x/exports/player-database_20261106_100000.csv", "/x/exports/notes.csv",
+            };
+            Assert.Equal(new[] { "/x/exports/squad_20261105_120000.csv", "/x/exports/squad_20261101_090000.csv" },
+                ExportHistory.SquadExports(files, "/x/exports/squad_20261110_180852.csv", 6));
+            Assert.Equal(new[] { "/x/exports/squad_20261110_180852.csv" }, ExportHistory.SquadExports(files, null, 1));
+            Assert.Equal(new DateTime(2026, 11, 10, 18, 8, 52), ExportHistory.TimeFromName("/x/squad_20261110_180852.csv"));
+            Assert.Null(ExportHistory.TimeFromName("/x/shortlist_20261110_180852.csv"));
+        }
+    }
+}

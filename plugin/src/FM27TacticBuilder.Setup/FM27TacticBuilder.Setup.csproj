@@ -9,10 +9,13 @@
     <AssemblyName>FM27TacticBuilder-Setup</AssemblyName>
     <Nullable>disable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The crest (made by tools/make-icons.mjs from src/report/crest.js) -->
+    <ApplicationIcon>crest.ico</ApplicationIcon>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\FM27TacticBuilder.Setup.Logic\*.cs" LinkBase="Logic" />
+    <EmbeddedResource Include="crest-header.png" LogicalName="crest-header.png" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />

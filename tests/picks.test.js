@@ -60,8 +60,8 @@ test('marquee players: always start, extra weight, and the shape follows them', 
   const strikers = r.best.ipSlots.filter((s) => s.startsWith('ST')).length;
   assert.ok(strikers >= 2, `two marquee strikers need a two-striker shape, got ${r.best.ipName}`);
   assert.ok(r.best.picks > 0, 'the marquee weight counts in the system score');
-  // every alternative keeps the marquee players
-  for (const a of r.alternatives) {
+  // every alternative keeps the marquee players (except the rotation XI, which rests the first XI on purpose)
+  for (const a of r.alternatives.filter((x) => !x.rotation)) {
     const ids = new Set(a.system.lanes.map((l) => l.player.uid));
     assert.ok(ids.has(ID.lindqvist) && ids.has(ID.everly), a.title);
   }

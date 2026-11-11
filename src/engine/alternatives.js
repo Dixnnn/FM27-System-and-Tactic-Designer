@@ -133,7 +133,26 @@ export function buildAlternatives(main, players, docs, options) {
     );
   }
 
-  // 4. The best system with a different shape (back line or number of strikers).
+  // 4. Cup games and rotation: the same shapes with the first XI rested, young players first in line.
+  const rested = main.best.lanes.map((l) => l.player.id);
+  run(
+    'Cup games and rotation',
+    'Use in cup games and busy weeks: the same shapes, your first XI rested, and young players first in line for a start.',
+    { forceIp: main.best.ipName, forceOop: main.best.oopName, rest: rested, youthBonus: 2, ignorePicks: true },
+    {},
+    strength,
+    '',
+    () => ({}),
+  );
+  const rotation = alts.find((a) => a.title === 'Cup games and rotation');
+  if (rotation) {
+    const still = rotation.system.lanes.filter((l) => rested.includes(l.player.id));
+    rotation.rotation = { stillStarting: still.map((l) => l.player), young: rotation.system.lanes.filter((l) => l.player.age != null && l.player.age <= 21).map((l) => l.player) };
+    rotation.similar = false;
+    if (still.length) rotation.when += ` Not enough cover to rest everyone: ${still.map((l) => l.player.name).join(', ')} still start${still.length === 1 ? 's' : ''}.`;
+  }
+
+  // 5. The best system with a different shape (back line or number of strikers).
   const mainKey = shapeKey(main.best);
   const other = main.search.ranking.find((s) => shapeKey(s) !== mainKey);
   if (other) {

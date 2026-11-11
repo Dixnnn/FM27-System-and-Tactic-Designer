@@ -1,9 +1,18 @@
+<img src="docs/crest.svg" width="64" align="right" alt="FM27 Tactic Builder crest">
+
 # FM27 Tactic Builder
 
 Designs a complete Football Manager 27 tactic around **your** squad.
 
 Press **F8** on your squad screen in FM27 (or drop a squad export onto one HTML page) and get a printable report with
-everything you need to enter in FM27, in the order the tactics screens show it:
+everything you need to enter in FM27, in the order the tactics screens show it.
+
+**[Download the latest version](https://github.com/Dixnnn/FM27-System-and-Tactic-Designer/releases/latest)** (the
+`…-setup.exe`) · [What's new](CHANGELOG.md)
+
+![A tactic made by FM27 Tactic Builder: both shapes with each player's role and fit, the key settings and the set-piece takers](docs/preview.jpg)
+
+What you get:
 
 - **Style and mentality:** the closest FM27 style to start from, and a mentality based on how strong your team is.
 - **Shapes and roles:** the in-possession and out-of-possession formations as pitch diagrams, and the best eleven, each with an
@@ -39,8 +48,8 @@ You need a Windows PC with **Football Manager 27 on Steam**, and **Microsoft Edg
 
 ### 1. Install the plugin (one time)
 
-1. Download **`FM27TacticBuilder-…-setup.exe`** from this project's **Releases** page. (Before the first release: open
-   **Actions › Plugin**, click the latest green run and download the file under **Artifacts**; it's a zip with the setup inside.)
+1. Download **`FM27TacticBuilder-…-setup.exe`** from the
+   [latest release](https://github.com/Dixnnn/FM27-System-and-Tactic-Designer/releases/latest).
 2. Run it. Windows may warn you because the setup isn't signed: click **More info › Run anyway**.
 3. The setup finds FM27 in your Steam library (or you pick the folder that contains `fm.exe`). Click **Install**.
 4. Start FM27. **The first start takes a few minutes** while the mod loader (BepInEx) prepares itself. When you're in the
@@ -49,7 +58,8 @@ You need a Windows PC with **Football Manager 27 on Steam**, and **Microsoft Edg
 Already using **FM View Exporter**? That's fine: both work side by side (F9 there, F8 here), and the setup keeps the shared
 BepInEx.
 
-To remove it, run the setup again and click **Uninstall**. Your saves are not affected.
+To update to a new version, download its setup and click **Install** (or **Update**); your settings are kept. To remove it,
+run the setup again and click **Uninstall**. Your saves are not affected.
 
 ### 2. Set up the squad view (one time)
 
@@ -73,7 +83,7 @@ tactic; open it any time), `exports\` (every squad you read, as CSV) and `views\
 
 | Key | What it does |
 | --- | --- |
-| **F8** | Reads the list on screen and opens your tactic |
+| **F8** | On your Squad screen: reads your players and opens your tactic. On a shortlist or player search: opens your latest tactic with those players scored as signings |
 | **Ctrl+F8** | Only saves the list as CSV (works on the squad, player database and shortlist screens) |
 | **Ctrl+Shift+F8** | Writes a dump of the game's screen layout, for fixing the plugin after an FM27 patch |
 
@@ -92,7 +102,7 @@ Keys and other settings can be changed in the setup's **Settings** tab.
 4. **Export:** in FM27 open **Squad** with that view and press **F9**. Don't click until it stops scrolling. The file is
    saved in `Documents\Sports Interactive\FM View Exporter`, named like `squad_20261108_201500.csv`.
 5. **Make your tactic:** open `FM27-Tactic-Builder.html`, answer **"How strong is your team in its league?"**, and drag the
-   `squad_….csv` onto the box (or click **Choose file…**). Use **Print / Save as PDF** or **Save report** to keep it.
+   `squad_….csv` onto the box (or click **Choose file…**). Use **Export** (print, PDF, cheat sheet, image or save) to keep it.
 
 Want to see it first? Click **Try the sample squad**; it uses a made-up club. The page opens in **dark mode**; the sun/moon
 button switches to light. Printing always uses a light, ink-friendly layout.
@@ -105,6 +115,7 @@ After the report appears, click **Choose players** to tell the builder about you
 | --- | --- |
 | **Must start** | He is always in the starting XI, in a position he can play. Formations that can't fit him are skipped. Pick up to 11. |
 | **Marquee** | The tactic is built around him. He always starts, and his fit counts 2.5 times when the builder compares formations and roles, so it chooses the shape and role that suit him best. Some team instructions are shaped for him too, for example *Progress Through* down his flank, *Pass Into Space* for a quick striker, or *Goalkeeper Distribution: Playmaker* for a deep playmaker. |
+| **Unavailable** | Suspended, resting or about to be sold: the tactic, the depth chart and every alternative are built without him. |
 | **Future star** | A young player with high potential. He wins close calls for a place (but won't start ahead of a much better player), is preferred as cover, and gets a development plan in the Training section. That plan covers the position and roles he grows into, how far he is from starting, which key attributes to train and how to give him minutes. If he doesn't start, an extra alternative tactic, *With your future stars starting*, puts all your future stars in the XI. |
 
 Everything else works the same way: the same game plan, balance rules and team instructions, built around your picks. The
@@ -114,6 +125,58 @@ how strong the team would be if the builder chose freely, and who would play ins
 Picks are remembered for that club in this browser, so your next export of the same squad uses them automatically. If a new
 export no longer fits them (say a picked player has left), the tactic is built without them and the report tells you.
 Players out on loan can't be picked.
+
+## Your idea
+
+Click **Idea** on the report and describe the tactic you want in your own words, for example:
+
+- *"I want Lindqvist to score as many headers as possible"*
+- *"Play everything through Ellacombe"*
+- *"Press high and win the ball back fast"*, *"Park the bus and hit them on the counter"*
+- *"Wing play with lots of crosses"*, *"Keep the ball and wear them down"*, *"Give my young players minutes"*
+
+While you type, the panel shows what it understood (and which player, if you didn't name one, e.g. your best striker in
+the air for headers). Then choose **how hard to push it**:
+
+| Setting | What happens |
+| --- | --- |
+| **Normal** | The idea shapes the instructions and nudges roles; the strongest team still comes first. |
+| **Strong** | Roles and instructions follow the idea, even if a player is slightly less suited (e.g. he becomes the Target Forward). |
+| **Very strong** | The idea leads: shapes and roles bend towards it, the mentality moves with it. |
+| **Extreme** | Everything serves the idea, even at a clear cost in team fit (e.g. two strikers and wide crossers for a header machine). |
+
+The report's first section shows the idea, what was done for it (his role, the shape, the instructions marked "Your idea"),
+and what it costs in team fit compared with the tool's own choice. If the named player isn't good at it (say, poor in the air),
+it tells you, and who would suit the idea better. The idea is remembered for that club, so your next F8 uses it; **Clear
+idea** removes it. The alternative tactics are built without it, as a contrast.
+
+**How it reads your words:** offline, without AI. It recognises your players' names and football phrases about headers,
+scoring, playmakers, dribbling, long shots, wing play, playing narrow, pressing, defending deep, counter-attacking,
+possession, direct play, set pieces, young players and attacking full-backs. Anything else is ignored, and the panel shows
+exactly what it picked up before you build. "Don't press" is ignored rather than guessed: say what you want instead
+("defend deep").
+
+## More tools in the report
+
+| Tool | What it does |
+| --- | --- |
+| **Idea** (toolbar) | Describe the tactic you want in your own words, from Normal to Extreme: see [Your idea](#your-idea). |
+| **Formation** (toolbar) | Choose the in-possession and/or out-of-possession shape yourself ("I want 4-2-3-1"). The tool builds the best eleven, roles and instructions for it, and says what the tool's own choice would have been. *Let the tool choose both* goes back. Remembered per club. |
+| **Checklist** (section 2) | Every setting has a tick box. Tick them off as you copy them into FM27; a bar shows how far you are. Ticks are kept for that tactic, and a changed tactic starts a fresh list. On paper the boxes print empty, to tick with a pen. |
+| **Player cards** | Click a player on a pitch or any underlined name: his place in the tactic, the attributes of his roles against your team's level, who else can play there and his best roles anywhere. |
+| **Signings** (section 4) | Press **F8** on your shortlist or a player search (or load such an export): every player is scored in your tactic's own positions and roles, and the report lists who would start for you, by how much he'd beat your current starter, who'd be better cover, and the best option for each weak spot. |
+| **Match plan** (section 6) | Pick what your next opponent is like: stronger or weaker, home or away, how they play (press high, sit deep, long balls…) and what their players are good at. You get which of your tactics to start from, the mentality, and which team instructions to change, each with a reason from your own squad. |
+| **Cup / rotation XI** (section 5) | An alternative for cup games and busy weeks: the same shapes with your first XI rested and young players first in line. |
+| **Progress** (section 7) | With the plugin, every F8 is kept; the report compares your squad with your earlier reads of the same club: first-team level over time, who is improving (with the attributes that rose), who is declining, arrivals and departures. Without the plugin, load an older export. |
+| **Role filter** (section 8) | Search by name, filter by position, show only the starting XI or hide players on loan. |
+| **Cheat sheet** (Export menu) | Prints a single A4 page with both shapes and every setting that differs from FM's defaults, to keep next to you. |
+| **Copy as text** (Export menu) | Copies the tactic as plain text (shapes, every player's spots and roles, the changed instructions, set pieces) to paste into a forum post, Discord or your notes. |
+| **Image** (Export menu) | Saves a picture of the tactic (both shapes, key instructions, set pieces) to share on Discord or Reddit. |
+| **Club colours** (report header) | Your players wear your kit on the pitches: pick one of twelve kits or your own shirt and trim colours. The fit rings keep their colours. Remembered per club, and used in the saved report and the shared picture. |
+
+Just for fun: the players walk out of the tunnel onto the pitch when a tactic opens (switched off if your system asks for
+reduced motion), a studio pundit has one line to say about every tactic, and ticking off the whole checklist gets the
+tactic stamped **Locked in**.
 
 ## Put it into FM27
 
@@ -127,8 +190,8 @@ Section 2 of the report, "Enter it in FM27", has six steps in the order of FM27'
 5. **Player instructions.**
 6. **Set pieces and captain.**
 
-Settings that differ from FM's defaults are in **bold**; leave the rest alone. Save the alternative tactics (section 5) in FM27's
-other tactic slots.
+Settings that differ from FM's defaults are in **bold** and have a tick box; leave the rest alone. Save the alternative tactics
+(section 5) in FM27's other tactic slots. Prefer one page? Use **Export › Print a one-page cheat sheet**.
 
 ---
 
@@ -177,6 +240,7 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 
 | Problem | Fix |
 | --- | --- |
+| **"Windows protected your PC" when starting the setup** | The setup isn't signed with a paid certificate, so Windows doesn't know it yet. Click **More info › Run anyway**. Every release is built from this repository's code by GitHub Actions and lists SHA-256 checksums. |
 | **Nothing happens when I press F8** | The game window must be in front and a player list open (Squad screen). Look in `BepInEx\LogOutput.log` in the FM27 game folder for lines from *FM27 Tactic Builder*. No such lines at all: run the setup again and click **Update**. |
 | **"No player list on screen"** | Open the **Squad** screen (the list of your players, not a single player's profile) and press F8 again. |
 | **"This view lacks …" / "Opened, but columns are missing"** | Switch the squad view to *FM27TFT* (or add the columns from [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md)) and press F8 again. |
@@ -200,6 +264,9 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 | **After an FM27 patch a role's attributes changed** | In the tool open **Advanced**, click **Download roles.json**, edit the role's `key`/`preferred` lists in Notepad, then **Load my own roles.json…**. It's remembered in that browser. |
 | **The printout is cut off at the side** | Print in landscape, or use **Save report as HTML** and print from there. |
 
+Still stuck? [Open an issue](https://github.com/Dixnnn/FM27-System-and-Tactic-Designer/issues/new/choose)
+(*Something doesn't work*) with your version and the log lines it asks for.
+
 ---
 
 ## Privacy and safety
@@ -215,17 +282,18 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 ## For developers
 
 ```
-npm install          # one dev tool: esbuild
+npm install          # dev tools: esbuild and three fonts (embedded in the page)
 npm test             # unit tests (Node 20+)
 npm run build        # rebuilds FM27-Tactic-Builder.html from src/ and data/
 npm run test:e2e     # builds, then checks the page in Chromium (needs Playwright)
 npm run samples      # regenerates the made-up sample squads in samples/
 npm run report -- samples/squad_20261108_201500.csv out/report.html
+node tools/make-icons.mjs  # after changing the crest: setup icon, setup header, docs/crest.svg (needs Playwright)
 
 # The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
 dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
 dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
-plugin/packaging/package.sh 0.5.1                         # plugin zip, full package (downloads BepInEx), setup.exe
+plugin/packaging/package.sh 1.0.0                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
 
 GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the
@@ -259,4 +327,7 @@ source. No warranty.
   (ElectroHugin). This tool uses those game facts in its own format.
 - FM27 tactics screen research (instruction names and screen order) from the community projects *FM27-apka* and
   *fm-ai-assistent*.
+- Fonts embedded in the page, all under the **SIL Open Font License 1.1** (`plugin/packaging/licenses/OFL-1.1.txt`):
+  **Space Grotesk** (headings), **Bebas Neue** (section numbers, wordmark) and **VT323** (the scoreboard).
+- The crest is this project's own artwork.
 - Not affiliated with or endorsed by Sports Interactive or SEGA. Football Manager is a trademark of Sports Interactive.

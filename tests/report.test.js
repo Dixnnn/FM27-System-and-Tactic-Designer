@@ -40,3 +40,21 @@ test('saved report is a complete HTML document with its styles', () => {
   assert.match(standaloneReport(analyse(sample('squad_20261108_201500.csv'), 'squad.csv', docs), { theme: 'light' }), /data-theme="light"/);
   assert.ok(!/<script/i.test(doc), 'no scripts in the saved report');
 });
+
+test('pitch tokens: a fit arc per player, the captain marked once per pitch, unique gradient ids', () => {
+  const result = analyse(sample('squad_20261108_201500.csv'), 'squad.csv', docs, { alternatives: false });
+  const html = renderReport(result);
+  const overview = html.slice(html.indexOf('id="overview"'), html.indexOf('id="setup"'));
+  assert.equal((overview.match(/class="arc"/g) || []).length, 22);
+  const captainInXI = result.best.lanes.some((l) => l.player === result.captain.captain.player);
+  assert.equal((overview.match(/class="cpt"/g) || []).length, captainInXI ? 2 : 0);
+  const ids = [...html.matchAll(/radialGradient id="(\w+)"/g)].map((m) => m[1]);
+  assert.equal(new Set(ids).size, ids.length, 'each pitch has its own gradient id');
+});
+
+test('section links sit outside the header, so they stay on screen in a saved report', () => {
+  const html = renderReport(analyse(sample('squad_20261108_201500.csv'), 'squad.csv', docs, { alternatives: false }));
+  const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+  assert.ok(!header.includes('nav class="toc"'));
+  assert.match(html, /<\/header>\s*<nav class="toc"/);
+});

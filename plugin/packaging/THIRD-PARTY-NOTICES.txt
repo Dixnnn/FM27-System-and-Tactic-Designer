@@ -12,6 +12,9 @@ English texts, the tactic page, the squad view, in-game messages).
 The role list (names, key and preferred attributes) was transcribed from FM27
 by the FM Player Analyzer project: https://github.com/ElectroHugin/FM-Player-Analyzer
 
+The tactic page embeds three fonts under the SIL Open Font License 1.1
+(licenses/OFL-1.1.txt): Space Grotesk, Bebas Neue and VT323.
+
 The full package also contains an unchanged build of BepInEx 6 (bleeding
 edge, see packaging/bepinex.env in the repository). Source and licences:
 
@@ -22,7 +25,7 @@ edge, see packaging/bepinex.env in the repository). Source and licences:
 - Cpp2IL, MIT: https://github.com/SamboyCoding/Cpp2IL
 - .NET Runtime, MIT: https://github.com/dotnet/runtime
 
-The LGPL licence texts are in the licenses folder.
+The LGPL and OFL licence texts are in the licenses folder.
 
 Not affiliated with Sports Interactive or SEGA. Football Manager is a
 trademark of Sports Interactive / SEGA.

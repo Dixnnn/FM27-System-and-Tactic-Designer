@@ -163,6 +163,8 @@ export function parsePlayers(table, map, columnsDoc, tuning) {
       ability: parseNumber(get(row, 'ability'), table.decimalComma),
       potential: parseNumber(get(row, 'potential'), table.decimalComma),
       playingTime: cleanText(get(row, 'playingTime')),
+      wage: cleanText(get(row, 'wage')),
+      transferValue: cleanText(get(row, 'transferValue')),
       mediaHandling: cleanText(get(row, 'mediaHandling')),
       onLoan: false,
       fmBestRole: cleanText(get(row, 'bestRole')),
