@@ -248,6 +248,14 @@ export const REPORT_CSS = `
 .report .linkbtn { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .report .linkbtn:hover { color: var(--ink); }
 
+/* your idea */
+.report .idea-box { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-soft), transparent 60%); border-radius: 10px; padding: 12px 16px; margin: 0 0 16px; }
+.report .idea-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.report .idea-k { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+.report .idea-box q { font-size: 16px; font-weight: 600; color: var(--ink); }
+.report .idea-box .notes { margin-top: 8px; }
+.report .idea-box .chip b { color: var(--ink); }
+
 /* match plan */
 .report .mp-controls { flex-direction: column; gap: 8px; margin: 8px 0 14px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
 .report .mp-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

@@ -152,13 +152,29 @@ await page.click('#pk-apply');
 await page.waitForFunction(() => !document.querySelector('#overview')?.textContent.includes('marked them unavailable'), null, { timeout: 30000 });
 console.log('ok  unavailable players');
 
+// Your idea: an example, built at Extreme, then cleared
+await page.click('#idea-btn');
+await page.waitForSelector('#idea-panel:not(.hidden) .id-chip');
+await page.locator('.id-chip').first().click();
+assert.match(await page.textContent('#id-understood'), /Headed goals/);
+await page.locator('#id-k').fill('3');
+await page.click('#id-apply');
+await page.waitForSelector('#overview .idea-box', { timeout: 30000 });
+assert.match(await page.textContent('#overview .idea-box'), /Your idea · Extreme/);
+assert.ok(!(await page.isHidden('#idea-badge')));
+assert.match(await page.textContent('#setup'), /Your idea \(headed goals\)/);
+await page.click('#idea-btn');
+await page.click('#id-clear');
+await page.waitForFunction(() => !document.querySelector('#overview .idea-box'), null, { timeout: 30000 });
+console.log('ok  your idea: understood, built at Extreme, cleared');
+
 // Cheat sheet and image
 assert.ok(await page.$('#sheet-holder .sheet'), 'cheat sheet ready to print');
-const [png] = await Promise.all([page.waitForEvent('download'), page.click('#share-image')]);
+const [png] = await Promise.all([page.waitForEvent('download'), page.click('#export-menu > summary').then(() => page.click('#share-image'))]);
 assert.match(png.suggestedFilename(), /^FM27 tactic - Harbour City\.png$/);
 console.log('ok  cheat sheet ready, image saved');
 
-const [download] = await Promise.all([page.waitForEvent('download'), page.click('#save')]);
+const [download] = await Promise.all([page.waitForEvent('download'), page.click('#export-menu > summary').then(() => page.click('#save'))]);
 assert.match(download.suggestedFilename(), /^FM27 tactic - Harbour City - \d{4}-\d{2}-\d{2}\.html$/);
 console.log('ok  save report');
 

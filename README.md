@@ -92,7 +92,7 @@ Keys and other settings can be changed in the setup's **Settings** tab.
 4. **Export:** in FM27 open **Squad** with that view and press **F9**. Don't click until it stops scrolling. The file is
    saved in `Documents\Sports Interactive\FM View Exporter`, named like `squad_20261108_201500.csv`.
 5. **Make your tactic:** open `FM27-Tactic-Builder.html`, answer **"How strong is your team in its league?"**, and drag the
-   `squad_….csv` onto the box (or click **Choose file…**). Use **Print / Save as PDF** or **Save report** to keep it.
+   `squad_….csv` onto the box (or click **Choose file…**). Use **Export** (print, PDF, cheat sheet, image or save) to keep it.
 
 Want to see it first? Click **Try the sample squad**; it uses a made-up club. The page opens in **dark mode**; the sun/moon
 button switches to light. Printing always uses a light, ink-friendly layout.
@@ -116,10 +116,41 @@ Picks are remembered for that club in this browser, so your next export of the s
 export no longer fits them (say a picked player has left), the tactic is built without them and the report tells you.
 Players out on loan can't be picked.
 
+## Your idea
+
+Click **Idea** on the report and describe the tactic you want in your own words, for example:
+
+- *"I want Lindqvist to score as many headers as possible"*
+- *"Play everything through Ellacombe"*
+- *"Press high and win the ball back fast"*, *"Park the bus and hit them on the counter"*
+- *"Wing play with lots of crosses"*, *"Keep the ball and wear them down"*, *"Give my young players minutes"*
+
+While you type, the panel shows what it understood (and which player, if you didn't name one, e.g. your best striker in
+the air for headers). Then choose **how hard to push it**:
+
+| Setting | What happens |
+| --- | --- |
+| **Normal** | The idea shapes the instructions and nudges roles; the strongest team still comes first. |
+| **Strong** | Roles and instructions follow the idea, even if a player is slightly less suited (e.g. he becomes the Target Forward). |
+| **Very strong** | The idea leads: shapes and roles bend towards it, the mentality moves with it. |
+| **Extreme** | Everything serves the idea, even at a clear cost in team fit (e.g. two strikers and wide crossers for a header machine). |
+
+The report's first section shows the idea, what was done for it (his role, the shape, the instructions marked "Your idea"),
+and what it costs in team fit compared with the tool's own choice. If the named player isn't good at it (say, poor in the air),
+it tells you, and who would suit the idea better. The idea is remembered for that club, so your next F8 uses it; **Clear
+idea** removes it. The alternative tactics are built without it, as a contrast.
+
+**How it reads your words:** offline, without AI. It recognises your players' names and football phrases about headers,
+scoring, playmakers, dribbling, long shots, wing play, playing narrow, pressing, defending deep, counter-attacking,
+possession, direct play, set pieces, young players and attacking full-backs. Anything else is ignored, and the panel shows
+exactly what it picked up before you build. "Don't press" is ignored rather than guessed: say what you want instead
+("defend deep").
+
 ## More tools in the report
 
 | Tool | What it does |
 | --- | --- |
+| **Idea** (toolbar) | Describe the tactic you want in your own words, from Normal to Extreme: see [Your idea](#your-idea). |
 | **Formation** (toolbar) | Choose the in-possession and/or out-of-possession shape yourself ("I want 4-2-3-1"). The tool builds the best eleven, roles and instructions for it, and says what the tool's own choice would have been. *Let the tool choose both* goes back. Remembered per club. |
 | **Checklist** (section 2) | Every setting has a tick box. Tick them off as you copy them into FM27; a bar shows how far you are. Ticks are kept for that tactic, and a changed tactic starts a fresh list. On paper the boxes print empty, to tick with a pen. |
 | **Player cards** | Click a player on a pitch or any underlined name: his place in the tactic, the attributes of his roles against your team's level, who else can play there and his best roles anywhere. |
@@ -128,8 +159,8 @@ Players out on loan can't be picked.
 | **Cup / rotation XI** (section 5) | An alternative for cup games and busy weeks: the same shapes with your first XI rested and young players first in line. |
 | **Progress** (section 7) | With the plugin, every F8 is kept; the report compares your squad with your earlier reads of the same club: first-team level over time, who is improving (with the attributes that rose), who is declining, arrivals and departures. Without the plugin, load an older export. |
 | **Role filter** (section 8) | Search by name, filter by position, show only the starting XI or hide players on loan. |
-| **Cheat sheet** (toolbar) | Prints a single A4 page with both shapes and every setting that differs from FM's defaults, to keep next to you. |
-| **Image** (toolbar) | Saves a picture of the tactic (both shapes, key instructions, set pieces) to share on Discord or Reddit. |
+| **Cheat sheet** (Export menu) | Prints a single A4 page with both shapes and every setting that differs from FM's defaults, to keep next to you. |
+| **Image** (Export menu) | Saves a picture of the tactic (both shapes, key instructions, set pieces) to share on Discord or Reddit. |
 
 ## Put it into FM27
 
@@ -144,7 +175,7 @@ Section 2 of the report, "Enter it in FM27", has six steps in the order of FM27'
 6. **Set pieces and captain.**
 
 Settings that differ from FM's defaults are in **bold** and have a tick box; leave the rest alone. Save the alternative tactics
-(section 5) in FM27's other tactic slots. Prefer one page? Use **Cheat sheet** in the toolbar.
+(section 5) in FM27's other tactic slots. Prefer one page? Use **Export › Print a one-page cheat sheet**.
 
 ---
 
@@ -241,7 +272,7 @@ npm run report -- samples/squad_20261108_201500.csv out/report.html
 # The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
 dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
 dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
-plugin/packaging/package.sh 0.7.0                         # plugin zip, full package (downloads BepInEx), setup.exe
+plugin/packaging/package.sh 0.8.0                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
 
 GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the

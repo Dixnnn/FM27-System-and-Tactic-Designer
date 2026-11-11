@@ -14,7 +14,7 @@ namespace FM27TacticBuilder
         public const string Guid = "fm27.tacticbuilder";
         public const string Name = "FM27 Tactic Builder";
         // Keep in step with plugin/Directory.Build.props and package.json (a test checks this).
-        public const string Version = "0.7.0";
+        public const string Version = "0.8.0";
     }
 
     /// <summary>

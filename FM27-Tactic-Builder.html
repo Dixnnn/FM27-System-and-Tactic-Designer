@@ -309,6 +309,14 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
 .report .linkbtn { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .report .linkbtn:hover { color: var(--ink); }
 
+/* your idea */
+.report .idea-box { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-soft), transparent 60%); border-radius: 10px; padding: 12px 16px; margin: 0 0 16px; }
+.report .idea-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.report .idea-k { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+.report .idea-box q { font-size: 16px; font-weight: 600; color: var(--ink); }
+.report .idea-box .notes { margin-top: 8px; }
+.report .idea-box .chip b { color: var(--ink); }
+
 /* match plan */
 .report .mp-controls { flex-direction: column; gap: 8px; margin: 8px 0 14px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
 .report .mp-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -532,6 +540,15 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .hero-art { width: 210px; height: auto; color: var(--accent); }
 @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .hero-art { display: none; } }
 .src-note { font-size: 12.5px; color: var(--muted); }
+.menu { position: relative; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu .chev { width: 14px; height: 14px; opacity: .7; }
+.menu[open] > summary { border-color: var(--ink-2); }
+.menu-items { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; min-width: 250px; white-space: nowrap; display: grid; padding: 6px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 11px; box-shadow: 0 14px 34px rgba(0,0,0,.35); }
+.menu-items button { display: flex; align-items: center; gap: 10px; font: inherit; font-size: 14px; color: var(--ink); background: none; border: 0; border-radius: 8px; padding: 9px 10px; text-align: left; cursor: pointer; }
+.menu-items button:hover, .menu-items button:focus-visible { background: var(--surface-2); outline: none; }
+.menu-items svg { width: 16px; height: 16px; color: var(--ink-2); flex: none; }
 .tb-strength { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
 .tb-strength select { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 8px 10px; cursor: pointer; }
 .tb-strength select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -582,6 +599,23 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .fm-top button:hover { color: var(--ink); border-color: var(--line-2); }
 .fm-top button b { color: var(--ink); font-weight: 650; }
 .fm-top button span { color: var(--muted); }
+#id-text { width: 100%; margin-top: 14px; font: inherit; font-size: 15px; line-height: 1.45; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; resize: vertical; }
+#id-text:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.id-ex { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.id-chip { font: inherit; font-size: 12.5px; color: var(--ink-2); background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.id-chip:hover { color: var(--ink); border-color: var(--accent); }
+.id-slider { margin: 14px 0 6px; max-width: 520px; }
+.id-slider label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+.id-slider input[type="range"] { width: 100%; accent-color: var(--accent); }
+.id-ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.id-ticks span.on { color: var(--ink); font-weight: 650; }
+.id-understood { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); font-size: 13.5px; }
+.id-ul { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.id-us { display: flex; flex-wrap: wrap; gap: 6px; }
+.id-u { padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
+.id-u i { color: var(--muted); font-style: normal; }
+.id-notes { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 12.5px; }
+.muted { color: var(--muted); }
 .seg.mini span { padding: 4px 9px; font-size: 12.5px; }
 @media (max-width: 860px) {
   .grid2 { grid-template-columns: 1fr; }
@@ -591,6 +625,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 }
 @media (max-width: 1400px) { #again .lbl { display: none; } }
 @media (max-width: 700px) {
+  .menu-items { left: auto; right: 0; }
   .topbar { margin: -10px -16px 4px; padding: 0 16px; }
   .toolbar { gap: 6px; padding: 8px 0 6px; }
   .toolbar .lbl, .src-note, .tb-strength .tbl { display: none; }
@@ -612,7 +647,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
       <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
       <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
-    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.7.0 · works offline · only reads your squad, never changes your game</div></div>
+    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v0.8.0 · works offline · only reads your squad, never changes your game</div></div>
   </div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
     <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -707,11 +742,17 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     <div class="topbar no-print">
     <div class="toolbar">
       <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
+      <button class="btn ghost" id="idea-btn" type="button" title="Describe your own idea for the tactic" aria-label="Your idea"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.2 14.5h5.6M7.8 17h4.4M10 2.5a5 5 0 0 0-3.1 8.9c.6.5 1 1.2 1 2V14h4.2v-.6c0-.8.4-1.5 1-2A5 5 0 0 0 10 2.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="lbl">Idea</span><span class="badge" id="idea-badge" hidden>on</span></button>
       <button class="btn ghost" id="formation-btn" type="button" title="Choose the formation yourself" aria-label="Formation"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="2.5" width="14" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 10h14" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="6" r="1.3" fill="currentColor"/><circle cx="6.5" cy="13.5" r="1.3" fill="currentColor"/><circle cx="13.5" cy="13.5" r="1.3" fill="currentColor"/></svg><span class="lbl">Formation</span><span class="badge" id="formation-badge" hidden>yours</span></button>
-      <button class="btn ghost" id="print" type="button" title="Print / Save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Print</span></button>
-      <button class="btn ghost" id="print-sheet" type="button" title="Print a one-page cheat sheet" aria-label="Print cheat sheet"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 2.5h6l3 3v12h-9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9h5M8 12h5M8 15h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="lbl">Cheat sheet</span></button>
-      <button class="btn ghost" id="share-image" type="button" title="Save a picture of the tactic to share" aria-label="Save tactic image"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7.5" cy="8.5" r="1.6" fill="currentColor"/><path d="m3.5 15 4.5-4.5 3 3 2-2 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Image</span></button>
-      <button class="btn ghost" id="save" type="button" title="Save the report as a file" aria-label="Save report"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Save</span></button>
+      <details class="menu" id="export-menu">
+        <summary class="btn ghost" title="Print, cheat sheet, image or save"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m-3.5-3.5L10 12l3.5-3.5M4 14.5v1A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Export</span><svg class="chev" viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <div class="menu-items" role="menu">
+          <button type="button" role="menuitem" id="print"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Print or save as PDF</span></button>
+          <button type="button" role="menuitem" id="print-sheet"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 2.5h6l3 3v12h-9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9h5M8 12h5M8 15h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span>Print a one-page cheat sheet</span></button>
+          <button type="button" role="menuitem" id="share-image"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7.5" cy="8.5" r="1.6" fill="currentColor"/><path d="m3.5 15 4.5-4.5 3 3 2-2 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save a picture to share</span></button>
+          <button type="button" role="menuitem" id="save"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Save the report as a file</span></button>
+        </div>
+      </details>
       <label class="tb-strength"><span class="tbl">Team strength</span>
         <select id="strength-quick">
           <option value="2">Title favourites</option>
@@ -729,6 +770,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     <div id="result-note" class="no-print"></div>
     <div id="picker" class="panel picker hidden no-print"></div>
     <div id="formation-panel" class="panel picker hidden no-print"></div>
+    <div id="idea-panel" class="panel picker hidden no-print"></div>
     <div id="report-holder"></div>
     <div id="sheet-holder" class="report"></div>
     <input type="file" id="extra-file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
@@ -745,10 +787,10 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     let best = ",";
     let bestCount = -1;
     for (const d of CANDIDATES) {
-      const count = countOutsideQuotes(firstLine, d);
-      if (count > bestCount) {
+      const count2 = countOutsideQuotes(firstLine, d);
+      if (count2 > bestCount) {
         best = d;
-        bestCount = count;
+        bestCount = count2;
       }
     }
     return best;
@@ -1462,18 +1504,18 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     };
     const ip = lanes.map((l) => ({ role: l.ipRole, slot: l.ip, pos: slots[l.ip][2], x: slots[l.ip][0] }));
     const oop = lanes.map((l) => ({ role: l.oopRole, slot: l.oop, pos: slots[l.oop][2], x: slots[l.oop][0] }));
-    const has = (list, tag, filter = () => true) => list.filter((e) => e.role && e.role.tagSet.has(tag) && filter(e));
+    const has2 = (list, tag, filter = () => true) => list.filter((e) => e.role && e.role.tagSet.has(tag) && filter(e));
     const named = (list, name) => list.filter((e) => e.role && e.role.name === name);
-    const attackingBacks = has(ip, "attackingBack");
-    const holders = has(ip, "holder");
+    const attackingBacks = has2(ip, "attackingBack");
+    const holders = has2(ip, "holder");
     const centreBacksIP = ip.filter((e) => e.pos === "D (C)").length;
     if (attackingBacks.length >= 2 && !holders.length && centreBacksIP < 3) {
       add(cfg.attackingBacksWithoutCover, "Two attacking full-backs/wing-backs with no holding midfielder or back three behind them.");
     }
-    const creators = has(ip, "creator");
+    const creators = has2(ip, "creator");
     const midCreators = creators.filter((e) => CENTRAL_MID.has(e.pos));
-    const midWinners = has(oop, "ballWinner", (e) => DEEP_MID.has(e.pos));
-    const midScreens = has(oop, "screen", (e) => DEEP_MID.has(e.pos));
+    const midWinners = has2(oop, "ballWinner", (e) => DEEP_MID.has(e.pos));
+    const midScreens = has2(oop, "screen", (e) => DEEP_MID.has(e.pos));
     if (!creators.length) add(cfg.noCreator, "No playmaker anywhere in the side: chances will be hard to create.");
     if (midCreators.length && midWinners.length) add(cfg.creatorAndBallWinner, "Midfield has both a playmaker and a ball-winner.");
     if (!midWinners.length) add(cfg.noBallWinnerInMidfield, "No pressing ball-winner in central midfield out of possession.");
@@ -1497,21 +1539,21 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
         add(cfg.flankWithoutWidth, `No player is positioned on the ${side} flank in possession.`);
       }
     }
-    const crossers = has(ip, "crosser");
-    const runners = has(ip, "runner");
+    const crossers = has2(ip, "crosser");
+    const runners = has2(ip, "runner");
     if (named(ip, "Target Forward").length && crossers.length < 2) {
       add(cfg.targetForwardWithoutCrossers, "Target Forward with fewer than two crossers to supply him.");
     }
     if (named(ip, "False Nine").length && runners.length < 2) {
       add(cfg.falseNineWithoutRunners, "False Nine without at least two runners to use the space he creates.");
     }
-    if (!has(ip, "finisher").length) add(cfg.noFinisher, "No natural goalscorer role in the side.");
-    const outlets = has(oop, "outlet");
+    if (!has2(ip, "finisher").length) add(cfg.noFinisher, "No natural goalscorer role in the side.");
+    const outlets = has2(oop, "outlet");
     if (outlets.length > cfg.maxOutlets) {
       add(cfg.tooManyOutletsEach * (outlets.length - cfg.maxOutlets), `${outlets.length} players stay forward as outlets: too few defend.`);
     }
-    const stoppers = has(oop, "stopper");
-    const covers = has(oop, "cover", (e) => e.pos === "D (C)");
+    const stoppers = has2(oop, "stopper");
+    const covers = has2(oop, "cover", (e) => e.pos === "D (C)");
     if (stoppers.length && covers.length) add(cfg.stopperAndCoverPair, "Centre-backs pair a stopper with a covering defender.");
     if (stoppers.length >= 2 && !covers.length) add(cfg.twoStoppersNoCover, "Two stopping centre-backs and no cover behind them.");
     const points = notes.reduce((s, n) => s + n.points, 0);
@@ -1535,32 +1577,32 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     };
     const ip = lanes.map((l) => l.ipRole).filter(Boolean);
     const oop = lanes.map((l) => l.oopRole).filter(Boolean);
-    const count = (list, tags) => list.filter((r) => tags.some((t) => r.tagSet.has(t))).length;
+    const count2 = (list, tags) => list.filter((r) => tags.some((t) => r.tagSet.has(t))).length;
     const { mid, front } = oopRows(lanes, slots);
     const capped = (n) => Math.min(cfg.roleCap, n * cfg.roleEach);
     if (plan.lineOfEngagement === "High Press") {
       if (front >= 3) add(cfg.shapeMatch, "Out of possession it keeps three players high, which suits pressing high.");
       else if (front <= 1) add(cfg.shapeMismatch, "Only one player stays high out of possession: hard to press high from this shape.");
-      add(capped(count(oop, ["presser", "tracker"])), "Pressing and tracking roles suit a high press.");
-      const outlets = count(oop, ["outlet"]);
+      add(capped(count2(oop, ["presser", "tracker"])), "Pressing and tracking roles suit a high press.");
+      const outlets = count2(oop, ["outlet"]);
       if (outlets > 1) add(cfg.extraOutletEach * (outlets - 1), "Outlet roles rest instead of pressing.");
     } else if (plan.lineOfEngagement === "Low Block") {
       if (mid >= 4 && front <= 2) add(cfg.shapeMatch, "Out of possession it forms a compact midfield line, which suits a low block.");
       else if (front >= 3) add(cfg.shapeMismatch, "Three players stay high out of possession, leaving a low block short of bodies.");
-      add(capped(count(oop, ["cover", "screen"])), "Covering and screening roles suit a low block.");
+      add(capped(count2(oop, ["cover", "screen"])), "Covering and screening roles suit a low block.");
     } else if (mid >= 4) {
       add(cfg.shapeMatch / 3, "A compact midfield line of four or more suits a mid block.");
     }
     if (plan.buildUpStrategy === "Play Through Press") {
-      add(Math.min(cfg.distributorCap, count(ip, ["distributor"]) * cfg.distributorEach), "Ball-playing goalkeeper/centre-backs suit playing through the press.");
+      add(Math.min(cfg.distributorCap, count2(ip, ["distributor"]) * cfg.distributorEach), "Ball-playing goalkeeper/centre-backs suit playing through the press.");
       if (lanes.some((l) => ["DM", "M (C)"].includes(slots[l.ip][2]) && l.ipRole?.tagSet.has("creator"))) add(cfg.deepCreator, "A deep playmaker helps play through the press.");
-    } else if (plan.buildUpStrategy === "Bypass Press" && count(ip, ["target", "aerial"])) {
+    } else if (plan.buildUpStrategy === "Bypass Press" && count2(ip, ["target", "aerial"])) {
       add(cfg.targetForBypass, "A striker who wins headers gives long balls a target.");
     }
     if (plan.attackingTransition === "Counter-Attack") {
-      add(capped(count(ip, ["runner"])), "Runners in behind suit counter-attacks.");
+      add(capped(count2(ip, ["runner"])), "Runners in behind suit counter-attacks.");
     } else if (plan.attackingTransition === "Hold Shape") {
-      add(capped(count(ip, ["creator", "link"])), "Creators and link players suit keeping the ball.");
+      add(capped(count2(ip, ["creator", "link"])), "Creators and link players suit keeping the ball.");
     }
     return { points: notes.reduce((s, n) => s + n.points, 0), notes: notes.map((n) => ({ ...n, plan: true })) };
   }
@@ -1610,7 +1652,19 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     const usePicks = !search.ignorePicks;
     const extra = new Set(search.extraLocks || []);
     ctx.locked = new Set(usePicks ? atClub.filter((p) => p.mustStart || p.label === "marquee" || extra.has(p.id)) : []);
-    ctx.pickWeight = (p) => !usePicks ? 1 : p.label === "marquee" ? picksCfg.marqueeWeight : p.label === "future" ? picksCfg.futureStarWeight : 1;
+    const weights = search.weights || {};
+    ctx.pickWeight = (p) => !usePicks ? 1 : Math.max(weights[p.id] || 1, p.label === "marquee" ? picksCfg.marqueeWeight : p.label === "future" ? picksCfg.futureStarWeight : 1);
+    const bias = search.ideaRoleBias;
+    ctx.roleBias = (p, role2) => {
+      if (!bias) return 0;
+      const own = bias.byPlayer?.[p.id];
+      const map = own || bias.team || {};
+      let s = 0;
+      for (const t of role2.tagSet) s += map[t] || 0;
+      return s;
+    };
+    const shapes = search.ideaShapes || [];
+    ctx.shapeBias = (ipF, oopF) => shapes.reduce((s, sh) => s + sh.bonus * sh.test(ipF.slots, oopF.slots), 0);
     ctx.pickBonus = (p) => usePicks && p.label === "future" ? picksCfg.futureStarBonus : 0;
     const rest = new Set(search.rest || []);
     const youth = search.youthBonus || 0;
@@ -1665,7 +1719,7 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
   function choiceScore(ctx, player, role2, slot) {
     const s = slotRoleScore(player, role2, slot, ctx);
     const spec = s.base - roleReference(ctx, role2);
-    return s.score + ctx.tuning.roleScore.specialisationWeight * spec;
+    return s.score + ctx.tuning.roleScore.specialisationWeight * spec + ctx.roleBias(player, role2);
   }
   function bestOf(ctx, player, roles, slot, byChoice = false) {
     let best = null;
@@ -1707,7 +1761,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
         const v = ipWeight * slotRoleScore(p, roles[i].ipRole, lane.ip, ctx).score + oopWeight * slotRoleScore(p, roles[i].oopRole, lane.oop, ctx).score;
         fit += v;
         choice += ipWeight * choiceScore(ctx, p, roles[i].ipRole, lane.ip) + oopWeight * choiceScore(ctx, p, roles[i].oopRole, lane.oop);
-        picks += (ctx.pickWeight(p) - 1) * v + ctx.pickBonus(p);
+        const want = ipWeight * ctx.roleBias(p, roles[i].ipRole) + oopWeight * ctx.roleBias(p, roles[i].oopRole);
+        picks += (ctx.pickWeight(p) - 1) * (v + want) + ctx.pickBonus(p);
       } else {
         fit += FORBIDDEN;
         choice += FORBIDDEN;
@@ -1859,7 +1914,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       balance: best.obj.balance,
       picks: best.obj.picks,
       complexity,
-      score: fit + best.obj.balance.points + best.obj.picks - complexity,
+      idea: ctx.shapeBias(ipF, oopF),
+      score: fit + best.obj.balance.points + best.obj.picks - complexity + ctx.shapeBias(ipF, oopF),
       valid: !resultLanes.some((l) => l.forbidden)
     };
   }
@@ -2346,9 +2402,9 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       if (values.progressThrough !== "Middle") set("progressThrough", "Middle", text2);
       builtAround.push({ player: l.player, id: "progressThrough", value: "Middle", why: text2 });
     }
-    for (const [id, val3] of Object.entries(opts.overrides || {})) {
-      if (val3 == null) continue;
-      values[id] = val3;
+    for (const [id, val4] of Object.entries(opts.overrides || {})) {
+      if (val4 == null) continue;
+      values[id] = val4;
       reasons[id] = (opts.extraReasons || {})[id] || reasons[id];
     }
     let mentalityReason = mentalityWhy;
@@ -2643,8 +2699,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     const individual = system.lanes.map((l) => {
       const p = l.player;
       const keys = [.../* @__PURE__ */ new Set([...l.ipRole.key, ...l.oopRole.key])].filter((a) => p.attrs[a] && !HARD_TO_TRAIN.has(a));
-      const avg2 = keys.reduce((s, a) => s + p.attrs[a].v, 0) / Math.max(1, keys.length);
-      const weakest = keys.map((a) => ({ attr: a, value: p.attrs[a].v })).sort((a, b) => a.value - b.value).filter((x) => x.value <= avg2 - 1).slice(0, 2);
+      const avg3 = keys.reduce((s, a) => s + p.attrs[a].v, 0) / Math.max(1, keys.length);
+      const weakest = keys.map((a) => ({ attr: a, value: p.attrs[a].v })).sort((a, b) => a.value - b.value).filter((x) => x.value <= avg3 - 1).slice(0, 2);
       let note = "";
       if (p.age != null && p.age >= 31 && weakest.some((w) => ["Pace", "Acceleration", "Stamina", "Agility"].includes(w.attr))) {
         note = "At his age physical attributes rarely improve; focus on the technical or mental one.";
@@ -2862,8 +2918,8 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       const second = lane && depth2.lanes.find((d) => d.lane === lane)?.secondChoice?.player === p;
       const gap = lane && !starting ? lane.value - value : 0;
       const keys = lane ? [.../* @__PURE__ */ new Set([...lane.ipRole.key, ...lane.oopRole.key])].filter((a) => p.attrs[a] && !HARD_TO_TRAIN2.has(a)) : [];
-      const avg2 = keys.reduce((s, a) => s + p.attrs[a].v, 0) / Math.max(1, keys.length);
-      const train = keys.map((a) => ({ attr: a, value: p.attrs[a].v })).sort((a, b) => a.value - b.value).filter((x) => x.value <= avg2).slice(0, 3);
+      const avg3 = keys.reduce((s, a) => s + p.attrs[a].v, 0) / Math.max(1, keys.length);
+      const train = keys.map((a) => ({ attr: a, value: p.attrs[a].v })).sort((a, b) => a.value - b.value).filter((x) => x.value <= avg3).slice(0, 3);
       let minutes;
       if (!lane) minutes = 'He has no natural place in this system yet. Look at the "With your future stars starting" alternative, or a loan.';
       else if (starting) minutes = "Starts in this tactic: regular minutes are the best way for him to develop.";
@@ -2999,6 +3055,581 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
     };
   }
 
+  // src/engine/idea.js
+  var INTENSITY = ["Normal", "Strong", "Very strong", "Extreme"];
+  var ROLE_BONUS = [2, 4, 7, 12];
+  var SHAPE_BONUS = [0.6, 1.2, 2.5, 5];
+  var WEIGHT = [1.6, 2.2, 3, 4.5];
+  var norm2 = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[’`]/g, "'");
+  var val3 = (p, a) => p.attrs[a]?.v ?? null;
+  var avg2 = (p, attrs) => {
+    const vs = attrs.map((a) => val3(p, a)).filter((v) => v != null);
+    return vs.length ? vs.reduce((s, v) => s + v, 0) / vs.length : null;
+  };
+  var has = (p, re) => [...p.positions].some((pos) => re.test(pos));
+  var surname = (p) => p.name.split(/\s+/).pop();
+  var SCORES = {
+    aerial: (p) => (avg2(p, ["Heading", "Jumping Reach", "Strength"]) ?? 0) + Math.max(0, Math.min(2, ((p.heightCm || 180) - 180) / 5)),
+    finish: (p) => avg2(p, ["Finishing", "Composure", "Off The Ball", "Anticipation"]) ?? 0,
+    create: (p) => avg2(p, ["Passing", "Vision", "Technique", "Decisions", "First Touch"]) ?? 0,
+    dribble: (p) => avg2(p, ["Dribbling", "Flair", "Agility", "Technique"]) ?? 0,
+    shoot: (p) => avg2(p, ["Long Shots", "Technique"]) ?? 0
+  };
+  var FORWARD = /^(ST|AM)/;
+  var CENTRAL_MID2 = /^(DM|M \(C\)|AM \(C\))/;
+  var count = (slots, re) => slots.filter((s) => re.test(s)).length;
+  var SHAPES = {
+    wide: (ip) => count(ip, /^(AM|M|WB)(L|R)$/) >= 2 ? 1 : 0,
+    wingBacks: (ip) => count(ip, /^WB(L|R)$/) >= 2 ? 1 : 0,
+    twoStrikers: (ip) => count(ip, /^ST/) >= 2 ? 1 : 0,
+    oneStriker: (ip) => count(ip, /^ST/) >= 1 ? 1 : 0,
+    narrow: (ip) => count(ip, /^(AM|M)(L|R)$/) === 0 ? 1 : 0,
+    midfield: (ip) => count(ip, /^(DM|MC|AMC)/) >= 3 ? 1 : 0,
+    backFive: (ip, oop) => count(oop, /^(D|WB)/) >= 5 ? 1 : 0,
+    twoDM: (ip, oop) => count(oop, /^DM/) >= 2 ? 1 : 0
+  };
+  var GOALS = [
+    {
+      id: "aerial",
+      label: "Headed goals",
+      player: true,
+      pick: { score: SCORES.aerial, pos: FORWARD, why: "your best striker in the air" },
+      words: [/\bhead(er|ers|ed|ing)?\b/, /\bin the air\b/, /\baerial\b/, /\btarget (man|forward)\b/, /\bheaders?\b/],
+      apply(a) {
+        a.focusRoles({ target: 1, aerial: 1 }, "a target role, so the team plays to his head");
+        a.teamRoles({ crosser: 0.7, width: 0.5 }, "wide players who cross");
+        a.shape("wide", 1, "shapes with players wide to cross for him");
+        a.shape("twoStrikers", 0.3, "a strike partner to work around him");
+        a.set("crossingStyle", "Floated Crosses", 0, "Floated crosses hang in the air for a header.");
+        a.set("progressThrough", "Both Flanks", 0, "Get the ball wide, where the crosses come from.");
+        a.set("attackingWidth", "Wider", 1, "Stretch the pitch so crosses have room.");
+        a.set("playForSetPieces", "Play for Set Pieces", 1, "Corners and free kicks: more chances to head the ball in.");
+        a.set("patience", "Hit Early Crosses", 2, "Cross early and often.");
+        a.set("supportingRuns", "Both Flanks", 2, "Full-backs overlap to add more crosses.");
+        a.set("gkDistribution", "Target Forward", 2, "Goalkeeper aims for him too.");
+        a.set("attackingWidth", "Much Wider", 3, "As wide as possible: everything goes to the flanks.");
+        a.set("passingDirectness", "More Direct", 3, "Get the ball forward and into the box quickly.");
+        a.set("goalKicks", "Long", 3, "Long goal kicks to his head.");
+        a.pi("wide", "IP", "Cross From", "Byline", 1, "Cross from the byline, towards the striker.");
+        a.pi("focus", "IP", "Hold Up Ball", "Yes", 2, "Win the ball in the air and hold it up.");
+        a.aerialTarget();
+        a.check(SCORES.aerial, "in the air (heading, jumping reach, strength)");
+      }
+    },
+    {
+      id: "goals",
+      label: "Goals for a player",
+      player: true,
+      pick: { score: SCORES.finish, pos: FORWARD, why: "your best finisher" },
+      words: [/\bscor(e|es|ing|er)\b/, /\bgoals?\b/, /\bgolden boot\b/, /\btop scorer\b/, /\bfinish(er|ing)?\b/],
+      apply(a) {
+        a.focusRoles({ finisher: 1, runner: 0.4 }, "a finishing role in the box");
+        a.teamRoles({ creator: 0.6 }, "creators to feed him");
+        a.shape("oneStriker", 0.5, "a shape with a central striker");
+        a.set("passReception", a.focusQuick() ? "Pass Into Space" : "Pass To Feet", 1, a.focusQuick() ? "He is quick: play the ball into space for him." : "Get the ball to his feet in the box.");
+        a.set("tempo", "Higher", 2, "More attacks, more chances for him.");
+        a.set("creativeFreedom", "More Expressive", 2, "Let the creators find him.");
+        a.mentality(1, 2, "More players forward means more chances for him.");
+        a.mentality(1, 3, "All-out attack around him.");
+        a.pi("focus", "IP", "Shooting", "Shoot More Often", 1, "He takes the shots.");
+        a.pi("focus", "IP", "Forward Runs", "More Often", 2, "Always looking to get in behind.");
+        a.check(SCORES.finish, "finishing (finishing, composure, off the ball, anticipation)");
+      }
+    },
+    {
+      id: "playmaker",
+      label: "Everything through a playmaker",
+      player: true,
+      pick: { score: SCORES.create, pos: CENTRAL_MID2, why: "your most creative midfielder" },
+      words: [/\bplaymak/, /\bplay(s|ing)? (it )?through\b/, /\bcreative (hub|force|heart)\b/, /\beverything (goes )?through\b/, /\bdictat/, /\bpull(s|ing)? the strings\b/, /\borchestrat/],
+      apply(a) {
+        a.focusRoles({ creator: 1 }, "a playmaker role");
+        a.teamRoles({ runner: 0.5 }, "runners to pick out");
+        a.shape("midfield", 0.5, "a shape with numbers in midfield");
+        a.set("progressThrough", "Middle", 0, "Through the middle, where he plays.");
+        a.set("gkDistribution", "Playmaker", 1, "Goalkeeper finds him straight away.");
+        a.set("passingDirectness", "Shorter", 1, "Short passes keep the ball moving through him.");
+        a.set("passReception", "Pass To Feet", 2, "Into feet, so he can link the play.");
+        a.set("creativeFreedom", "More Expressive", 2, "Freedom to create.");
+        a.pi("focus", "IP", "Passing Risk", "Take More Risks", 1, "He looks for the killer pass.");
+        a.check(SCORES.create, "creativity (passing, vision, technique, decisions)");
+      }
+    },
+    {
+      id: "dribbler",
+      label: "A dribbler running at defenders",
+      player: true,
+      pick: { score: SCORES.dribble, pos: /^(AM|M \(L|M \(R|ST)/, why: "your best dribbler" },
+      words: [/\bdribbl/, /\btake (people|players|defenders|them|men) on\b/, /\brun at\b/, /\bflair\b/, /\bone[- ]on[- ]one\b/],
+      apply(a) {
+        a.focusRoles({ inside: 0.6, free: 0.6, runner: 0.6 }, "a role with the ball at his feet");
+        a.set("dribbling", "Encourage", 0, "Run at defenders.");
+        a.set("creativeFreedom", "More Expressive", 1, "Freedom to try things.");
+        a.set("passReception", "Pass To Feet", 2, "Into his feet, facing his man.");
+        a.pi("focus", "IP", "Dribbling Frequency", "Dribble More", 0, "Take his man on.");
+        a.check(SCORES.dribble, "dribbling (dribbling, flair, agility, technique)");
+      }
+    },
+    {
+      id: "longShots",
+      label: "Long shots",
+      player: false,
+      words: [/\blong[- ]?(range|shots?|distance)\b/, /\bfrom distance\b/, /\boutside the box\b/, /\bscreamers?\b/],
+      apply(a) {
+        a.teamRoles({ shooter: 0.6 }, "midfielders who arrive to shoot");
+        a.set("shotsFromDistance", "Encourage", 0, "Shoot from outside the box.");
+        a.set("patience", "Standard", 1, "Don’t wait to work it into the box.");
+        a.piBest(SCORES.shoot, /^(DM|M|AM)/, "IP", "Shooting", "Shoot More Often", 1, "Your best long-range shooter.");
+      }
+    },
+    {
+      id: "wingPlay",
+      label: "Wing play and crosses",
+      player: false,
+      words: [/\bwing(s| play|play)\b/, /\bwide play\b/, /\bcross(es|ing)\b/, /\bflanks?\b/, /\bwingers?\b/],
+      not: [/\bwing[- ]?backs?\b/],
+      apply(a) {
+        a.teamRoles({ width: 0.8, crosser: 0.8 }, "wide roles that cross");
+        a.shape("wide", 1, "shapes with wingers or wing-backs");
+        a.set("attackingWidth", "Wider", 0, "Use the whole width.");
+        a.set("progressThrough", "Both Flanks", 0, "Attack down the flanks.");
+        a.set("patience", "Hit Early Crosses", 1, "Get the crosses in early.");
+        a.set("supportingRuns", "Both Flanks", 1, "Full-backs overlap on both sides.");
+        a.set("attackingWidth", "Much Wider", 2, "As wide as possible.");
+        a.pi("wide", "IP", "Cross From", "Byline", 2, "Get to the byline and cross.");
+      }
+    },
+    {
+      id: "narrow",
+      label: "Through the middle",
+      player: false,
+      words: [/\bnarrow\b/, /\bthrough the middle\b/, /\bcentral(ly)?\b/, /\boverload the (middle|centre|center)\b/],
+      apply(a) {
+        a.shape("narrow", 1, "shapes without wide midfielders");
+        a.teamRoles({ inside: 0.6, creator: 0.4 }, "roles that come inside");
+        a.set("attackingWidth", "Narrower", 0, "Stay compact and close together.");
+        a.set("progressThrough", "Middle", 0, "Through the middle.");
+        a.set("attackingWidth", "Much Narrower", 2, "Everyone close together in the middle.");
+      }
+    },
+    {
+      id: "highPress",
+      label: "High press",
+      player: false,
+      words: [/\bpress(ing)?\b/, /\bgegen/, /\bwin (the ball|it) back\b/, /\bhigh (line|block)\b/, /\bheavy metal\b/, /\bhunt(ing)? the ball\b/],
+      not: [/\b(bypass|beat|avoid|play through|against|vs\.?|versus) (the |a |their )?press/],
+      apply(a) {
+        a.plan("lineOfEngagement", "High Press");
+        a.teamRoles({ presser: 0.8, ballWinner: 0.5 }, "pressing roles");
+        a.set("lineOfEngagement", "High Press", 0, "Press high up the pitch.");
+        a.set("triggerPress", "More Often", 0, "Close down more often.");
+        a.set("defensiveTransition", "Counter-Press", 1, "Win it back straight away when you lose it.");
+        a.set("preventShortGkDistribution", "Yes", 1, "Don’t let them play out from goal kicks.");
+        a.set("defensiveLine", "Higher", 1, "Push up behind the press.");
+        a.set("tempo", "Higher", 2, "Play fast after winning it.");
+        a.set("triggerPress", "Much More Often", 2, "Press all the time.");
+        a.set("defensiveLine", "Much Higher", 3, "As high as it goes.");
+        a.mentality(1, 3, "Front foot all game.");
+      }
+    },
+    {
+      id: "lowBlock",
+      label: "Defend deep",
+      player: false,
+      words: [/\bpark (the|a) bus\b/, /\bdefend deep\b/, /\bdeep block\b/, /\blow block\b/, /\bsit (back|deep)\b/, /\bclean sheets?\b/, /\bdon'?t concede\b/, /\bsolid\b/, /\bcatenaccio\b/, /\b(very |ultra[- ])?defensive (tactic|football|setup|approach|system)\b/],
+      apply(a) {
+        a.plan("lineOfEngagement", "Low Block");
+        a.teamRoles({ cover: 0.6, screen: 0.6, holder: 0.5, stopper: 0.4 }, "covering and screening roles");
+        a.shape("backFive", 0.6, "a back five out of possession");
+        a.shape("twoDM", 0.5, "two holding midfielders");
+        a.set("lineOfEngagement", "Low Block", 0, "Defend deep and compact.");
+        a.set("defensiveLine", "Lower", 0, "No space behind your defence.");
+        a.set("defensiveTransition", "Regroup", 0, "Get back into shape when you lose the ball.");
+        a.set("triggerPress", "Less Often", 1, "Hold your shape instead of chasing.");
+        a.set("timeWasting", "More Often", 2, "Slow the game down.");
+        a.set("defensiveLine", "Much Lower", 2, "Right on top of your own box.");
+        a.mentality(-1, 1, "Safety first.");
+        a.mentality(-1, 3, "Everything behind the ball.");
+      }
+    },
+    {
+      id: "counter",
+      label: "Counter-attack",
+      player: false,
+      words: [/\bcounter/, /\bon the break\b/, /\bbreak(s)? (quickly|fast)\b/, /\bfast breaks?\b/, /\btransitions?\b/],
+      not: [/\bcounter[- ]?press/],
+      apply(a) {
+        a.plan("attackingTransition", "Counter-Attack");
+        a.teamRoles({ outlet: 0.8, runner: 0.5 }, "outlets and runners to break with");
+        a.set("attackingTransition", "Counter-Attack", 0, "Break as soon as you win the ball.");
+        a.set("passReception", "Pass Into Space", 0, "Play into the space they leave.");
+        a.set("gkDistributionSpeed", "Distribute Quickly", 0, "Keeper starts the counter at once.");
+        a.set("passingDirectness", "More Direct", 1, "Forward quickly, before they recover.");
+        a.set("defensiveTransition", "Regroup", 1, "Stay compact, then break.");
+        if (!a.has("lowBlock") && !a.has("highPress")) a.set("lineOfEngagement", "Mid Block", 2, "Let them come, then hit them.");
+        a.set("passingDirectness", "Much More Direct", 3, "Straight forward, every time.");
+      }
+    },
+    {
+      id: "possession",
+      label: "Keep the ball",
+      player: false,
+      words: [/\bpossession\b/, /\bkeep (the )?ball\b/, /\btiki[- ]?taka\b/, /\bshort pass/, /\bdominat/, /\bcontrol (the )?(game|match)\b/, /\bpass(ing)? (it )?around\b/],
+      apply(a) {
+        a.plan("buildUpStrategy", "Play Through Press");
+        a.plan("attackingTransition", "Hold Shape");
+        a.teamRoles({ creator: 0.5, distributor: 0.5, link: 0.4 }, "players who pass and link play");
+        a.shape("midfield", 0.7, "numbers in midfield");
+        a.set("passingDirectness", "Shorter", 0, "Short passes, keep it.");
+        a.set("patience", "Work Ball Into Box", 0, "Be patient; work it into the box.");
+        a.set("goalKicks", "Short", 0, "Play out from the back.");
+        a.set("buildUpStrategy", "Play Through Press", 1, "Pass through their press.");
+        a.set("passReception", "Pass To Feet", 1, "Into feet, not space.");
+        a.set("tempo", "Lower", 1, "No rush: let the ball do the work.");
+        a.set("attackingTransition", "Hold Shape", 2, "Keep the ball when you win it.");
+        a.set("passingDirectness", "Much Shorter", 2, "Only short passes.");
+      }
+    },
+    {
+      id: "direct",
+      label: "Direct football",
+      player: false,
+      words: [/\bdirect\b/, /\blong ball/, /\broute one\b/, /\bover the top\b/, /\bin behind\b/],
+      apply(a) {
+        a.set("passingDirectness", "More Direct", 0, "Get the ball forward early.");
+        a.set("passReception", "Pass Into Space", 0, "Balls in behind for runners.");
+        a.set("buildUpStrategy", "Bypass Press", 1, "Go past their press.");
+        a.set("goalKicks", "Long", 1, "Long goal kicks.");
+        a.set("gkDistribution", "Over Opposition Defence", 1, "Keeper looks for runners in behind.");
+        a.set("tempo", "Higher", 1, "Quick and forward.");
+        a.set("passingDirectness", "Much More Direct", 2, "Straight forward, every time.");
+      }
+    },
+    {
+      id: "setPieces",
+      label: "Set pieces",
+      player: false,
+      words: [/\bset[- ]?pieces?\b/, /\bcorners?\b/, /\bfree[- ]?kicks?\b/, /\bdead[- ]?ball/],
+      apply(a) {
+        a.set("playForSetPieces", "Play for Set Pieces", 0, "Win corners and free kicks on purpose.");
+        a.set("crossingStyle", "Floated Crosses", 1, "Good balls into the box for your big players.");
+        a.note("Set your best headers as targets and your best crossers on corners (section 2, step 6).");
+      }
+    },
+    {
+      id: "youth",
+      label: "Minutes for young players",
+      player: false,
+      words: [/\byoung(sters)?\b/, /\byouth\b/, /\bkids\b/, /\bacademy\b/, /\bdevelop/, /\bwonderkids?\b/, /\bprospects?\b/],
+      apply(a) {
+        a.youth([2, 4, 7, 12][a.k], "Players aged 21 or under win close calls for a place (more so at higher intensity).");
+      }
+    },
+    {
+      id: "attackingBacks",
+      label: "Attacking full-backs",
+      player: false,
+      words: [/\battacking (full|wing)[- ]?backs?\b/, /\bwing[- ]?backs?\b/, /\b(full|wing)[- ]?backs? (bomb|get|push) forward\b/, /\boverlapp/],
+      apply(a) {
+        a.teamRoles({ attackingBack: 1 }, "attacking full-back or wing-back roles");
+        a.shape("wingBacks", 0.8, "shapes with wing-backs");
+        a.set("supportingRuns", "Both Flanks", 0, "Full-backs bomb on.");
+        a.set("attackingWidth", "Wider", 1, "Width from the full-backs.");
+      }
+    }
+  ];
+  var COMMON_WORDS = /* @__PURE__ */ new Set([
+    "will",
+    "mark",
+    "bill",
+    "frank",
+    "grant",
+    "rich",
+    "chase",
+    "hunter",
+    "young",
+    "king",
+    "long",
+    "white",
+    "black",
+    "green",
+    "brown",
+    "best",
+    "hope",
+    "may",
+    "page",
+    "ward",
+    "hall",
+    "wood",
+    "stone",
+    "lord",
+    "fast",
+    "quick",
+    "little",
+    "head",
+    "cross",
+    "wing",
+    "banks",
+    "park",
+    "press",
+    "ball",
+    "goal",
+    "box",
+    "sharp",
+    "bright",
+    "strong",
+    "cole",
+    "lee",
+    "mason",
+    "rose",
+    "day",
+    "way"
+  ]);
+  var CONFLICTS = [["highPress", "lowBlock"], ["possession", "direct"], ["wingPlay", "narrow"], ["possession", "counter"]];
+  var NEGATION = /\b(don'?t|do not|no|not|never|without|avoid|stop|less)\s+(\w+\s+){0,2}$/;
+  function namedPlayers(text2, players) {
+    const t = norm2(text2);
+    const found = [];
+    const firstNames = /* @__PURE__ */ new Map();
+    for (const p of players) {
+      const first = norm2(p.name.split(/\s+/)[0]);
+      firstNames.set(first, (firstNames.get(first) || 0) + 1);
+    }
+    const surnames2 = /* @__PURE__ */ new Map();
+    for (const p of players) {
+      const s = norm2(surname(p));
+      surnames2.set(s, (surnames2.get(s) || 0) + 1);
+    }
+    for (const p of players) {
+      const keys = [norm2(p.name)];
+      const last3 = norm2(surname(p));
+      if (!COMMON_WORDS.has(last3)) keys.push(last3);
+      const first = norm2(p.name.split(/\s+/)[0]);
+      if (first.length >= 4 && firstNames.get(first) === 1 && !COMMON_WORDS.has(first)) keys.push(first);
+      for (const k of keys) {
+        if (k.length < 3) continue;
+        const re = new RegExp(`(^|[^a-z])${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}('s)?(?=$|[^a-z])`);
+        const m = re.exec(t);
+        if (m) {
+          found.push({ player: p, at: m.index, ambiguous: k === norm2(surname(p)) && surnames2.get(k) > 1 });
+          break;
+        }
+      }
+    }
+    return found.sort((a, b) => a.at - b.at);
+  }
+  function interpretIdea(text2, players, intensity = 0, opts = {}) {
+    const k = Math.max(0, Math.min(3, Math.round(Number(intensity) || 0)));
+    const pool = players.filter((p) => !p.onLoan && !p.unavailable);
+    const t = norm2(text2);
+    const named = namedPlayers(text2, pool);
+    const hits = [];
+    const ignored = [];
+    for (const g of GOALS) {
+      if ((g.not || []).some((re) => re.test(t))) continue;
+      let first = null;
+      for (const re of g.words) {
+        const m = new RegExp(re.source, "g").exec(t);
+        if (m && (first == null || m.index < first.at)) first = { at: m.index, word: m[0] };
+      }
+      if (!first) continue;
+      const before = t.slice(Math.max(0, first.at - 24), first.at);
+      if (!/n'?t|not/.test(first.word) && NEGATION.test(before)) {
+        ignored.push(`"${before.trim().split(/\s+/).slice(-2).join(" ")} ${first.word}"`);
+        continue;
+      }
+      hits.push({ goal: g, at: first.at });
+    }
+    hits.sort((a, b) => a.at - b.at);
+    const level = opts.level ?? 11;
+    const understood = [];
+    const usedNames = /* @__PURE__ */ new Set();
+    for (const h of hits) {
+      let player = null;
+      let auto = false;
+      if (h.goal.player) {
+        const near = named.map((n) => ({ ...n, d: Math.abs(n.at - h.at) })).sort((a, b) => a.d - b.d)[0];
+        if (near) {
+          player = near.player;
+          usedNames.add(near.player);
+        } else {
+          const pick = h.goal.pick;
+          player = pool.filter((p) => has(p, pick.pos)).sort((a, b) => pick.score(b) - pick.score(a))[0] || null;
+          auto = !!player;
+        }
+      }
+      understood.push({ id: h.goal.id, label: h.goal.label, goal: h.goal, player, auto, autoWhy: auto ? h.goal.pick.why : null });
+    }
+    for (const n of named) {
+      if (usedNames.has(n.player)) continue;
+      understood.push({ id: "buildAround", label: "Built around a player", player: n.player, goal: null, auto: false });
+    }
+    const plan = buildPlan(understood, k, level, pool);
+    plan.done = [];
+    plan.text = text2;
+    plan.intensity = k;
+    plan.intensityLabel = INTENSITY[k];
+    plan.understood = understood.map(({ goal, ...u }) => u);
+    plan.ignored = ignored;
+    plan.ambiguous = named.filter((n) => n.ambiguous).map((n) => n.player);
+    plan.empty = understood.length === 0;
+    for (const [a, b] of CONFLICTS) {
+      const ia = understood.findIndex((u) => u.id === a);
+      const ib = understood.findIndex((u) => u.id === b);
+      if (ia >= 0 && ib >= 0) {
+        const later = understood[Math.max(ia, ib)];
+        const earlier = understood[Math.min(ia, ib)];
+        plan.notes.unshift(`"${earlier.label}" and "${later.label}" pull in opposite directions: where they clash, "${later.label}" (mentioned later) wins.`);
+      }
+    }
+    return plan;
+  }
+  function buildPlan(understood, k, level, pool) {
+    const plan = {
+      roleBias: { team: {}, byPlayer: {} },
+      shapes: [],
+      weights: {},
+      locks: [],
+      youthBonus: 0,
+      planOverride: {},
+      overrides: {},
+      reasons: {},
+      mentalityDelta: 0,
+      mentalityReasons: [],
+      pis: [],
+      aerialTarget: null,
+      actions: [],
+      notes: []
+    };
+    for (const u of understood) {
+      const focus = u.player;
+      const nm = focus ? surname(focus) : "";
+      const tag = (text2) => u.label ? `${u.label}${focus ? ` (${nm})` : ""}: ${text2}` : text2;
+      if (focus) {
+        plan.locks.push(focus.id);
+        plan.weights[focus.id] = Math.max(plan.weights[focus.id] || 1, WEIGHT[k]);
+        plan.actions.push(`${focus.name} always starts and his fit counts ${WEIGHT[k]}× when shapes and roles are compared${u.auto ? ` (picked as ${u.autoWhy})` : ""}.`);
+      }
+      if (!u.goal) continue;
+      const api = {
+        k,
+        has: (id) => understood.some((x) => x.id === id),
+        focusRoles(tags, why2) {
+          if (!focus) return;
+          const b = plan.roleBias.byPlayer[focus.id] ||= {};
+          for (const [t, m] of Object.entries(tags)) b[t] = Math.max(b[t] || 0, ROLE_BONUS[k] * m);
+          plan.actions.push(`${nm} is steered towards ${why2}.`);
+        },
+        teamRoles(tags, why2) {
+          for (const [t, m] of Object.entries(tags)) plan.roleBias.team[t] = Math.max(plan.roleBias.team[t] || 0, ROLE_BONUS[k] * m);
+          plan.actions.push(`The rest of the team is steered towards ${why2}.`);
+        },
+        shape(feature, m, why2) {
+          plan.shapes.push({ feature, bonus: SHAPE_BONUS[k] * m, test: SHAPES[feature] });
+          plan.actions.push(`Prefers ${why2}.`);
+        },
+        set(id, value, minK, why2) {
+          if (k < minK) return;
+          plan.overrides[id] = value;
+          plan.reasons[id] = `Your idea${u.label ? ` (${u.label.toLowerCase()})` : ""}: ${why2}`;
+        },
+        plan(key, value) {
+          plan.planOverride[key] = value;
+        },
+        mentality(delta, minK, why2) {
+          if (k < minK) return;
+          plan.mentalityDelta += delta;
+          plan.mentalityReasons.push(why2);
+        },
+        pi(who, phase, name, value, minK, why2) {
+          if (k < minK) return;
+          plan.pis.push({ who: who === "focus" ? focus : who, phase, name, value, reason: tag(why2) });
+        },
+        piBest(score, pos, phase, name, value, minK, why2) {
+          if (k < minK) return;
+          plan.pis.push({ who: { best: score, pos }, phase, name, value, reason: tag(why2) });
+        },
+        youth(bonus, why2) {
+          plan.youthBonus = Math.max(plan.youthBonus, bonus);
+          plan.actions.push(why2);
+        },
+        aerialTarget() {
+          if (focus) plan.aerialTarget = focus;
+        },
+        focusQuick() {
+          return !!focus && (avg2(focus, ["Pace", "Acceleration"]) ?? 0) >= level + 1;
+        },
+        check(score, what) {
+          if (!focus) return;
+          const s = score(focus);
+          const best = pool.filter((p) => p !== focus).sort((a, b) => score(b) - score(a))[0];
+          if (s < level - 0.5) {
+            plan.notes.push(`${focus.name} isn't strong at this: his ${what} average ${s.toFixed(1)}, below your team's level of ${level.toFixed(1)}. The tactic can set it up, but it fights his attributes${best && score(best) > s + 2 ? `; ${best.name} (${score(best).toFixed(1)}) would suit the idea better` : ""}.`);
+          }
+        },
+        note(text2) {
+          plan.notes.push(text2);
+        }
+      };
+      u.goal.apply(api);
+    }
+    plan.locks = [...new Set(plan.locks)];
+    plan.actions = [...new Set(plan.actions)];
+    return plan;
+  }
+  function ideaSearchOptions(plan) {
+    if (!plan || plan.empty) return {};
+    return {
+      ideaRoleBias: plan.roleBias,
+      ideaShapes: plan.shapes,
+      weights: plan.weights,
+      extraLocks: plan.locks,
+      ...plan.youthBonus ? { youthBonus: plan.youthBonus } : {}
+    };
+  }
+  function applyIdeaToResult(result, plan) {
+    const slots = result.ctx.slots;
+    const lanes = result.best.lanes;
+    const done = [];
+    const laneOf = (p) => lanes.find((l) => l.player === p);
+    const wide = lanes.filter((l) => {
+      const [x, , pos] = slots[l.ip];
+      return (x < 30 || x > 70) && /^(M|AM|WB) /.test(pos);
+    });
+    const addPI = (lane, pi) => {
+      let entry = result.playerInstructions.find((x) => x.lane === lane);
+      if (!entry) {
+        entry = { lane, player: lane.player, items: [] };
+        result.playerInstructions.push(entry);
+      }
+      entry.items = entry.items.filter((i) => i.name !== pi.name);
+      entry.items.push({ phase: pi.phase, name: pi.name, value: pi.value, reason: pi.reason });
+    };
+    for (const pi of plan.pis) {
+      let targets = [];
+      if (pi.who === "wide") targets = wide;
+      else if (pi.who && pi.who.best) {
+        const cand = lanes.filter((l) => pi.who.pos.test(slots[l.ip][2])).sort((a, b) => pi.who.best(b.player) - pi.who.best(a.player))[0];
+        targets = cand ? [cand] : [];
+      } else if (pi.who) targets = [laneOf(pi.who)].filter(Boolean);
+      for (const l of targets) addPI(l, pi);
+    }
+    if (plan.aerialTarget && laneOf(plan.aerialTarget)) {
+      const sp = result.setPieces;
+      const p = plan.aerialTarget;
+      const others = sp.aerialTargets.filter((t) => t.player !== p && t.name !== p.name);
+      sp.aerialTargets = [{ name: p.name, player: p, height: p.heightCm }, ...others];
+    }
+    const seen = /* @__PURE__ */ new Set();
+    for (const u of plan.understood) {
+      if (!u.player || seen.has(u.player)) continue;
+      seen.add(u.player);
+      const l = laneOf(u.player);
+      done.push(l ? `${u.player.name}: ${slots[l.ip][3]} as ${l.ipRole.name}, ${slots[l.oop][3]} as ${l.oopRole.name} (fit ${l.ipScore.score.toFixed(0)} / ${l.oopScore.score.toFixed(0)}).` : `${u.player.name} couldn't be fitted into the XI.`);
+    }
+    return done;
+  }
+
   // src/analyse.js
   function analyse(text2, filename, docs, options = {}) {
     const table = readExport(text2, filename);
@@ -3030,7 +3661,16 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       else notes.push(`The ${label} formation "${wanted[key]}" isn't in this version's list, so the tool chose one.`);
     }
     const forced = !!(searchOptions.forceIp || searchOptions.forceOop);
-    const ctx = createContext(players, docs, searchOptions);
+    const ideaInput = (typeof options.idea === "function" ? options.idea(club) : options.idea) || null;
+    let idea = null;
+    if (ideaInput?.text?.trim()) {
+      const levels = players.filter((p) => !p.onLoan && !p.isGoalkeeper).map(generalLevel).filter((v) => v != null).sort((a, b) => b - a).slice(0, 18);
+      const teamLevel = levels.length ? levels.reduce((s, v) => s + v, 0) / levels.length : 11;
+      idea = interpretIdea(ideaInput.text, players, ideaInput.intensity, { level: teamLevel });
+    }
+    const useIdea = !!idea && !idea.empty;
+    const ideaOptions = useIdea ? ideaSearchOptions(idea) : {};
+    const ctx = createContext(players, docs, { ...searchOptions, ...ideaOptions });
     ctx.instructionsDoc = docs.instructions;
     let first = searchSystems(ctx, { polishTop: 0, quick: !forced });
     if (!first.best && ctx.locked.size) first = searchSystems(ctx, { polishTop: 0 });
@@ -3052,12 +3692,27 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       }
       return { ...base, ok: false, error: "No formation could be filled with the players in this file." };
     }
-    ctx.plan = derivePlan(squadProfile(first.best, ctx), strength, docs.tuning.instructions);
+    const basePlan = derivePlan(squadProfile(first.best, ctx), strength, docs.tuning.instructions);
+    ctx.plan = useIdea ? { ...basePlan, ...idea.planOverride } : basePlan;
     const search = searchSystems(ctx);
     const best = search.best;
     const profile = squadProfile(best, ctx);
     const setPieces = setPiecePlan(best, profile, ctx);
-    const instructions = decideInstructions(profile, best, ctx, { strength, setPieces });
+    let instructions = decideInstructions(profile, best, ctx, { strength, setPieces });
+    if (useIdea) {
+      const options2 = Object.fromEntries([...docs.instructions.inPossession, ...docs.instructions.outOfPossession].map((i) => [i.id, i.options]));
+      const overrides = Object.fromEntries(Object.entries(idea.overrides).filter(([id, v]) => options2[id]?.includes(v)));
+      const order = docs.instructions.mentalities;
+      const shifted = order[Math.max(0, Math.min(order.length - 1, order.indexOf(instructions.mentality.value) + idea.mentalityDelta))];
+      instructions = decideInstructions(profile, best, ctx, {
+        strength,
+        setPieces,
+        planOverride: idea.planOverride,
+        overrides,
+        extraReasons: idea.reasons,
+        ...idea.mentalityDelta ? { mentality: shifted, mentalityReason: `Your idea: ${idea.mentalityReasons.join(" ")}` } : {}
+      });
+    }
     let freeChoice = null;
     if (hasPicks(players)) {
       const free = createContext(players, docs, { ...searchOptions, ignorePicks: true });
@@ -3073,6 +3728,13 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
           added: [...inPicked].filter((p) => !inFree.has(p))
         };
       }
+    }
+    let ideaChoice = null;
+    if (useIdea) {
+      const plain = createContext(players, docs, searchOptions);
+      plain.plan = basePlan;
+      const ps = searchSystems(plain, { polishTop: 2 });
+      ideaChoice = ps.best ? { auto: ps.best, fitCost: ps.best.fit - best.fit } : null;
     }
     let formationChoice = null;
     if (forced) {
@@ -3102,6 +3764,23 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
       warnings: [...table.warnings, ...notes, ...ctx.warnings]
     };
     result.picks = { summary: picksSummary(result), futureStars: futureStarPlans(result), ignored };
+    if (idea) {
+      const done = useIdea ? applyIdeaToResult(result, idea) : [];
+      result.idea = {
+        text: idea.text,
+        intensity: idea.intensity,
+        intensityLabel: idea.intensityLabel,
+        empty: idea.empty,
+        understood: idea.understood,
+        ignored: idea.ignored,
+        ambiguous: idea.ambiguous,
+        notes: idea.notes,
+        actions: idea.actions,
+        done,
+        choice: ideaChoice,
+        overrides: idea.overrides
+      };
+    }
     result.alternatives = options.alternatives === false ? [] : buildAlternatives(result, players, docs, searchOptions);
     result.exportedAt = options.exportedAt || null;
     if (options.scouting?.text) {
@@ -5410,6 +6089,14 @@ kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text
 .report .linkbtn { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .report .linkbtn:hover { color: var(--ink); }
 
+/* your idea */
+.report .idea-box { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-soft), transparent 60%); border-radius: 10px; padding: 12px 16px; margin: 0 0 16px; }
+.report .idea-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.report .idea-k { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+.report .idea-box q { font-size: 16px; font-weight: 600; color: var(--ink); }
+.report .idea-box .notes { margin-top: 8px; }
+.report .idea-box .chip b { color: var(--ink); }
+
 /* match plan */
 .report .mp-controls { flex-direction: column; gap: 8px; margin: 8px 0 14px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
 .report .mp-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -5873,11 +6560,35 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(
     ${kpi(kpiIcon("press"), "Pressing", esc(ins.values.lineOfEngagement))}
     ${kpi(kpiIcon("fit"), "Team fit", `${fmt(best.fit, 1)} <span class="muted small">/ 100 · ${FIT_WORD(best.fit)}</span>`, `<div class="meter ${scoreClass(best.fit)}"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div>`)}
   </div>
+  ${ideaBlock(result)}
   ${formationNote(result)}
   ${pitches(best, ctx.slots, false, result.captain?.captain?.player)}
   ${fitLegend()}
   ${picksBlock(result)}
 </section>`;
+  }
+  function ideaBlock(result) {
+    const idea = result.idea;
+    if (!idea) return "";
+    if (idea.empty) {
+      return `<div class="picks-cost">${ICON.warn}<span>Your idea, "${esc(idea.text)}", wasn't recognised, so the tactic is built as usual. Open <strong>Idea</strong> to rephrase it.</span></div>`;
+    }
+    const chips = idea.understood.map((u) => `<span class="chip">${esc(u.label)}${u.player ? ` · <b>${esc(u.player.name)}</b>${u.auto ? " <i>(chosen by the tool)</i>" : ""}` : ""}</span>`).join("");
+    const c = idea.choice;
+    const cost = !c ? "" : c.fitCost <= 0.3 ? "It costs nothing in team fit: this squad suits it." : `It costs <strong>${fmt(c.fitCost, 1)}</strong> team-fit points: without it the tool would play <strong>${esc(c.auto.ipName)} / ${esc(c.auto.oopName)}</strong> (fit ${fmt(c.auto.fit, 1)}).`;
+    const settings = Object.keys(idea.overrides || {}).length;
+    return `<div class="idea-box">
+  <div class="idea-head"><span class="idea-k">Your idea · ${esc(idea.intensityLabel)}</span><q>${esc(idea.text)}</q></div>
+  <div class="chips">${chips}</div>
+  <ul class="notes">
+    ${idea.done.map((d) => `<li><span class="pts">${ICON.check}</span><span>${esc(d)}</span></li>`).join("")}
+    ${idea.actions.filter((a) => !/always starts/.test(a)).map((a) => `<li><span class="pts">${ICON.check}</span><span>${esc(a)}</span></li>`).join("")}
+    ${settings ? `<li><span class="pts">${ICON.check}</span><span>${settings} team instruction${settings === 1 ? "" : "s"} set for the idea (marked "Your idea" in section 2).</span></li>` : ""}
+  </ul>
+  ${cost ? `<p class="small">${cost}</p>` : ""}
+  ${idea.notes.map((n) => `<p class="hint-line">${ICON.warn}<span>${esc(n)}</span></p>`).join("")}
+  <p class="hint-line">${ICON.info}<span>The alternative tactics in section 5 are built without your idea, as a contrast. Change or clear the idea with <strong>Idea</strong> in the app.</span></p>
+</div>`;
   }
   function formationNote(result) {
     const fc = result.formationChoice;
@@ -5976,7 +6687,7 @@ ${outLine}
     ).join("\n");
     const who = (t) => t ? `<strong>${esc(t.name)}</strong>${t.foot ? ` <span class="muted small">${esc(t.foot)}</span>` : ""}` : "–";
     const changedCount = [...ins.ip, ...ins.oop].filter((i) => i.changed).length;
-    const spRow = (key, label, val3, why2) => `<tr><td class="name">${tick(`sp:${key}`, label)}</td><td class="val">${val3}</td><td class="why">${why2}</td></tr>`;
+    const spRow = (key, label, val4, why2) => `<tr><td class="name">${tick(`sp:${key}`, label)}</td><td class="val">${val4}</td><td class="why">${why2}</td></tr>`;
     const spWide = (key, label, content) => `<tr><td class="name">${tick(`sp:${key}`, label)}</td><td colspan="2">${content}</td></tr>`;
     return `
 <section id="setup" class="card">
@@ -6321,10 +7032,10 @@ ${trend.map((t, i) => i === 0 || i === trend.length - 1 ? `<text x="${x(i).toFix
 <td class="num">${x.levelDelta != null ? `${x.levelDelta >= 0 ? "+" : "−"}${fmt(Math.abs(x.levelDelta), 2)}` : ""}</td><td>${chips(x.changes)}</td>
 <td class="small muted">${x.potentialDelta ? `potential ${x.potentialDelta > 0 ? "+" : "−"}${fmt(Math.abs(x.potentialDelta), 1)}★` : ""}</td></tr>`;
     const first = pr.trend[0];
-    const last2 = pr.trend[pr.trend.length - 1];
+    const last3 = pr.trend[pr.trend.length - 1];
     return `<h3 id="progress">Progress since ${esc(day(pr.previous.date))}</h3>
 <p class="lede small">Compared with ${pr.reads} earlier read${pr.reads === 1 ? "" : "s"} of this club. First-team level (the 18 best players' average attribute)
-went from <strong>${fmt(first.level, 2)}</strong> to <strong>${fmt(last2.level, 2)}</strong>${pr.unchanged ? `; ${pr.unchanged} of ${pr.compared} players haven't changed` : ""}.</p>
+went from <strong>${fmt(first.level, 2)}</strong> to <strong>${fmt(last3.level, 2)}</strong>${pr.unchanged ? `; ${pr.unchanged} of ${pr.compared} players haven't changed` : ""}.</p>
 ${pr.trend.length > 1 ? trendChart(pr.trend) : ""}
 ${pr.improvers.length ? `<h4>Improving</h4><div class="tablewrap"><table><thead><tr><th>Player</th><th class="num">Level</th><th>Biggest changes</th><th></th></tr></thead><tbody>${pr.improvers.map(row).join("")}</tbody></table></div>` : ""}
 ${pr.decliners.length ? `<h4>Declining</h4><div class="tablewrap"><table><thead><tr><th>Player</th><th class="num">Level</th><th>Biggest changes</th><th></th></tr></thead><tbody>${pr.decliners.map(row).join("")}</tbody></table></div>` : ""}
@@ -6694,6 +7405,95 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     return { showError: (text2) => $2("#fm-msg").innerHTML = `<span class="pk-warn">${esc(text2)}</span>` };
   }
 
+  // src/app/idea.js
+  var last = (p) => p.name.split(/\s+/).pop();
+  function examples(result) {
+    const lanes = result.best.lanes;
+    const pos = (re) => lanes.filter((l) => re.test(result.ctx.slots[l.ip][2])).map((l) => l.player);
+    const striker = pos(/^ST/)[0] || lanes[lanes.length - 1].player;
+    const mid = pos(/^(DM|M \(C\)|AM \(C\))/)[0];
+    const wide = pos(/^(M|AM) \((L|R)\)/)[0];
+    return [
+      `I want ${last(striker)} to score as many headers as possible`,
+      mid && `Play everything through ${last(mid)}`,
+      "Press high and win the ball back fast",
+      "Park the bus and hit them on the counter",
+      wide && `Let ${last(wide)} take defenders on`,
+      "Keep the ball and wear them down",
+      "Wing play with lots of crosses",
+      "Give my young players minutes"
+    ].filter(Boolean);
+  }
+  function renderIdeaPanel(el, result, current, { onApply, onClose }) {
+    const levels = result.players.filter((p) => !p.onLoan && !p.isGoalkeeper).map(generalLevel).filter((v) => v != null).sort((a, b) => b - a).slice(0, 18);
+    const level = levels.length ? levels.reduce((s, v) => s + v, 0) / levels.length : 11;
+    el.innerHTML = `
+<div class="pk-head">
+  <div>
+    <h2>Your idea</h2>
+    <p class="hint">Describe the tactic you want, in your own words, and the builder makes it as workable as it can. It understands football
+    phrases and your players' names (it works offline, without AI), and shows what it understood below before you build.</p>
+  </div>
+  <div class="pk-actions">
+    <button class="btn ghost small" type="button" id="id-clear">Clear idea</button>
+    <button class="btn ghost small" type="button" id="id-close">Close</button>
+    <button class="btn" type="button" id="id-apply">Build my idea</button>
+  </div>
+</div>
+<textarea id="id-text" rows="2" placeholder="e.g. I want ${esc(last(result.best.lanes[result.best.lanes.length - 1].player))} to score as many headers as possible" aria-label="Your idea">${esc(current?.text || "")}</textarea>
+<div class="id-ex">${examples(result).map((x) => `<button type="button" class="id-chip">${esc(x)}</button>`).join("")}</div>
+<div class="id-slider">
+  <label for="id-k">How hard to push it</label>
+  <input type="range" id="id-k" min="0" max="3" step="1" value="${Math.max(0, Math.min(3, current?.intensity ?? 1))}">
+  <div class="id-ticks">${INTENSITY.map((t, i) => `<span data-i="${i}">${t}</span>`).join("")}</div>
+  <p class="hint" id="id-khint"></p>
+</div>
+<div class="id-understood" id="id-understood" role="status" aria-live="polite"></div>
+<div id="id-msg" class="pk-msg" role="status" aria-live="polite"></div>`;
+    const $2 = (sel) => el.querySelector(sel);
+    const HINTS = [
+      "Normal: the idea shapes the instructions and nudges roles, but the strongest team still comes first.",
+      "Strong: roles and instructions follow the idea, even if a player is slightly less suited.",
+      "Very strong: the idea leads; the shape and roles bend towards it.",
+      "Extreme: everything serves the idea, even at a clear cost in team fit. A fun baseline to experiment with."
+    ];
+    const refresh = () => {
+      const k = Number($2("#id-k").value);
+      for (const s of el.querySelectorAll(".id-ticks span")) s.classList.toggle("on", Number(s.dataset.i) === k);
+      $2("#id-khint").textContent = HINTS[k];
+      const text2 = $2("#id-text").value;
+      if (!text2.trim()) {
+        $2("#id-understood").innerHTML = '<span class="muted">Type an idea, or click an example.</span>';
+        return;
+      }
+      const plan = interpretIdea(text2, result.players, k, { level });
+      if (plan.empty) {
+        $2("#id-understood").innerHTML = `<span class="pk-warn">Nothing recognised yet. Try football words like headers, press, counter, wing play, keep the ball, playmaker, long shots, young players, or a player's name.</span>`;
+        return;
+      }
+      const items = plan.understood.map((u) => `<span class="id-u"><b>${esc(u.label)}</b>${u.player ? ` · ${esc(u.player.name)}${u.auto ? ` <i>(${esc(u.autoWhy)})</i>` : ""}` : ""}</span>`).join("");
+      const extra = [
+        ...plan.ignored.map((x) => `Ignored ${esc(x)}: say what you want instead (e.g. "defend deep" rather than "don't press").`),
+        ...plan.ambiguous.map((p) => `Several players share the name "${esc(last(p))}": using ${esc(p.name)}. Write the full name to choose another.`),
+        ...plan.notes.map(esc)
+      ];
+      $2("#id-understood").innerHTML = `<div class="id-ul">Understood as:</div><div class="id-us">${items}</div>${extra.length ? `<ul class="id-notes">${extra.map((x) => `<li>${x}</li>`).join("")}</ul>` : ""}`;
+    };
+    $2("#id-text").addEventListener("input", refresh);
+    $2("#id-k").addEventListener("input", refresh);
+    el.querySelector(".id-ex").addEventListener("click", (e) => {
+      const b = e.target.closest(".id-chip");
+      if (!b) return;
+      $2("#id-text").value = b.textContent;
+      refresh();
+    });
+    $2("#id-clear").addEventListener("click", () => onApply({ text: "", intensity: Number($2("#id-k").value) }));
+    $2("#id-close").addEventListener("click", onClose);
+    $2("#id-apply").addEventListener("click", () => onApply({ text: $2("#id-text").value.trim(), intensity: Number($2("#id-k").value) }));
+    refresh();
+    return { showError: (text2) => $2("#id-msg").innerHTML = `<span class="pk-warn">${esc(text2)}</span>` };
+  }
+
   // src/app/share.js
   var W2 = 1600;
   var H2 = 900;
@@ -6717,7 +7517,7 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
   };
   var FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
   var band2 = (s) => s >= 75 ? 3 : s >= 65 ? 2 : s >= 55 ? 1 : 0;
-  var last = (name) => String(name).trim().split(/\s+/).pop();
+  var last2 = (name) => String(name).trim().split(/\s+/).pop();
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -6795,12 +7595,12 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
         text(ctx, "C", cx - 18, cy - 14, { size: 10, weight: 800, color: "#1a1405", align: "center" });
       }
       ctx.font = `650 14px ${FONT}`;
-      const label = `${last(it.name)}  ${Math.round(it.score)}`;
+      const label = `${last2(it.name)}  ${Math.round(it.score)}`;
       const tw = ctx.measureText(label).width + 16;
       roundRect(ctx, cx - tw / 2, cy + 28, tw, 22, 11);
       ctx.fillStyle = "rgba(9,14,11,0.86)";
       ctx.fill();
-      text(ctx, last(it.name), cx - tw / 2 + 8, cy + 44, { size: 14, weight: 650 });
+      text(ctx, last2(it.name), cx - tw / 2 + 8, cy + 44, { size: 14, weight: 650 });
       text(ctx, String(Math.round(it.score)), cx + tw / 2 - 8, cy + 44, { size: 13, weight: 600, color: C.muted, align: "right" });
     }
   }
@@ -6864,7 +7664,7 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     }
     y += 12;
     heading("Set pieces");
-    const nm = (t) => t ? last(t.name) : "–";
+    const nm = (t) => t ? last2(t.name) : "–";
     row("Captain", nm(captain.captain));
     row("Corners L / R", `${nm(sp.cornersLeft)} / ${nm(sp.cornersRight)}`);
     row("Free kicks", nm(sp.directFreeKicks));
@@ -7035,6 +7835,7 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
   var FORMATION_KEY = "fm27-tactic-builder.formation";
   var CHECK_KEY = "fm27-tactic-builder.checklist";
   var MATCH_KEY = "fm27-tactic-builder.match";
+  var IDEA_KEY = "fm27-tactic-builder.idea";
   var $ = (id) => document.getElementById(id);
   var lastResult = null;
   var lastSignature = "";
@@ -7118,14 +7919,16 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     }
     setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
   }
-  function analyseNow(text2, filename, picks, formation) {
+  function analyseNow(text2, filename, picks, formation, idea) {
     const saved = loadPicks();
     const savedFormation = loadFormations();
+    const savedIdeas = loadIdeas();
     return analyse(text2, filename, currentDocs(), {
       excludeInjured: $("opt-injured").checked,
       strength: strengthValue(),
       picks: picks ?? ((club) => saved[clubKey(club)] || {}),
       formation: formation ?? ((club) => savedFormation[clubKey(club)] || {}),
+      idea: idea ?? ((club) => savedIdeas[clubKey(club)] || null),
       exportedAt: lastInput?.exportedAt || void 0,
       scouting: lastInput?.scouting || void 0,
       history: lastInput?.history?.length ? lastInput.history : void 0
@@ -7176,6 +7979,19 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     for (const b of $("setup")?.querySelectorAll(".tick input") || []) b.checked = saved.has(b.dataset.k);
     updateChecklist();
     return sig;
+  }
+  function loadIdeas() {
+    try {
+      return JSON.parse(localStorage.getItem(IDEA_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function saveIdea(club, idea) {
+    const all = loadIdeas();
+    if (idea.text) all[clubKey(club)] = idea;
+    else delete all[clubKey(club)];
+    remember(IDEA_KEY, JSON.stringify(all));
   }
   function loadMatch(club) {
     try {
@@ -7280,6 +8096,8 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     $("picks-badge").hidden = !n;
     $("formation-badge").hidden = !result.formationChoice;
     $("formation-panel").classList.add("hidden");
+    $("idea-badge").hidden = !(result.idea && !result.idea.empty);
+    $("idea-panel").classList.add("hidden");
     $("result-note").innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : "";
     $("src-note").textContent = lastInput?.label || "";
     $("strength-quick").value = String(strengthValue());
@@ -7345,6 +8163,7 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     if (!lastResult) return;
     const panel = $("picker");
     $("formation-panel").classList.add("hidden");
+    $("idea-panel").classList.add("hidden");
     const current = loadPicks()[clubKey(lastResult.club)] || {};
     const ui = renderPicker(panel, lastResult, current, {
       onApply: (picks) => {
@@ -7375,10 +8194,43 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     panel.classList.remove("hidden");
     panel.scrollIntoView({ block: "start" });
   }
+  function openIdea() {
+    if (!lastResult) return;
+    const panel = $("idea-panel");
+    $("picker").classList.add("hidden");
+    $("formation-panel").classList.add("hidden");
+    const current = loadIdeas()[clubKey(lastResult.club)] || { text: "", intensity: 1 };
+    const ui = renderIdeaPanel(panel, lastResult, current, {
+      onApply: (idea) => {
+        panel.querySelector("#id-msg").innerHTML = `<div class="working"><span>${idea.text ? "Building the tactic around your idea…" : "Building the tactic without an idea…"}</span><span class="track"><i></i></span></div>`;
+        setTimeout(() => {
+          let result;
+          try {
+            result = analyseNow(lastInput.text, lastInput.filename, void 0, void 0, idea);
+          } catch (err) {
+            console.error(err);
+            ui.showError(`Something went wrong: ${err.message}`);
+            return;
+          }
+          if (!result.ok) {
+            ui.showError(result.error);
+            return;
+          }
+          saveIdea(result.club, idea);
+          showResult(result);
+        }, 30);
+      },
+      onClose: () => panel.classList.add("hidden")
+    });
+    panel.classList.remove("hidden");
+    panel.scrollIntoView({ block: "start" });
+    panel.querySelector("#id-text").focus();
+  }
   function openFormation() {
     if (!lastResult) return;
     const panel = $("formation-panel");
     $("picker").classList.add("hidden");
+    $("idea-panel").classList.add("hidden");
     const current = loadFormations()[clubKey(lastResult.club)] || {};
     const ui = renderFormationPanel(panel, lastResult, currentDocs().formations, current, {
       onApply: (choice) => {
@@ -7482,6 +8334,14 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     $("print").addEventListener("click", () => window.print());
     $("choose-players").addEventListener("click", openPicker);
     $("formation-btn").addEventListener("click", openFormation);
+    $("idea-btn").addEventListener("click", openIdea);
+    const menu = $("export-menu");
+    menu.addEventListener("click", (e) => {
+      if (e.target.closest(".menu-items button")) menu.open = false;
+    });
+    document.addEventListener("click", (e) => {
+      if (menu.open && !menu.contains(e.target)) menu.open = false;
+    });
     $("extra-file").addEventListener("change", (e) => loadExtra(e.target.dataset.kind, e.target.files));
     const holder = $("report-holder");
     holder.addEventListener("change", (e) => {

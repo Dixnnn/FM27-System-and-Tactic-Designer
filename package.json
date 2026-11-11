@@ -1,6 +1,6 @@
 {
   "name": "fm27-tactic-builder",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "Designs a Football Manager 27 tactic from your squad export. Runs in the browser, read-only, offline.",
   "type": "module",

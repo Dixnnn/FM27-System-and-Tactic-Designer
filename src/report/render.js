@@ -118,11 +118,43 @@ function overview(result) {
     ${kpi(kpiIcon('press'), 'Pressing', esc(ins.values.lineOfEngagement))}
     ${kpi(kpiIcon('fit'), 'Team fit', `${fmt(best.fit, 1)} <span class="muted small">/ 100 · ${FIT_WORD(best.fit)}</span>`, `<div class="meter ${scoreClassOf(best.fit)}"><i style="width:${Math.max(0, Math.min(100, best.fit)).toFixed(0)}%"></i></div>`)}
   </div>
+  ${ideaBlock(result)}
   ${formationNote(result)}
   ${pitches(best, ctx.slots, false, result.captain?.captain?.player)}
   ${fitLegend()}
   ${picksBlock(result)}
 </section>`;
+}
+
+/** Your idea: what was understood, what was done for it, and what it costs. */
+function ideaBlock(result) {
+  const idea = result.idea;
+  if (!idea) return '';
+  if (idea.empty) {
+    return `<div class="picks-cost">${ICON.warn}<span>Your idea, "${esc(idea.text)}", wasn't recognised, so the tactic is built as usual. Open <strong>Idea</strong> to rephrase it.</span></div>`;
+  }
+  const chips = idea.understood
+    .map((u) => `<span class="chip">${esc(u.label)}${u.player ? ` · <b>${esc(u.player.name)}</b>${u.auto ? ' <i>(chosen by the tool)</i>' : ''}` : ''}</span>`)
+    .join('');
+  const c = idea.choice;
+  const cost = !c
+    ? ''
+    : c.fitCost <= 0.3
+      ? 'It costs nothing in team fit: this squad suits it.'
+      : `It costs <strong>${fmt(c.fitCost, 1)}</strong> team-fit points: without it the tool would play <strong>${esc(c.auto.ipName)} / ${esc(c.auto.oopName)}</strong> (fit ${fmt(c.auto.fit, 1)}).`;
+  const settings = Object.keys(idea.overrides || {}).length;
+  return `<div class="idea-box">
+  <div class="idea-head"><span class="idea-k">Your idea · ${esc(idea.intensityLabel)}</span><q>${esc(idea.text)}</q></div>
+  <div class="chips">${chips}</div>
+  <ul class="notes">
+    ${idea.done.map((d) => `<li><span class="pts">${ICON.check}</span><span>${esc(d)}</span></li>`).join('')}
+    ${idea.actions.filter((a) => !/always starts/.test(a)).map((a) => `<li><span class="pts">${ICON.check}</span><span>${esc(a)}</span></li>`).join('')}
+    ${settings ? `<li><span class="pts">${ICON.check}</span><span>${settings} team instruction${settings === 1 ? '' : 's'} set for the idea (marked "Your idea" in section 2).</span></li>` : ''}
+  </ul>
+  ${cost ? `<p class="small">${cost}</p>` : ''}
+  ${idea.notes.map((n) => `<p class="hint-line">${ICON.warn}<span>${esc(n)}</span></p>`).join('')}
+  <p class="hint-line">${ICON.info}<span>The alternative tactics in section 5 are built without your idea, as a contrast. Change or clear the idea with <strong>Idea</strong> in the app.</span></p>
+</div>`;
 }
 
 /** When you chose the formation: what it costs compared with the tool's own choice. */

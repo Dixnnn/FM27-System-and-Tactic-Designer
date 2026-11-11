@@ -14,6 +14,8 @@ import { buildAlternatives } from './engine/alternatives.js';
 import { applyPicks, checkPicks, hasPicks, picksSummary, futureStarPlans } from './engine/picks.js';
 import { recruitment } from './engine/recruitment.js';
 import { progress } from './engine/progress.js';
+import { interpretIdea, ideaSearchOptions, applyIdeaToResult } from './engine/idea.js';
+import { generalLevel } from './engine/profile.js';
 
 /**
  * @param {string} text  contents of the export file
@@ -23,7 +25,8 @@ import { progress } from './engine/progress.js';
  *   picks: {playerKey: {start, label, out}} or a function(club) returning that,
  *   formation: {ip, oop} (formation names; null = the tool chooses) or a function(club) returning that,
  *   exportedAt: when the squad was read (ISO text), scouting: {name, text} a shortlist or player search to compare,
- *   history: [{name, text, exportedAt}] earlier squad exports to compare with}
+ *   history: [{name, text, exportedAt}] earlier squad exports to compare with,
+ *   idea: {text, intensity (0 Normal .. 3 Extreme)} your idea for the tactic, or a function(club) returning that}
  */
 export function analyse(text, filename, docs, options = {}) {
   const table = readExport(text, filename);
@@ -56,9 +59,19 @@ export function analyse(text, filename, docs, options = {}) {
     else notes.push(`The ${label} formation "${wanted[key]}" isn't in this version's list, so the tool chose one.`);
   }
   const forced = !!(searchOptions.forceIp || searchOptions.forceOop);
+  // Your idea ("Lindqvist scores headers"): read it, then turn it into nudges for the search.
+  const ideaInput = (typeof options.idea === 'function' ? options.idea(club) : options.idea) || null;
+  let idea = null;
+  if (ideaInput?.text?.trim()) {
+    const levels = players.filter((p) => !p.onLoan && !p.isGoalkeeper).map(generalLevel).filter((v) => v != null).sort((a, b) => b - a).slice(0, 18);
+    const teamLevel = levels.length ? levels.reduce((s, v) => s + v, 0) / levels.length : 11;
+    idea = interpretIdea(ideaInput.text, players, ideaInput.intensity, { level: teamLevel });
+  }
+  const useIdea = !!idea && !idea.empty;
+  const ideaOptions = useIdea ? ideaSearchOptions(idea) : {};
 
   // 1. A first look at the best XI tells us what kind of team this is (the game plan) ...
-  const ctx = createContext(players, docs, searchOptions);
+  const ctx = createContext(players, docs, { ...searchOptions, ...ideaOptions });
   ctx.instructionsDoc = docs.instructions;
   let first = searchSystems(ctx, { polishTop: 0, quick: !forced });
   if (!first.best && ctx.locked.size) first = searchSystems(ctx, { polishTop: 0 });
@@ -76,14 +89,26 @@ export function analyse(text, filename, docs, options = {}) {
     }
     return { ...base, ok: false, error: 'No formation could be filled with the players in this file.' };
   }
-  ctx.plan = derivePlan(squadProfile(first.best, ctx), strength, docs.tuning.instructions);
+  const basePlan = derivePlan(squadProfile(first.best, ctx), strength, docs.tuning.instructions);
+  ctx.plan = useIdea ? { ...basePlan, ...idea.planOverride } : basePlan;
 
   // 2. ... then every system is scored again, now also on how well it suits that plan.
   const search = searchSystems(ctx);
   const best = search.best;
   const profile = squadProfile(best, ctx);
   const setPieces = setPiecePlan(best, profile, ctx);
-  const instructions = decideInstructions(profile, best, ctx, { strength, setPieces });
+  let instructions = decideInstructions(profile, best, ctx, { strength, setPieces });
+  if (useIdea) {
+    // The idea's team instructions and mentality go on top (only real FM27 options are used).
+    const options = Object.fromEntries([...docs.instructions.inPossession, ...docs.instructions.outOfPossession].map((i) => [i.id, i.options]));
+    const overrides = Object.fromEntries(Object.entries(idea.overrides).filter(([id, v]) => options[id]?.includes(v)));
+    const order = docs.instructions.mentalities;
+    const shifted = order[Math.max(0, Math.min(order.length - 1, order.indexOf(instructions.mentality.value) + idea.mentalityDelta))];
+    instructions = decideInstructions(profile, best, ctx, {
+      strength, setPieces, planOverride: idea.planOverride, overrides, extraReasons: idea.reasons,
+      ...(idea.mentalityDelta ? { mentality: shifted, mentalityReason: `Your idea: ${idea.mentalityReasons.join(' ')}` } : {}),
+    });
+  }
   // With picks, also find the tactic the tool would choose freely, to show what the picks cost.
   let freeChoice = null;
   if (hasPicks(players)) {
@@ -100,6 +125,14 @@ export function analyse(text, filename, docs, options = {}) {
         added: [...inPicked].filter((p) => !inFree.has(p)),
       };
     }
+  }
+  // With your idea, also build the tactic without it, to show what the idea costs in team fit.
+  let ideaChoice = null;
+  if (useIdea) {
+    const plain = createContext(players, docs, searchOptions);
+    plain.plan = basePlan;
+    const ps = searchSystems(plain, { polishTop: 2 });
+    ideaChoice = ps.best ? { auto: ps.best, fitCost: ps.best.fit - best.fit } : null;
   }
   // With your own formation, also find the tool's own choice, to show what the formation costs.
   let formationChoice = null;
@@ -130,6 +163,14 @@ export function analyse(text, filename, docs, options = {}) {
     warnings: [...table.warnings, ...notes, ...ctx.warnings],
   };
   result.picks = { summary: picksSummary(result), futureStars: futureStarPlans(result), ignored };
+  if (idea) {
+    const done = useIdea ? applyIdeaToResult(result, idea) : [];
+    result.idea = {
+      text: idea.text, intensity: idea.intensity, intensityLabel: idea.intensityLabel, empty: idea.empty,
+      understood: idea.understood, ignored: idea.ignored, ambiguous: idea.ambiguous, notes: idea.notes, actions: idea.actions,
+      done, choice: ideaChoice, overrides: idea.overrides,
+    };
+  }
   result.alternatives = options.alternatives === false ? [] : buildAlternatives(result, players, docs, searchOptions);
   result.exportedAt = options.exportedAt || null;
   if (options.scouting?.text) {

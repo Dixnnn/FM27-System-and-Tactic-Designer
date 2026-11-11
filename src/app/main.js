@@ -6,6 +6,7 @@ import { renderReport, standaloneReport, SECTIONS, matchPlanBody } from '../repo
 import { esc, ICON } from '../report/util.js';
 import { renderPicker, pickCount } from './picker.js';
 import { renderFormationPanel } from './formation.js';
+import { renderIdeaPanel } from './idea.js';
 import { saveTacticImage } from './share.js';
 import { playerCard } from '../report/card.js';
 import { cheatSheet } from '../report/sheet.js';
@@ -18,6 +19,7 @@ const PICKS_KEY = 'fm27-tactic-builder.picks';
 const FORMATION_KEY = 'fm27-tactic-builder.formation';
 const CHECK_KEY = 'fm27-tactic-builder.checklist';
 const MATCH_KEY = 'fm27-tactic-builder.match';
+const IDEA_KEY = 'fm27-tactic-builder.idea';
 const $ = (id) => document.getElementById(id);
 
 let lastResult = null;
@@ -119,14 +121,16 @@ function showError(result) {
   setStatus(`<strong>That file couldn't be used.</strong> ${esc(result.error)}${extra}`, true);
 }
 
-function analyseNow(text, filename, picks, formation) {
+function analyseNow(text, filename, picks, formation, idea) {
   const saved = loadPicks();
   const savedFormation = loadFormations();
+  const savedIdeas = loadIdeas();
   return analyse(text, filename, currentDocs(), {
     excludeInjured: $('opt-injured').checked,
     strength: strengthValue(),
     picks: picks ?? ((club) => saved[clubKey(club)] || {}),
     formation: formation ?? ((club) => savedFormation[clubKey(club)] || {}),
+    idea: idea ?? ((club) => savedIdeas[clubKey(club)] || null),
     exportedAt: lastInput?.exportedAt || undefined,
     scouting: lastInput?.scouting || undefined,
     history: lastInput?.history?.length ? lastInput.history : undefined,
@@ -174,6 +178,21 @@ function setupChecklist(result) {
   for (const b of $('setup')?.querySelectorAll('.tick input') || []) b.checked = saved.has(b.dataset.k);
   updateChecklist();
   return sig;
+}
+
+// ---- your idea, remembered per club ({text, intensity})
+function loadIdeas() {
+  try {
+    return JSON.parse(localStorage.getItem(IDEA_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+function saveIdea(club, idea) {
+  const all = loadIdeas();
+  if (idea.text) all[clubKey(club)] = idea;
+  else delete all[clubKey(club)];
+  remember(IDEA_KEY, JSON.stringify(all));
 }
 
 // ---- match plan: the next opponent, remembered per club
@@ -288,6 +307,8 @@ function showResult(result, note = '') {
   $('picks-badge').hidden = !n;
   $('formation-badge').hidden = !result.formationChoice;
   $('formation-panel').classList.add('hidden');
+  $('idea-badge').hidden = !(result.idea && !result.idea.empty);
+  $('idea-panel').classList.add('hidden');
   $('result-note').innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : '';
   $('src-note').textContent = lastInput?.label || '';
   $('strength-quick').value = String(strengthValue());
@@ -359,6 +380,7 @@ function openPicker() {
   if (!lastResult) return;
   const panel = $('picker');
   $('formation-panel').classList.add('hidden');
+  $('idea-panel').classList.add('hidden');
   const current = loadPicks()[clubKey(lastResult.club)] || {};
   const ui = renderPicker(panel, lastResult, current, {
     onApply: (picks) => {
@@ -390,10 +412,44 @@ function openPicker() {
   panel.scrollIntoView({ block: 'start' });
 }
 
+function openIdea() {
+  if (!lastResult) return;
+  const panel = $('idea-panel');
+  $('picker').classList.add('hidden');
+  $('formation-panel').classList.add('hidden');
+  const current = loadIdeas()[clubKey(lastResult.club)] || { text: '', intensity: 1 };
+  const ui = renderIdeaPanel(panel, lastResult, current, {
+    onApply: (idea) => {
+      panel.querySelector('#id-msg').innerHTML = `<div class="working"><span>${idea.text ? 'Building the tactic around your idea…' : 'Building the tactic without an idea…'}</span><span class="track"><i></i></span></div>`;
+      setTimeout(() => {
+        let result;
+        try {
+          result = analyseNow(lastInput.text, lastInput.filename, undefined, undefined, idea); // an empty idea means: none
+        } catch (err) {
+          console.error(err);
+          ui.showError(`Something went wrong: ${err.message}`);
+          return;
+        }
+        if (!result.ok) {
+          ui.showError(result.error);
+          return;
+        }
+        saveIdea(result.club, idea);
+        showResult(result);
+      }, 30);
+    },
+    onClose: () => panel.classList.add('hidden'),
+  });
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({ block: 'start' });
+  panel.querySelector('#id-text').focus();
+}
+
 function openFormation() {
   if (!lastResult) return;
   const panel = $('formation-panel');
   $('picker').classList.add('hidden');
+  $('idea-panel').classList.add('hidden');
   const current = loadFormations()[clubKey(lastResult.club)] || {};
   const ui = renderFormationPanel(panel, lastResult, currentDocs().formations, current, {
     onApply: (choice) => {
@@ -509,6 +565,15 @@ function init() {
   $('print').addEventListener('click', () => window.print());
   $('choose-players').addEventListener('click', openPicker);
   $('formation-btn').addEventListener('click', openFormation);
+  $('idea-btn').addEventListener('click', openIdea);
+  // The Export menu closes once something is picked, or when you click elsewhere.
+  const menu = $('export-menu');
+  menu.addEventListener('click', (e) => {
+    if (e.target.closest('.menu-items button')) menu.open = false;
+  });
+  document.addEventListener('click', (e) => {
+    if (menu.open && !menu.contains(e.target)) menu.open = false;
+  });
   $('extra-file').addEventListener('change', (e) => loadExtra(e.target.dataset.kind, e.target.files));
   const holder = $('report-holder');
   holder.addEventListener('change', (e) => {
