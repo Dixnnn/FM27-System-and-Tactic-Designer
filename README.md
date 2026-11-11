@@ -5,7 +5,14 @@
 Designs a complete Football Manager 27 tactic around **your** squad.
 
 Press **F8** on your squad screen in FM27 (or drop a squad export onto one HTML page) and get a printable report with
-everything you need to enter in FM27, in the order the tactics screens show it:
+everything you need to enter in FM27, in the order the tactics screens show it.
+
+**[Download the latest version](https://github.com/Dixnnn/FM27-System-and-Tactic-Designer/releases/latest)** (the
+`…-setup.exe`) · [What's new](CHANGELOG.md)
+
+![A tactic made by FM27 Tactic Builder: both shapes with each player's role and fit, the key settings and the set-piece takers](docs/preview.jpg)
+
+What you get:
 
 - **Style and mentality:** the closest FM27 style to start from, and a mentality based on how strong your team is.
 - **Shapes and roles:** the in-possession and out-of-possession formations as pitch diagrams, and the best eleven, each with an
@@ -41,8 +48,8 @@ You need a Windows PC with **Football Manager 27 on Steam**, and **Microsoft Edg
 
 ### 1. Install the plugin (one time)
 
-1. Download **`FM27TacticBuilder-…-setup.exe`** from this project's **Releases** page. (Before the first release: open
-   **Actions › Plugin**, click the latest green run and download the file under **Artifacts**; it's a zip with the setup inside.)
+1. Download **`FM27TacticBuilder-…-setup.exe`** from the
+   [latest release](https://github.com/Dixnnn/FM27-System-and-Tactic-Designer/releases/latest).
 2. Run it. Windows may warn you because the setup isn't signed: click **More info › Run anyway**.
 3. The setup finds FM27 in your Steam library (or you pick the folder that contains `fm.exe`). Click **Install**.
 4. Start FM27. **The first start takes a few minutes** while the mod loader (BepInEx) prepares itself. When you're in the
@@ -51,7 +58,8 @@ You need a Windows PC with **Football Manager 27 on Steam**, and **Microsoft Edg
 Already using **FM View Exporter**? That's fine: both work side by side (F9 there, F8 here), and the setup keeps the shared
 BepInEx.
 
-To remove it, run the setup again and click **Uninstall**. Your saves are not affected.
+To update to a new version, download its setup and click **Install** (or **Update**); your settings are kept. To remove it,
+run the setup again and click **Uninstall**. Your saves are not affected.
 
 ### 2. Set up the squad view (one time)
 
@@ -162,6 +170,7 @@ exactly what it picked up before you build. "Don't press" is ignored rather than
 | **Progress** (section 7) | With the plugin, every F8 is kept; the report compares your squad with your earlier reads of the same club: first-team level over time, who is improving (with the attributes that rose), who is declining, arrivals and departures. Without the plugin, load an older export. |
 | **Role filter** (section 8) | Search by name, filter by position, show only the starting XI or hide players on loan. |
 | **Cheat sheet** (Export menu) | Prints a single A4 page with both shapes and every setting that differs from FM's defaults, to keep next to you. |
+| **Copy as text** (Export menu) | Copies the tactic as plain text (shapes, every player's spots and roles, the changed instructions, set pieces) to paste into a forum post, Discord or your notes. |
 | **Image** (Export menu) | Saves a picture of the tactic (both shapes, key instructions, set pieces) to share on Discord or Reddit. |
 | **Club colours** (report header) | Your players wear your kit on the pitches: pick one of twelve kits or your own shirt and trim colours. The fit rings keep their colours. Remembered per club, and used in the saved report and the shared picture. |
 
@@ -231,6 +240,7 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 
 | Problem | Fix |
 | --- | --- |
+| **"Windows protected your PC" when starting the setup** | The setup isn't signed with a paid certificate, so Windows doesn't know it yet. Click **More info › Run anyway**. Every release is built from this repository's code by GitHub Actions and lists SHA-256 checksums. |
 | **Nothing happens when I press F8** | The game window must be in front and a player list open (Squad screen). Look in `BepInEx\LogOutput.log` in the FM27 game folder for lines from *FM27 Tactic Builder*. No such lines at all: run the setup again and click **Update**. |
 | **"No player list on screen"** | Open the **Squad** screen (the list of your players, not a single player's profile) and press F8 again. |
 | **"This view lacks …" / "Opened, but columns are missing"** | Switch the squad view to *FM27TFT* (or add the columns from [docs/CUSTOM-VIEW.md](docs/CUSTOM-VIEW.md)) and press F8 again. |
@@ -253,6 +263,9 @@ Hover a pitch token, a profile bar or a heatmap cell for the details.
 | **My game is in another language** | The tool expects English column names. Switch FM27 to English for the export (Preferences › Language). |
 | **After an FM27 patch a role's attributes changed** | In the tool open **Advanced**, click **Download roles.json**, edit the role's `key`/`preferred` lists in Notepad, then **Load my own roles.json…**. It's remembered in that browser. |
 | **The printout is cut off at the side** | Print in landscape, or use **Save report as HTML** and print from there. |
+
+Still stuck? [Open an issue](https://github.com/Dixnnn/FM27-System-and-Tactic-Designer/issues/new/choose)
+(*Something doesn't work*) with your version and the log lines it asks for.
 
 ---
 
@@ -280,7 +293,7 @@ node tools/make-icons.mjs  # after changing the crest: setup icon, setup header,
 # The FM27 plugin (needs the .NET 8 SDK; build the page first, it is embedded in the DLL)
 dotnet test plugin/tests/FM27TacticBuilder.Tests          # reader core, tactic page, view files, setup logic
 dotnet build plugin/src/FM27TacticBuilder -c Release      # BepInEx\plugins\FM27TacticBuilder\FM27TacticBuilder.dll
-plugin/packaging/package.sh 0.9.0                         # plugin zip, full package (downloads BepInEx), setup.exe
+plugin/packaging/package.sh 1.0.0                         # plugin zip, full package (downloads BepInEx), setup.exe
 ```
 
 GitHub Actions runs all of this on every push (workflows *Tests* and *Plugin*); the *Plugin* run's **Artifacts** hold the

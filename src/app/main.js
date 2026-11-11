@@ -11,6 +11,7 @@ import { saveTacticImage } from './share.js';
 import { playerCard } from '../report/card.js';
 import { cheatSheet } from '../report/sheet.js';
 import { renderKitPicker, applyKit } from './kit.js';
+import { tacticText } from '../report/text.js';
 import sampleCsv from '../../samples/squad_20261108_201500.csv';
 
 const STORE_KEY = 'fm27-tactic-builder.custom-docs';
@@ -348,6 +349,7 @@ function showResult(result, note = '') {
   $('idea-panel').classList.add('hidden');
   $('result-note').innerHTML = note ? `<div class="error">${ICON.warn}<div>${note}</div></div>` : '';
   $('src-note').textContent = lastInput?.label || '';
+  document.title = `${result.club ? `${result.club} – ` : ''}FM27 Tactic Builder`;
   $('strength-quick').value = String(strengthValue());
   $('strength-quick').disabled = false;
   setStatus('');
@@ -357,8 +359,9 @@ function showResult(result, note = '') {
 /**
  * @param {string} text  the export
  * @param {string} filename
- * @param {{label?: string, fromGame?: boolean, exportedAt?: string, scouting?: object, history?: object[], focus?: string}} [from]
- *   where it came from (shown above the report), and extra exports to compare (shortlist, earlier squads)
+ * @param {{label?: string, fromGame?: boolean, exportedAt?: string, scouting?: object, history?: object[], focus?: string, keepScroll?: boolean}} [from]
+ *   where it came from (shown above the report), and extra exports to compare (shortlist, earlier squads);
+ *   keepScroll = stay at the same place in the report (a rebuild of the same squad)
  */
 function run(text, filename, from = {}) {
   lastInput = {
@@ -366,6 +369,7 @@ function run(text, filename, from = {}) {
     exportedAt: from.exportedAt || null, scouting: from.scouting || null, history: from.history || [],
   };
   const focus = from.focus;
+  const keepY = from.keepScroll ? window.scrollY : null;
   setStatus('<div class="working"><span>Working out your tactic…</span><span class="track"><i></i></span></div>');
   setTimeout(() => {
     $('strength-quick').disabled = false; // the work below is synchronous, so the page can't be clicked meanwhile
@@ -392,6 +396,7 @@ function run(text, filename, from = {}) {
       return;
     }
     showResult(result, note);
+    if (keepY != null) window.scrollTo(0, keepY);
     if (focus) setTimeout(() => document.getElementById(focus)?.scrollIntoView({ block: 'start' }), 60);
   }, 30);
 }
@@ -553,6 +558,39 @@ function download(name, content, type) {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+/** Copy text to the clipboard (with a fallback for browsers that block the clipboard on local files). */
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(area);
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch {
+      ok = false;
+    }
+    area.remove();
+    return ok;
+  }
+}
+
+/** A short message at the bottom of the screen. */
+let notifyTimer = 0;
+function notify(text) {
+  const el = $('notify');
+  el.textContent = text;
+  el.classList.add('on');
+  clearTimeout(notifyTimer);
+  notifyTimer = setTimeout(() => el.classList.remove('on'), 2600);
+}
+
 function safeName(s) {
   return String(s || '').replace(/[\\/:*?"<>|]+/g, '').trim();
 }
@@ -667,6 +705,17 @@ function init() {
     setTimeout(() => document.documentElement.classList.remove('print-sheet'), 500);
   });
   window.addEventListener('afterprint', () => document.documentElement.classList.remove('print-sheet'));
+  $('copy-text').addEventListener('click', async () => {
+    if (!lastResult) return;
+    const ok = await copyText(tacticText(lastResult));
+    notify(ok ? 'Tactic copied as text: paste it anywhere.' : 'Could not copy here; use Save the report instead.');
+  });
+  // Esc closes whatever is open on top of the report: a panel or a menu (the player card closes itself)
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || $('pcard').open) return;
+    for (const id of ['picker', 'formation-panel', 'idea-panel']) $(id).classList.add('hidden');
+    for (const m of document.querySelectorAll('details.menu[open], details.kit-menu[open]')) m.open = false;
+  });
   $('share-image').addEventListener('click', () => {
     if (!lastResult) return;
     const club = safeName(lastResult.club);
@@ -680,7 +729,9 @@ function init() {
     remember(STRENGTH_KEY, value);
     if (!lastInput) return;
     e.target.disabled = true;
-    run(lastInput.text, lastInput.filename, { label: lastInput.label, fromGame: lastInput.fromGame });
+    // same squad, same shortlist and history; stay where you are in the report
+    const { label, fromGame, exportedAt, scouting, history } = lastInput;
+    run(lastInput.text, lastInput.filename, { label, fromGame, exportedAt, scouting, history, keepScroll: true });
   });
   $('save').addEventListener('click', () => {
     if (!lastResult) return;
@@ -694,6 +745,7 @@ function init() {
     $('result').classList.add('hidden');
     $('start').classList.remove('hidden');
     input.value = '';
+    document.title = 'FM27 Tactic Builder';
     window.scrollTo(0, 0);
   });
 

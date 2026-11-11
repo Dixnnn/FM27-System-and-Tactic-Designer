@@ -62,3 +62,14 @@ test('saved report: favicon, and the fonts when the app passes them', () => {
   assert.ok(page.includes('@font-face{font-family:"TB Display"}'));
   assert.ok(!standaloneReport(result).includes('@font-face'), 'without fonts it falls back to system fonts');
 });
+
+test('tactic as text: shapes, every starter, changed settings and set pieces, no HTML', async () => {
+  const { tacticText } = await import('../src/report/text.js');
+  const text = tacticText(result);
+  assert.match(text, /^Harbour City: FM27 tactic/);
+  assert.ok(text.includes(`In possession: ${result.best.ipName}`));
+  for (const l of result.best.lanes) assert.ok(text.includes(`- ${l.player.name}: `), l.player.name);
+  for (const i of [...result.instructions.ip, ...result.instructions.oop].filter((x) => x.changed)) assert.ok(text.includes(`- ${i.name}: ${i.value}`), i.name);
+  assert.match(text, /SET PIECES\n- Captain \/ vice: /);
+  assert.ok(!/[<>]/.test(text), 'plain text');
+});

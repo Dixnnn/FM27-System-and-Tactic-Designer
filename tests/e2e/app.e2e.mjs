@@ -18,7 +18,9 @@ try {
 }
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+const context = await browser.newContext({ viewport: { width: 1200, height: 900 } });
+await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+const page = await context.newPage();
 const problems = [];
 const external = [];
 page.on('pageerror', (e) => problems.push(e.message));
@@ -199,6 +201,19 @@ await page.click('#id-clear');
 await page.waitForFunction(() => !document.querySelector('#overview .idea-box'), null, { timeout: 30000 });
 console.log('ok  your idea: understood, built at Extreme, cleared');
 
+// Copy as text, tab title, Esc closes a panel
+await page.click('#export-menu > summary');
+await page.click('#copy-text');
+await page.waitForFunction(() => /copied/.test(document.getElementById('notify').textContent));
+const copied = await page.evaluate(() => navigator.clipboard.readText());
+assert.match(copied, /^Harbour City: FM27 tactic[\s\S]*IN POSSESSION \(changed from default\)[\s\S]*SET PIECES/);
+assert.equal(await page.title(), 'Harbour City – FM27 Tactic Builder');
+await page.click('#formation-btn');
+assert.ok(await page.isVisible('#formation-panel'));
+await page.keyboard.press('Escape');
+assert.ok(!(await page.isVisible('#formation-panel')), 'Esc closes the panel');
+console.log('ok  copy as text, tab title, Esc');
+
 // Cheat sheet and image
 assert.ok(await page.$('#sheet-holder .sheet'), 'cheat sheet ready to print');
 const [png] = await Promise.all([page.waitForEvent('download'), page.click('#export-menu > summary').then(() => page.click('#share-image'))]);
@@ -240,9 +255,14 @@ assert.ok(await fromGame.$('#scouting'), 'shortlist compared');
 assert.match(await fromGame.textContent('#depth'), /players scored in this tactic's positions and roles/);
 assert.match(await fromGame.textContent('#training'), /Progress since 1 Oct 2026/);
 assert.equal(await fromGame.$eval('#strength-quick', (e) => e.value), '0');
+await fromGame.evaluate(() => document.getElementById('training').scrollIntoView());
+const scrollBefore = await fromGame.evaluate(() => window.scrollY);
 await fromGame.selectOption('#strength-quick', '2');
 await fromGame.waitForFunction(() => /title favourites/.test(document.querySelector('.report .meta')?.textContent || ''), null, { timeout: 15000 });
 assert.match(await fromGame.textContent('#src-note'), /^Read from FM27/, 'still the squad from the game');
+assert.ok(await fromGame.$('#scouting'), 'shortlist still compared after changing team strength');
+assert.match(await fromGame.textContent('#training'), /Progress since 1 Oct 2026/, 'history kept too');
+assert.ok(Math.abs((await fromGame.evaluate(() => window.scrollY)) - scrollBefore) < 400, 'stays at the same place in the report');
 await fromGame.close();
 console.log('ok  page filled by the plugin opens straight on the tactic; team strength changes on the report');
 

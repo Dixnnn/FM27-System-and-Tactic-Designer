@@ -46,6 +46,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v4
         with:
           name: FM27TacticBuilder-${{ needs.build.outputs.version }}
@@ -55,8 +59,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.build.outputs.version }}
         run: |
+          # "What's new" = this version's section of CHANGELOG.md
+          NEW=$(awk -v v="## $VERSION " 'index($0, v) == 1 { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md)
           cat > notes.md <<NOTES
           **FM27 Tactic Builder $VERSION**: press F8 on your squad screen in Football Manager 27 and your tactic opens in your browser.
+
+          ### What's new
+          ${NEW:-See CHANGELOG.md.}
+
+          ### Downloads
 
           | File | Use it when |
           | --- | --- |
