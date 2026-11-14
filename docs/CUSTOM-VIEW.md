@@ -81,6 +81,14 @@ be well inside the limit.
 Press **F8** on the squad screen (with the plugin), or press **F9** and drop the file on the Tactic Builder. If anything is missing, the report's last
 section ("About your data") lists exactly which columns to add and where they are in the *Insert Column* menu.
 
+## Shortlists and player searches (for signings)
+
+FM27 keeps separate views per screen, so the squad view doesn't appear on the shortlist or in a player search. For
+**F8 on a shortlist or player search** (signings), give that screen a view with the attributes too. The quickest way: import
+FM View Exporter's ready-made *Player Analyzer – Shortlist Standard* or *Player Database Standard* view
+(github.com/ElectroHugin/FM-View-Exporter → `views/fm27`). Scouted players often show attributes as ranges (`11-14`); the
+tool scores the middle and shows the spread as ±.
+
 ## Sharing your view so it can be built in
 
 1. Set the view up as in Option A or B, on the **Squad** screen.

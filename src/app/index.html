@@ -3,37 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'">
 <title>FM27 Tactic Builder</title>
+<link rel="icon" href="<!--FAVICON-->">
 <script>try { if (localStorage.getItem('fm27-tactic-builder.theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}</script>
+<style id="tb-fonts">
+/*__FONT_CSS__*/
+</style>
 <style>
 /*__THEME_CSS__*/
 /*__REPORT_CSS__*/
 * { box-sizing: border-box; }
 .hidden { display: none !important; }
-.appbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
-.brand { display: flex; align-items: center; gap: 11px; }
-.brand svg { width: 30px; height: 30px; flex: none; }
-.brand .name { font-weight: 700; font-size: 15.5px; letter-spacing: -.005em; }
-.brand .sub { font-size: 12px; color: var(--muted); }
+.appbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 20px; border-bottom: 1px solid var(--line); background: var(--topbar); backdrop-filter: blur(10px); }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand .crest { width: 32px; height: 37px; flex: none; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .35)); }
+.brand .name { font-family: var(--font-numbers); font-weight: 400; font-size: 26px; line-height: .95; letter-spacing: .05em; }
+.brand .name .for { font-family: var(--font); font-size: 11px; font-weight: 650; letter-spacing: .26em; text-transform: uppercase; color: var(--accent); margin-left: 8px; vertical-align: 4px; }
+.brand .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); cursor: pointer; }
 .icon-btn:hover { color: var(--ink); border-color: var(--line-2); }
 .icon-btn svg { width: 18px; height: 18px; }
 :root:not([data-theme="light"]) .icon-btn .sun { display: block; } :root:not([data-theme="light"]) .icon-btn .moon { display: none; }
 :root[data-theme="light"] .icon-btn .sun { display: none; } :root[data-theme="light"] .icon-btn .moon { display: block; }
 .shell { max-width: 1180px; margin: 0 auto; padding: 26px 20px 48px; }
-.hero h1 { font-size: 28px; line-height: 1.2; margin: 6px 0 8px; letter-spacing: -.015em; }
+.hero h1 { font-family: var(--font-display); font-weight: 500; font-size: 40px; line-height: 1.08; margin: 6px 0 10px; letter-spacing: -.025em; text-wrap: balance; }
 .hero p { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
 .grid2 { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.panel { background: var(--card-bg); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
 .drop { border: 1.5px dashed var(--line-2); border-radius: 12px; padding: 34px 18px 30px; text-align: center; background: var(--surface-2); transition: border-color .15s, background .15s; cursor: pointer; outline: none; }
 .drop:hover, .drop:focus-visible { border-color: var(--accent); }
-.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 30px var(--accent-glow); }
 .drop svg { width: 38px; height: 38px; color: var(--accent); }
-.drop-title { font-size: 19px; font-weight: 650; margin: 8px 0 4px; }
+.drop-title { font-family: var(--font-display); font-size: 21px; font-weight: 500; margin: 8px 0 4px; letter-spacing: -.01em; }
 .drop-sub { color: var(--muted); font-size: 13.5px; margin: 0 auto 18px; max-width: 52ch; }
 .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .btn { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 14px; font-weight: 600; border-radius: 9px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.btn:not(.ghost) { box-shadow: 0 0 18px var(--accent-glow); }
 .btn:hover { filter: brightness(1.08); }
 .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-2); }
 .btn.ghost:hover { border-color: var(--ink-2); filter: none; }
@@ -65,7 +71,7 @@ details.opts p { color: var(--muted); font-size: 13px; }
 .check { display: flex; gap: 9px; align-items: center; margin: 10px 0 2px; font-size: 14px; color: var(--ink-2); }
 .check input { accent-color: var(--accent); width: 16px; height: 16px; }
 .btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
-.help h2 { font-size: 16px; margin: 0 0 12px; }
+.help h2 { font-family: var(--font-display); font-weight: 500; font-size: 18px; margin: 0 0 12px; letter-spacing: -.01em; }
 ol.howto { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; counter-reset: s; }
 ol.howto li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 14px; color: var(--ink-2); counter-increment: s; }
 ol.howto li::before { content: counter(s); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 12.5px; }
@@ -73,10 +79,36 @@ ol.howto strong { color: var(--ink); }
 code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border-radius: 5px; font-size: 12.5px; overflow-wrap: anywhere; }
 .privacy { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
 .privacy svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
-.toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; margin: -10px 0 4px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.topbar { position: sticky; top: 0; z-index: 20; margin: -10px -20px 4px; padding: 0 20px; background: var(--topbar); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0 8px; }
 .toolbar .spacer { flex: 1; }
+.navrow { display: flex; align-items: center; gap: 12px; }
+.navrow .src-note { flex: none; padding-bottom: 6px; }
+.secnav { flex: 1; min-width: 0; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 0 0 0 -6px; padding: 0 0 6px; }
+.secnav::-webkit-scrollbar { display: none; }
+.secnav a { flex: none; font-size: 13px; color: var(--muted); text-decoration: none; padding: 5px 10px; border-radius: 8px; position: relative; white-space: nowrap; }
+.secnav a:hover { color: var(--ink); background: var(--surface-2); }
+.secnav a.on { color: var(--ink); font-weight: 600; }
+.secnav a.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -6px; height: 2px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+.secnav a .n { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; font-size: 11.5px; }
+.in-app .report nav.toc { display: none; }
+kbd { display: inline-block; font: 650 12px/1 var(--font); min-width: 22px; text-align: center; padding: 4px 6px 3px; border-radius: 6px; border: 1px solid var(--line-2); border-bottom-width: 2.5px; background: var(--surface-2); color: var(--ink); vertical-align: 1px; }
+.callout { display: flex; gap: 12px; align-items: center; padding: 12px 14px; margin: 0 0 14px; border-radius: 11px; border: 1px solid var(--line); background: linear-gradient(90deg, var(--accent-soft), transparent 70%); font-size: 14px; color: var(--ink-2); }
+.callout kbd { font-size: 15px; padding: 7px 10px 6px; min-width: 38px; }
+.callout strong { color: var(--ink); }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+.hero-art { width: 210px; height: auto; color: var(--accent); }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .hero-art { display: none; } }
 .src-note { font-size: 12.5px; color: var(--muted); }
+.menu { position: relative; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu .chev { width: 14px; height: 14px; opacity: .7; }
+.menu[open] > summary { border-color: var(--ink-2); }
+.menu-items { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; min-width: 250px; white-space: nowrap; display: grid; padding: 6px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 11px; box-shadow: 0 14px 34px rgba(0,0,0,.35); }
+.menu-items button { display: flex; align-items: center; gap: 10px; font: inherit; font-size: 14px; color: var(--ink); background: none; border: 0; border-radius: 8px; padding: 9px 10px; text-align: left; cursor: pointer; }
+.menu-items button:hover, .menu-items button:focus-visible { background: var(--surface-2); outline: none; }
+.menu-items svg { width: 16px; height: 16px; color: var(--ink-2); flex: none; }
 .tb-strength { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
 .tb-strength select { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 8px 10px; cursor: pointer; }
 .tb-strength select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -85,7 +117,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .btn .badge[hidden] { display: none; }
 .picker { margin: 12px 0 16px; padding: 20px 22px; }
 .pk-head { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
-.pk-head h2 { font-size: 18px; margin: 0 0 4px; }
+.pk-head h2 { font-family: var(--font-display); font-weight: 500; font-size: 21px; margin: 0 0 4px; letter-spacing: -.01em; }
 .pk-head .hint { max-width: 72ch; margin: 0; }
 .pk-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .pk-count { font-size: 12.5px; color: var(--muted); margin-right: 4px; }
@@ -96,7 +128,7 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .pk-warn { color: var(--warn); }
 .pk-list { display: grid; gap: 14px; margin-top: 8px; }
 .pk-gt { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 650; margin: 4px 0 6px; }
-.pk-row { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(170px, 1.3fr) auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
+.pk-row { display: grid; grid-template-columns: minmax(160px, 1.3fr) minmax(150px, 1.2fr) auto auto auto; gap: 8px 14px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid transparent; }
 .pk-row:hover { background: var(--surface-2); border-color: var(--line); }
 .pk-row[hidden] { display: none; }
 .pk-name { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
@@ -118,6 +150,55 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 .switch input:disabled + .knob { opacity: .55; }
 .switch input:focus-visible + .knob { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg.mini { padding: 3px; gap: 2px; flex-wrap: nowrap; }
+.fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 14px 0 6px; }
+.fm-grid label { display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.fm-grid select { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 9px; padding: 9px 10px; }
+.fm-grid select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fm-top { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.fm-top button { font: inherit; font-size: 12.5px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+.fm-top button:hover { color: var(--ink); border-color: var(--line-2); }
+.fm-top button b { color: var(--ink); font-weight: 650; }
+.fm-top button span { color: var(--muted); }
+#id-text { width: 100%; margin-top: 14px; font: inherit; font-size: 15px; line-height: 1.45; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; resize: vertical; }
+#id-text:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.id-ex { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.id-chip { font: inherit; font-size: 12.5px; color: var(--ink-2); background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.id-chip:hover { color: var(--ink); border-color: var(--accent); }
+.id-slider { margin: 14px 0 6px; max-width: 520px; }
+.id-slider label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+.id-slider input[type="range"] { width: 100%; accent-color: var(--accent); }
+.id-ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.id-ticks span.on { color: var(--ink); font-weight: 650; }
+.id-understood { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); font-size: 13.5px; }
+.id-ul { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.id-us { display: flex; flex-wrap: wrap; gap: 6px; }
+.id-u { padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
+.id-u i { color: var(--muted); font-style: normal; }
+.id-notes { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 12.5px; }
+.muted { color: var(--muted); }
+.notify { position: fixed; left: 50%; bottom: 22px; z-index: 50; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; max-width: calc(100vw - 32px);
+  padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--surface-3); color: var(--ink); font-size: 14px; box-shadow: 0 14px 34px rgba(0, 0, 0, .35); transition: opacity .2s, transform .2s; }
+.notify.on { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { .notify { transition: none; } }
+/* club colours picker (report header, app only) */
+.kit-slot { margin-left: auto; }
+.kit-menu { position: relative; }
+.kit-menu > summary { list-style: none; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: var(--ink-2); padding: 5px 11px 5px 6px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface-2); }
+.kit-menu > summary::-webkit-details-marker { display: none; }
+.kit-menu > summary:hover, .kit-menu[open] > summary { color: var(--ink); border-color: var(--ink-2); }
+.kit-menu > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kit-sw { width: 20px; height: 20px; border-radius: 50%; flex: none; background: var(--a, var(--token)); box-shadow: inset 0 0 0 2.5px var(--b, var(--line-2)), 0 0 0 1px var(--line-2); }
+.kit-pop { position: absolute; z-index: 25; right: 0; top: calc(100% + 8px); width: 300px; padding: 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); box-shadow: 0 18px 40px rgba(0, 0, 0, .4); }
+.kit-pop .kit-h { font-weight: 650; font-size: 14px; }
+.kit-pop .kit-p { font-size: 12.5px; color: var(--muted); margin: 2px 0 10px; }
+.kit-presets { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.kit-presets button { display: grid; place-items: center; aspect-ratio: 1; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; padding: 0; }
+.kit-presets button:hover, .kit-presets button[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.kit-presets button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kit-presets .kit-sw { width: 24px; height: 24px; }
+.kit-custom { display: flex; gap: 14px; align-items: center; margin: 12px 0 8px; font-size: 13px; color: var(--ink-2); }
+.kit-custom label { display: inline-flex; align-items: center; gap: 7px; }
+.kit-custom input[type="color"] { width: 34px; height: 26px; padding: 0 2px; border: 1px solid var(--line-2); border-radius: 7px; background: var(--surface-2); cursor: pointer; }
 .seg.mini span { padding: 4px 9px; font-size: 12.5px; }
 @media (max-width: 860px) {
   .grid2 { grid-template-columns: 1fr; }
@@ -125,17 +206,29 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   .pk-role { grid-column: 1 / -1; order: 3; }
   .pk-row .seg.mini { grid-column: 1 / -1; order: 4; }
 }
-@media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 23px; } .brand .sub { display: none; } }
-@media print { body { background: #fff; } .appbar, .toolbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; } }
+@media (max-width: 1400px) { #again .lbl { display: none; } }
+@media (max-width: 700px) {
+  .menu-items { left: auto; right: 0; }
+  .topbar { margin: -10px -16px 4px; padding: 0 16px; }
+  .toolbar { gap: 6px; padding: 8px 0 6px; }
+  .toolbar .lbl, .src-note, .tb-strength .tbl { display: none; }
+  .toolbar .btn { padding: 8px 10px; }
+  .tb-strength select { padding: 7px 8px; }
+}
+@media (max-width: 520px) { .appbar { padding: 10px 16px; } .shell { padding: 18px 16px 40px; } .hero h1 { font-size: 29px; } .brand .sub { display: none; } .kit-menu .kit-l { display: none; } .kit-pop { right: -8px; width: min(300px, calc(100vw - 32px)); } }
+#sheet-holder { display: none; }
+@media print {
+  body { background: #fff; } .appbar, .topbar, .no-print { display: none !important; } .shell { padding: 0; max-width: none; }
+  html.print-sheet #start, html.print-sheet #result > :not(#sheet-holder), html.print-sheet .appbar { display: none !important; }
+  html.print-sheet #sheet-holder { display: block; max-width: none; }
+}
 </style>
 </head>
 <body>
 <header class="appbar no-print">
   <div class="brand">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
-      <path d="M16 4.5v23" stroke="var(--accent)" stroke-width="1.3"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
-      <path d="M2.5 11.5h4.5v9H2.5M29.5 11.5H25v9h4.5" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>
-    <div><div class="name">FM27 Tactic Builder</div><div class="sub">v<!--APP_VERSION--> · works offline · only reads your squad, never changes your game</div></div>
+    <!--CREST-->
+    <div><div class="name">Tactic Builder<span class="for">for FM27</span></div><div class="sub">v<!--APP_VERSION--> · works offline · only reads your squad, never changes your game</div></div>
   </div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
     <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -146,16 +239,30 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
 <main class="shell">
   <section id="start">
     <div class="hero no-print">
-      <h1>Build an FM27 tactic around your squad</h1>
-      <p>Drop the squad export and get a complete tactic: both shapes and every role, all 27 team instructions with reasons, player instructions,
-        set pieces, depth chart, training and three alternative tactics.</p>
+      <div>
+        <h1>Build an FM27 tactic around your squad</h1>
+        <p>Get a complete tactic from your players: both shapes and every role, all 27 team instructions with reasons, player instructions,
+          set pieces, depth chart, training and three alternative tactics.</p>
+      </div>
+      <svg class="hero-art" viewBox="0 0 210 150" aria-hidden="true">
+        <rect x="1" y="1" width="208" height="148" rx="12" fill="var(--pitch)" stroke="var(--line)"/>
+        <g fill="none" stroke="var(--pitch-line)" stroke-width="1.2"><rect x="10" y="10" width="190" height="130" rx="2"/><path d="M105 10v130"/><circle cx="105" cy="75" r="18"/><rect x="10" y="45" width="26" height="60"/><rect x="174" y="45" width="26" height="60"/></g>
+        <g stroke="var(--oop)" stroke-width="1.4" fill="none" stroke-dasharray="2 3" opacity=".8"><path d="M60 40l28 -6M60 110l28 6M120 52l22 -10M120 98l22 10"/></g>
+        <g fill="var(--token)" stroke-width="2.6">
+          <circle cx="24" cy="75" r="6" stroke="var(--fit-2)"/>
+          <circle cx="52" cy="38" r="6" stroke="var(--fit-3)"/><circle cx="48" cy="62" r="6" stroke="var(--fit-4)"/><circle cx="48" cy="88" r="6" stroke="var(--fit-3)"/><circle cx="52" cy="112" r="6" stroke="var(--fit-2)"/>
+          <circle cx="80" cy="75" r="6" stroke="var(--fit-3)"/><circle cx="112" cy="54" r="6" stroke="var(--fit-4)"/><circle cx="112" cy="96" r="6" stroke="var(--fit-3)"/>
+          <circle cx="150" cy="36" r="6" stroke="var(--fit-3)"/><circle cx="160" cy="75" r="6" stroke="var(--fit-4)"/><circle cx="150" cy="114" r="6" stroke="var(--fit-2)"/>
+        </g>
+      </svg>
     </div>
     <div class="grid2 no-print">
       <div class="panel">
+        <div class="callout"><kbd>F8</kbd><span><strong>Using the FM27 plugin?</strong> Press F8 on your Squad screen in the game and this page opens with your tactic. No file needed.</span></div>
         <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose or drop your FM27 squad export">
           <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 30h-1.5A7.5 7.5 0 0 1 9.6 15a10 10 0 0 1 19.5 2.2A6.5 6.5 0 0 1 28.5 30H28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 34V20m-5 5 5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="drop-title">Drop your squad export here</div>
-          <div class="drop-sub">With the FM27 plugin you don't need this: press <strong>F8</strong> in the game. Otherwise drop a CSV or HTML from FM View Exporter (F9), FM27 Player Export, or any squad export with player attributes.</div>
+          <div class="drop-sub">A CSV or HTML from FM View Exporter (<kbd>F9</kbd>), FM27 Player Export, or any squad export with player attributes.</div>
           <div class="row">
             <button class="btn" id="choose" type="button">Choose file…</button>
             <button class="btn ghost" id="sample" type="button">Try the sample squad</button>
@@ -201,8 +308,8 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         <ol class="howto">
           <li><span>Install the <strong>FM27 Tactic Builder plugin</strong> once with its setup (see the README).</span></li>
           <li><span>In FM27 open <strong>Squad</strong> and switch the view to <strong>FM27TFT</strong>, the plugin's built-in view (or any view with all attributes; the README lists the columns).</span></li>
-          <li><span>Press <strong>F8</strong>. The plugin reads your players and opens this page with your tactic.</span></li>
-          <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (F9) and drop the <code>squad_….csv</code> on the box.</span></li>
+          <li><span>Press <kbd>F8</kbd>. The plugin reads your players and opens this page with your tactic.</span></li>
+          <li><span>Without the plugin: export with <strong>FM View Exporter</strong> (<kbd>F9</kbd>) and drop the <code>squad_….csv</code> on the box.</span></li>
         </ol>
         <div class="privacy">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3.5 4.5v5c0 4 2.8 7.2 6.5 8.5 3.7-1.3 6.5-4.5 6.5-8.5v-5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7 10 2.2 2.2L13.3 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -213,11 +320,22 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
   </section>
 
   <section id="result" class="hidden">
-    <div class="toolbar no-print">
+    <div class="topbar no-print">
+    <div class="toolbar">
       <button class="btn" id="choose-players" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.3 4.8 5.2.6-3.9 3.6 1 5.2L10 13.8l-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Choose players<span class="badge" id="picks-badge" hidden></span></button>
-      <button class="btn ghost" id="print" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Print / Save as PDF</button>
-      <button class="btn ghost" id="save" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Save report</button>
-      <label class="tb-strength">Team strength
+      <button class="btn ghost" id="idea-btn" type="button" title="Describe your own idea for the tactic" aria-label="Your idea"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.2 14.5h5.6M7.8 17h4.4M10 2.5a5 5 0 0 0-3.1 8.9c.6.5 1 1.2 1 2V14h4.2v-.6c0-.8.4-1.5 1-2A5 5 0 0 0 10 2.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="lbl">Idea</span><span class="badge" id="idea-badge" hidden>on</span></button>
+      <button class="btn ghost" id="formation-btn" type="button" title="Choose the formation yourself" aria-label="Formation"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="2.5" width="14" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 10h14" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="6" r="1.3" fill="currentColor"/><circle cx="6.5" cy="13.5" r="1.3" fill="currentColor"/><circle cx="13.5" cy="13.5" r="1.3" fill="currentColor"/></svg><span class="lbl">Formation</span><span class="badge" id="formation-badge" hidden>yours</span></button>
+      <details class="menu" id="export-menu">
+        <summary class="btn ghost" title="Print, cheat sheet, image or save"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m-3.5-3.5L10 12l3.5-3.5M4 14.5v1A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Export</span><svg class="chev" viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <div class="menu-items" role="menu">
+          <button type="button" role="menuitem" id="print"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 7V3h8v4M6 14H4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 4 7h12a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 16 14h-2M6 11.5h8V17H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Print or save as PDF</span></button>
+          <button type="button" role="menuitem" id="print-sheet"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 2.5h6l3 3v12h-9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9h5M8 12h5M8 15h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span>Print a one-page cheat sheet</span></button>
+          <button type="button" role="menuitem" id="copy-text"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="6.5" y="6.5" width="10" height="11" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 6.5V4.3a1.8 1.8 0 0 0-1.8-1.8H5.3a1.8 1.8 0 0 0-1.8 1.8v8.4a1.8 1.8 0 0 0 1.8 1.8h1.2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Copy the tactic as text</span></button>
+          <button type="button" role="menuitem" id="share-image"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7.5" cy="8.5" r="1.6" fill="currentColor"/><path d="m3.5 15 4.5-4.5 3 3 2-2 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save a picture to share</span></button>
+          <button type="button" role="menuitem" id="save"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Save the report as a file</span></button>
+        </div>
+      </details>
+      <label class="tb-strength"><span class="tbl">Team strength</span>
         <select id="strength-quick">
           <option value="2">Title favourites</option>
           <option value="1">Top half</option>
@@ -227,14 +345,22 @@ code { background: var(--surface-3); color: var(--ink); padding: 1px 5px; border
         </select>
       </label>
       <span class="spacer"></span>
-      <span class="src-note" id="src-note"></span>
-      <button class="btn ghost" id="again" type="button">Load another file</button>
+      <button class="btn ghost" id="again" type="button" title="Load another file" aria-label="Load another file"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2M10 13V3.5M6.5 7 10 3.5 13.5 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Load another file</span></button>
+    </div>
+    <div class="navrow"><nav class="secnav" id="secnav" aria-label="Report sections"></nav><span class="src-note" id="src-note"></span></div>
     </div>
     <div id="result-note" class="no-print"></div>
     <div id="picker" class="panel picker hidden no-print"></div>
+    <div id="formation-panel" class="panel picker hidden no-print"></div>
+    <div id="idea-panel" class="panel picker hidden no-print"></div>
     <div id="report-holder"></div>
+    <div id="sheet-holder" class="report"></div>
+    <input type="file" id="extra-file" accept=".csv,.txt,.html,.htm,text/csv,text/html" class="hidden">
   </section>
 </main>
+<div id="notify" class="notify no-print" role="status" aria-live="polite"></div>
+<noscript><p style="max-width:640px;margin:40px auto;padding:0 20px;font:16px/1.5 system-ui,sans-serif">This page needs JavaScript to build your tactic. It runs only inside this page and never connects to the internet. Please allow scripts for local files, or open it in Microsoft Edge or Chrome.</p></noscript>
+<dialog id="pcard" class="pcard-dialog no-print" aria-label="Player card"><button class="icon-btn pc-close" type="button" id="pcard-close" aria-label="Close">✕</button><div class="report" id="pcard-body"></div></dialog>
 <script type="application/json" id="fm27tb-export">null</script>
 <!--APP_SCRIPT-->
 </body>

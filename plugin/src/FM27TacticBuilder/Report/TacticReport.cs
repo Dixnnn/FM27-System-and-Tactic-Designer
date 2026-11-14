@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using FM27TacticBuilder.Core;
@@ -14,6 +15,9 @@ namespace FM27TacticBuilder.Report
 {
     internal static class TacticReport
     {
+        /// <summary>How many earlier squad reads go into the page for the progress comparison.</summary>
+        private const int MaxHistory = 6;
+
         /// <summary>
         /// Writes the list as CSV into the exports folder and, for F8, the tactic page
         /// (FM27 Tactic Builder.html) with the squad inside, then opens it in the default browser.
@@ -33,28 +37,59 @@ namespace FM27TacticBuilder.Report
             }
 
             var source = $"{Application.productName} {Application.version}".Trim();
-            var page = TacticPage.Build(Resources.Text("FM27-Tactic-Builder.html"), csvName,
-                CsvWriter.ToCsv(table, CsvStyle.English), table.CreatedAt, source);
+            var squadScreen = viewName == ViewNames.Squad;
+            var exportFiles = Directory.GetFiles(OutputPaths.ExportsFolder, "*.csv");
+            string squadName, squadCsv;
+            DateTime squadTime;
+            ExtraExport? scouting = null;
+            string? squadPath;
+            if (squadScreen)
+            {
+                squadName = csvName;
+                squadCsv = CsvWriter.ToCsv(table, CsvStyle.English);
+                squadTime = table.CreatedAt;
+                squadPath = csvPath;
+            }
+            else
+            {
+                // F8 on a shortlist or player search: compare those players with your latest squad read.
+                squadPath = ExportHistory.SquadExports(exportFiles, null, 1).FirstOrDefault();
+                if (squadPath == null)
+                {
+                    Toast.Show("Read your squad first",
+                        $"Open your Squad screen and press F8 once. After that, F8 on a {viewName.Replace('-', ' ')} shows which of its players would improve your team. (This list was saved.)", 14f, warning: true);
+                    return;
+                }
+                squadName = Path.GetFileName(squadPath);
+                squadCsv = File.ReadAllText(squadPath);
+                squadTime = ExportHistory.TimeFromName(squadPath) ?? File.GetLastWriteTime(squadPath);
+                scouting = new ExtraExport(csvName, CsvWriter.ToCsv(table, CsvStyle.English), table.CreatedAt);
+            }
+            // Earlier squad reads travel along, so the page can show who is improving.
+            var history = ExportHistory.SquadExports(exportFiles, squadPath, MaxHistory)
+                .Select(f => new ExtraExport(Path.GetFileName(f), File.ReadAllText(f), ExportHistory.TimeFromName(f)))
+                .ToList();
+            var page = TacticPage.Build(Resources.Text("FM27-Tactic-Builder.html"), squadName, squadCsv, squadTime, source, scouting, history);
             var pagePath = OutputPaths.PagePath;
             OutputPaths.EnsureFolder(Path.GetDirectoryName(pagePath)!);
             File.WriteAllText(pagePath, page, new UTF8Encoding(false));
             Plugin.Logger.LogInfo($"Tactic page written: {pagePath}");
 
-            var notSquad = viewName != ViewNames.Squad
-                ? $" Note: this was the {viewName.Replace('-', ' ')} list, not your squad." : "";
             if (!openPage)
             {
-                Toast.Show("Tactic page saved", $"{summary.Describe()} Open {pagePath} to see it.{notSquad}", 10f, warning: !summary.Usable);
+                Toast.Show("Tactic page saved", $"{summary.Describe()} Open {pagePath} to see it.", 10f, warning: !summary.Usable);
                 return;
             }
 
             var opened = Open(pagePath);
+            var what = squadScreen ? "Tactic ready" : "Players compared";
+            var detail = squadScreen ? summary.Describe() : $"{table.Rows.Count} players from this list scored against your squad (read {squadTime:d MMM, HH:mm}).";
             if (!summary.Usable)
-                Toast.Show("Opened, but columns are missing", summary.Describe() + notSquad, 14f, warning: true);
+                Toast.Show("Opened, but columns are missing", summary.Describe(), 14f, warning: true);
             else if (opened)
-                Toast.Show("Tactic ready", $"{summary.Describe()} It has opened in your browser (Alt+Tab).{notSquad}", 10f, warning: notSquad.Length > 0);
+                Toast.Show(what, $"{detail} It has opened in your browser (Alt+Tab).", 10f);
             else
-                Toast.Show("Tactic ready", $"Open this file in your browser: {pagePath}{notSquad}", 14f, warning: true);
+                Toast.Show(what, $"Open this file in your browser: {pagePath}", 14f, warning: true);
         }
 
         /// <summary>The quick column check; if it fails for any reason, the page still opens and checks in full.</summary>

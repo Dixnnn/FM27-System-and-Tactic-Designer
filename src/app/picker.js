@@ -1,4 +1,5 @@
-// "Choose players" panel: mark players who must start, a marquee player to build around, and future stars.
+// "Choose players" panel: mark players who must start, a marquee player to build around, future stars,
+// and players who are unavailable (suspended, resting, being sold).
 // Pure DOM; player names are escaped. Picks are keyed by playerKey (Unique ID, or the name).
 
 import { esc, fitChip } from '../report/util.js';
@@ -28,7 +29,7 @@ function bestRole(result, p) {
 /**
  * @param {HTMLElement} el  container
  * @param {object} result  analyse() result (players, suitability, ctx)
- * @param {object} initial  picks for this club {key: {start, label}}
+ * @param {object} initial  picks for this club {key: {start, label, out}}
  * @param {{onApply: (picks:object) => void, onClose: () => void}} handlers
  */
 export function renderPicker(el, result, initial, { onApply, onClose }) {
@@ -52,8 +53,9 @@ export function renderPicker(el, result, initial, { onApply, onClose }) {
     return `<div class="pk-row" data-key="${esc(key)}" data-gk="${p.isGoalkeeper ? 1 : 0}" data-name="${esc(p.name.toLowerCase())}">
   <div class="pk-name"><strong>${esc(p.name)}</strong><span class="pk-sub">${esc(p.positionsText || [...p.positions].join(', '))}${p.age != null ? ` · ${p.age}` : ''}${p.injured ? ' · <span class="pk-inj">injured</span>' : ''}</span></div>
   <div class="pk-role">${best ? `${fitChip(best.score)}<span class="pk-rn">${esc(best.role.name)}</span>` : ''}</div>
-  <label class="switch"><input type="checkbox" class="pk-start"${pick.start || label === 'marquee' ? ' checked' : ''}${label === 'marquee' ? ' disabled' : ''}><span class="knob" aria-hidden="true"></span><span class="sw-text">Must start</span></label>
+  <label class="switch"><input type="checkbox" class="pk-start"${!pick.out && (pick.start || label === 'marquee') ? ' checked' : ''}${label === 'marquee' || pick.out ? ' disabled' : ''}><span class="knob" aria-hidden="true"></span><span class="sw-text">Must start</span></label>
   <div class="seg mini" role="radiogroup" aria-label="Label for ${esc(p.name)}">${opt('', 'None')}${opt('future', 'Future star')}${opt('marquee', 'Marquee')}</div>
+  <label class="switch out" title="Suspended, resting or about to leave: the tactic is built without him"><input type="checkbox" class="pk-out"${pick.out ? ' checked' : ''}><span class="knob" aria-hidden="true"></span><span class="sw-text">Unavailable</span></label>
 </div>`;
   };
 
@@ -62,7 +64,8 @@ export function renderPicker(el, result, initial, { onApply, onClose }) {
   <div>
     <h2>Build around your players</h2>
     <p class="hint"><strong>Must start</strong>: always in the XI. <strong>Marquee</strong>: the tactic is built around him (always starts, and his fit
-    counts 2.5 times when choosing the shape and roles). <strong>Future star</strong>: high potential; wins close calls for a place and gets a development plan.</p>
+    counts 2.5 times when choosing the shape and roles). <strong>Future star</strong>: high potential; wins close calls for a place and gets a development plan.
+    <strong>Unavailable</strong>: suspended, resting or about to leave; the tactic is built without him.</p>
   </div>
   <div class="pk-actions">
     <span class="pk-count" id="pk-count"></span>
@@ -86,31 +89,42 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
     const out = {};
     for (const r of el.querySelectorAll('.pk-row')) {
       const label = r.querySelector('input[type="radio"]:checked')?.value || '';
-      const start = r.querySelector('.pk-start').checked;
-      if (start || label) out[r.dataset.key] = { start: start || label === 'marquee', label: label || null };
+      const unavailable = r.querySelector('.pk-out').checked;
+      const start = !unavailable && r.querySelector('.pk-start').checked;
+      if (start || label || unavailable) out[r.dataset.key] = { start: start || (!unavailable && label === 'marquee'), label: label || null, ...(unavailable ? { out: true } : {}) };
     }
     return out;
   };
   const validate = () => {
     const rows = [...el.querySelectorAll('.pk-row')];
-    const locked = rows.filter((r) => r.querySelector('.pk-start').checked);
+    const outRows = rows.filter((r) => r.querySelector('.pk-out').checked);
+    const locked = rows.filter((r) => r.querySelector('.pk-start').checked && !r.querySelector('.pk-out').checked);
     const gks = locked.filter((r) => r.dataset.gk === '1');
     const futures = rows.filter((r) => r.querySelector('input[value="future"]:checked')).length;
     const marquees = rows.filter((r) => r.querySelector('input[value="marquee"]:checked')).length;
-    $('#pk-count').textContent = `${locked.length} / 11 must start · ${marquees} marquee · ${futures} future star${futures === 1 ? '' : 's'}`;
+    $('#pk-count').textContent = `${locked.length} / 11 must start · ${marquees} marquee · ${futures} future star${futures === 1 ? '' : 's'} · ${outRows.length} unavailable`;
     let problem = '';
     if (locked.length > 11) problem = 'Only 11 players can start: unmark some.';
     else if (gks.length > 1) problem = 'Only one goalkeeper can start.';
+    else if (rows.length - outRows.length < 11) problem = 'Fewer than 11 players are left: mark fewer players unavailable.';
+    else if (!rows.some((r) => r.dataset.gk === '1' && !r.querySelector('.pk-out').checked)) problem = 'Every goalkeeper is marked unavailable: someone has to go in goal.';
     else if (marquees > 3) problem = 'Building around more than three marquee players rarely works; the tool will try, but consider fewer.';
     msg(problem ? `<span class="pk-warn">${esc(problem)}</span>` : '');
-    $('#pk-apply').disabled = locked.length > 11 || gks.length > 1;
+    $('#pk-apply').disabled = locked.length > 11 || gks.length > 1 || rows.length - outRows.length < 11;
   };
 
   el.addEventListener('change', (e) => {
     const r = e.target.closest('.pk-row');
-    if (r && e.target.type === 'radio') {
+    if (r && (e.target.type === 'radio' || e.target.classList.contains('pk-out'))) {
       const start = r.querySelector('.pk-start');
-      if (e.target.value === 'marquee') {
+      const out = r.querySelector('.pk-out');
+      const marquee = r.querySelector('input[value="marquee"]');
+      if (e.target === out && out.checked && marquee.checked) r.querySelector('input[value=""]').checked = true;
+      marquee.disabled = out.checked;
+      if (out.checked) {
+        start.checked = false;
+        start.disabled = true;
+      } else if (marquee.checked) {
         start.checked = true;
         start.disabled = true;
       } else {
@@ -128,15 +142,20 @@ ${loaned.length ? `<p class="hint">Out on loan, so they can't be picked: ${loane
       const start = r.querySelector('.pk-start');
       start.checked = false;
       start.disabled = false;
+      r.querySelector('.pk-out').checked = false;
+      r.querySelector('input[value="marquee"]').disabled = false;
       r.querySelector('input[value=""]').checked = true;
     }
     validate();
   });
   $('#pk-close').addEventListener('click', onClose);
   $('#pk-apply').addEventListener('click', () => onApply(state()));
+  for (const r of el.querySelectorAll('.pk-row')) {
+    if (r.querySelector('.pk-out').checked) r.querySelector('input[value="marquee"]').disabled = true;
+  }
   validate();
   return { showError: (text) => msg(`<span class="pk-warn">${esc(text)}</span>`) };
 }
 
 /** Number of players picked in some way (for the toolbar button). */
-export const pickCount = (picks) => Object.values(picks || {}).filter((p) => p.start || p.label).length;
+export const pickCount = (picks) => Object.values(picks || {}).filter((p) => p.start || p.label || p.out).length;

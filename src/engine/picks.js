@@ -22,6 +22,8 @@ export function applyPicks(players, picks = {}) {
     const label = pick.label === 'marquee' || pick.label === 'future' ? pick.label : null;
     p.label = label;
     p.mustStart = !!pick.start || label === 'marquee';
+    p.unavailable = !!pick.out && !p.onLoan;
+    if (p.unavailable) p.mustStart = false;
     if (p.onLoan && (p.mustStart || label)) {
       ignored.push({ player: p, reason: `out on loan${p.club ? ' at ' + p.club : ''}` });
       p.mustStart = false;
@@ -41,6 +43,9 @@ export function checkPicks(players) {
 }
 
 export const hasPicks = (players) => players.some((p) => p.mustStart || p.label);
+
+/** Players you marked unavailable. */
+export const unavailablePlayers = (players) => players.filter((p) => p.unavailable);
 
 /** Best possible IP and OOP roles for a player anywhere (from the suitability table). */
 function bestRoles(result, p) {

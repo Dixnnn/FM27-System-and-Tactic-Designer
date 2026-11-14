@@ -37,15 +37,42 @@ export function createContext(players, docs, options = {}) {
     allowedFam: new Set(tuning.familiarity.allowInStartingXI),
     warnings: [],
   };
-  const atClub = players.filter((p) => !p.onLoan);
+  // Your own formation: only that in-possession and/or out-of-possession shape is tried.
+  const only = (list, name) => (name ? list.filter((f) => f.name === name) : list);
+  ctx.formations = {
+    ...docs.formations,
+    inPossession: only(docs.formations.inPossession, search.forceIp),
+    outOfPossession: only(docs.formations.outOfPossession, search.forceOop),
+  };
+  ctx.forced = !!(search.forceIp || search.forceOop);
+  // Players you marked unavailable (suspended, resting, being sold) are left out like players on loan.
+  const atClub = players.filter((p) => !p.onLoan && !p.unavailable);
   // Your picks: "must start" and marquee players are locked into the XI (even when injured, since you chose
   // them); marquee players and future stars also count more when systems and roles are compared.
   const picksCfg = tuning.picks;
   const usePicks = !search.ignorePicks;
   const extra = new Set(search.extraLocks || []);
   ctx.locked = new Set(usePicks ? atClub.filter((p) => p.mustStart || p.label === 'marquee' || extra.has(p.id)) : []);
-  ctx.pickWeight = (p) => (!usePicks ? 1 : p.label === 'marquee' ? picksCfg.marqueeWeight : p.label === 'future' ? picksCfg.futureStarWeight : 1);
+  const weights = search.weights || {};
+  ctx.pickWeight = (p) => (!usePicks ? 1 : Math.max(weights[p.id] || 1, p.label === 'marquee' ? picksCfg.marqueeWeight : p.label === 'future' ? picksCfg.futureStarWeight : 1));
+  // Your idea: roles with the tags it likes count more when roles are chosen (for one player, or the team),
+  // and shapes with the features it likes score higher.
+  const bias = search.ideaRoleBias;
+  ctx.roleBias = (p, role) => {
+    if (!bias) return 0;
+    const own = bias.byPlayer?.[p.id];
+    const map = own || bias.team || {};
+    let s = 0;
+    for (const t of role.tagSet) s += map[t] || 0;
+    return s;
+  };
+  const shapes = search.ideaShapes || [];
+  ctx.shapeBias = (ipF, oopF) => shapes.reduce((s, sh) => s + sh.bonus * sh.test(ipF.slots, oopF.slots), 0);
   ctx.pickBonus = (p) => (usePicks && p.label === 'future' ? picksCfg.futureStarBonus : 0);
+  // Selection only (not scoring): rest some players (rotation XI) and give young players a head start.
+  const rest = new Set(search.rest || []);
+  const youth = search.youthBonus || 0;
+  ctx.selectBias = (p) => (rest.has(p.id) ? -(search.restPenalty ?? 30) : 0) + (youth && p.age != null && p.age <= 21 ? youth : 0);
   let available = atClub.filter((p) => !(search.excludeInjured && p.injured) || ctx.locked.has(p));
   if (available.length < 11) {
     ctx.warnings.push('Fewer than 11 fit players, so injured players were included.');
@@ -109,7 +136,7 @@ function roleReference(ctx, role) {
 function choiceScore(ctx, player, role, slot) {
   const s = slotRoleScore(player, role, slot, ctx);
   const spec = s.base - roleReference(ctx, role);
-  return s.score + ctx.tuning.roleScore.specialisationWeight * spec;
+  return s.score + ctx.tuning.roleScore.specialisationWeight * spec + ctx.roleBias(player, role);
 }
 
 function bestOf(ctx, player, roles, slot, byChoice = false) {
@@ -138,7 +165,7 @@ function pickXI(ctx, lanes, roles) {
       const v = laneValue(ctx, p, lane, roles && roles[i]);
       if (v <= FORBIDDEN / 2) return v;
       // locked players always start; a future star gets a small head start in close calls
-      return ctx.locked.has(p) ? v * ctx.pickWeight(p) + lockBonus : v + ctx.pickBonus(p);
+      return ctx.locked.has(p) ? v * ctx.pickWeight(p) + lockBonus : v + ctx.pickBonus(p) + ctx.selectBias(p);
     }),
   );
   const { rowToCol } = assignMax(value);
@@ -156,8 +183,10 @@ function objective(ctx, lanes, xi, roles) {
       const v = ipWeight * slotRoleScore(p, roles[i].ipRole, lane.ip, ctx).score + oopWeight * slotRoleScore(p, roles[i].oopRole, lane.oop, ctx).score;
       fit += v;
       choice += ipWeight * choiceScore(ctx, p, roles[i].ipRole, lane.ip) + oopWeight * choiceScore(ctx, p, roles[i].oopRole, lane.oop);
-      // marquee players and future stars count extra, so systems and roles that suit them win
-      picks += (ctx.pickWeight(p) - 1) * v + ctx.pickBonus(p);
+      // marquee players and future stars count extra, so systems and roles that suit them win; for a player your
+      // idea is about, the roles the idea wants for him count in that extra weight too
+      const want = ipWeight * ctx.roleBias(p, roles[i].ipRole) + oopWeight * ctx.roleBias(p, roles[i].oopRole);
+      picks += (ctx.pickWeight(p) - 1) * (v + want) + ctx.pickBonus(p);
     } else {
       fit += FORBIDDEN;
       choice += FORBIDDEN;
@@ -325,7 +354,8 @@ export function evaluateSystem(ctx, ipF, oopF, deep = false) {
     balance: best.obj.balance,
     picks: best.obj.picks,
     complexity,
-    score: fit + best.obj.balance.points + best.obj.picks - complexity,
+    idea: ctx.shapeBias(ipF, oopF),
+    score: fit + best.obj.balance.points + best.obj.picks - complexity + ctx.shapeBias(ipF, oopF),
     valid: !resultLanes.some((l) => l.forbidden),
   };
 }

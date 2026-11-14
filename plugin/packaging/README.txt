@@ -35,16 +35,21 @@ Use it
    Documents\Sports Interactive\FM27 Tactic Builder\views.
 2. With your squad on screen press F8. Don't click until the message in the
    top right corner changes. Your tactic opens in your browser.
+3. Looking for signings? Press F8 on your shortlist or a player search: the
+   page opens with those players scored in your tactic's positions and roles.
+   (Read your squad with F8 first. The list's view needs the attributes.)
 
 Keys
 ----
-F8              build a tactic from the list on screen and open it
+F8              squad screen: build your tactic and open it
+                shortlist / player search: score those players as signings
 Ctrl+F8         only save the list as CSV (squad, player database, shortlist)
 Ctrl+Shift+F8   UI dump for troubleshooting after a game patch
 
 Files go to Documents\Sports Interactive\FM27 Tactic Builder:
   FM27 Tactic Builder.html   your tactic (the latest squad you read)
-  exports\                   every list you read, as CSV
+  exports\                   every list you read, as CSV (earlier squad reads
+                             are used to show who is improving)
   views\                     the squad view
   Diagnostics\               UI dumps
 

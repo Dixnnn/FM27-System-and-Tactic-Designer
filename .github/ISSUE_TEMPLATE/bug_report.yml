@@ -1,0 +1,48 @@
+name: Something doesn't work
+description: The plugin, the setup or the tactic page doesn't do what it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting it. The more of the details below you can add, the quicker it can be fixed.
+        Please don't attach save games; they aren't needed.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown at the top left of the tactic page (for example v1.0.0) and in the setup window.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it go wrong?
+      options:
+        - Installing or updating (the setup)
+        - Pressing F8 in FM27
+        - The tactic page or report
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      placeholder: "I pressed F8 on the Squad screen and ..."
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: |
+        For the plugin: the lines mentioning "FM27 Tactic Builder" from BepInEx\LogOutput.log in the FM27 game folder.
+        After an FM27 patch: also press Ctrl+Shift+F8 on the Squad screen and attach the newest file from
+        Documents\Sports Interactive\FM27 Tactic Builder\Diagnostics.
+      render: text
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Optional. A screenshot of the message in the game or of the page helps a lot.

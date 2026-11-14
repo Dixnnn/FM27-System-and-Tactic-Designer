@@ -18,7 +18,9 @@ namespace FM27TacticBuilder.Setup
     internal sealed class SetupForm : Form
     {
         private const string Title = "FM27 Tactic Builder";
-        private static readonly Color Brand = Color.FromArgb(0x16, 0x6E, 0x66);
+        // Night-match navy and floodlight lime, as on the tactic page.
+        private static readonly Color Brand = Color.FromArgb(0x0B, 0x11, 0x1D);
+        private static readonly Color Lime = Color.FromArgb(0xC6, 0xFF, 0x3D);
 
         private readonly TextBox _folder = new TextBox { Dock = DockStyle.Fill };
         private readonly Label _status = new Label { AutoSize = true, Dock = DockStyle.Fill, Padding = new Padding(0, 6, 0, 6) };
@@ -95,22 +97,50 @@ namespace FM27TacticBuilder.Setup
         private Control BuildHeader()
         {
             var panel = new Panel { Dock = DockStyle.Top, Height = S(68), BackColor = Brand };
+            var left = S(16);
+            var crest = HeaderCrest();
+            if (crest != null)
+            {
+                panel.Controls.Add(new PictureBox
+                {
+                    Image = crest,
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Size = new Size(S(44), S(52)),
+                    Location = new Point(S(14), S(8)),
+                    BackColor = Color.Transparent
+                });
+                left = S(68);
+            }
             panel.Controls.Add(new Label
             {
                 Text = Title,
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI Semibold", 17F),
                 AutoSize = true,
-                Location = new Point(S(16), S(8))
+                Location = new Point(left, S(8))
             });
             panel.Controls.Add(new Label
             {
                 Text = "Setup and settings" + (Version.Length > 0 ? "  ·  " + Version : ""),
-                ForeColor = Color.FromArgb(214, 240, 236),
+                ForeColor = Lime,
                 AutoSize = true,
-                Location = new Point(S(19), S(42))
+                Location = new Point(left + S(3), S(42))
             });
             return panel;
+        }
+
+        /// <summary>The crest picture built into the setup program (null if it is missing).</summary>
+        private static Image HeaderCrest()
+        {
+            try
+            {
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("crest-header.png");
+                return stream == null ? null : Image.FromStream(stream);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private Control BuildGamePage()

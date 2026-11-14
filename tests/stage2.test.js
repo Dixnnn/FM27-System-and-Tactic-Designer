@@ -160,9 +160,11 @@ test('training: sessions are real FM27 session names; no hard-to-train attribute
   }
 });
 
-test('alternatives: an away setup, a home setup and a different shape', () => {
-  const [away, home, other] = result.alternatives;
-  assert.equal(result.alternatives.length, 3);
+test('alternatives: an away setup, a home setup, a rotation XI and a different shape', () => {
+  const find = (t) => result.alternatives.find((a) => a.title.startsWith(t));
+  const [away, home, other] = [find('Away'), find('At home'), find('Different shape')];
+  assert.equal(result.alternatives.length, 4);
+  assert.ok(find('Cup games and rotation'));
   const order = docs.instructions.mentalities;
   assert.ok(order.indexOf(away.instructions.mentality.value) < order.indexOf(result.instructions.mentality.value), 'away is more careful');
   assert.ok(order.indexOf(home.instructions.mentality.value) > order.indexOf(result.instructions.mentality.value), 'home is more attacking');
